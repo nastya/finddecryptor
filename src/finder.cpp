@@ -1,12 +1,15 @@
 #include "finder.h"
 
-
 using namespace std;
 
 const int Finder::MaxCommandSize = 10;
-const char* Finder::ComandsChanging [] = {"xor","add","and","or","sub","mul","imul","div","mov","pop"};
+const Mode Finder::mode = MODE_32;
+const Format Finder::format = FORMAT_INTEL;
 const char* Finder::Registers [] = {"eax","edx","ecx","ebx","edi","esi","ebp","esp","ax","dx","cx","bx","di","si","bp","sp",
 "ah","dh","ch","bh","al","dl","cl","bl" }; 
+const char* Finder::CommandsChanging [] = {"xor","add","and","or","sub","mul","imul","div","mov","pop"};
+const int Finder::RegistersCount = sizeof(Registers)/sizeof(Registers[0]);
+const int Finder::CommandsChangingCount = sizeof(CommandsChanging)/sizeof(CommandsChanging[0]);
 
 Finder::Finder()
 {
@@ -21,38 +24,34 @@ Finder::Finder(char* name)
 
 Finder::~Finder()
 {
-	clear_data();
+	clear();
+	delete[] regs_target;
 }
 
 void Finder::init()
 {
-	RegistersCount = sizeof(Registers)/sizeof(Registers[0]);
-	ComandsChangingCount = sizeof(ComandsChanging)/sizeof(ComandsChanging[0]);
-	format = FORMAT_INTEL;
+	regs_target = new bool[RegistersCount];
+	memset(regs_target,false,RegistersCount);
 	data = NULL;
+	dataSize = 0;
 }
-void Finder::clear_data()
+void Finder::clear()
 {
-	free(data);
+	memset(regs_target,false,RegistersCount);
+	delete[] data;
 	data = NULL;
+	dataSize = 0;
 }
 
 void Finder::find() {
 	INSTRUCTION inst;
-	char string1[256]; 
-	
-	int len;
-	
 	for (int i = 0; i < dataSize; i++)
 	{
-		len = get_instruction(&inst, &data[i], MODE_32);
-		if (!len || (len + i > dataSize))
+		int len = get_instruction(&inst, &data[i], mode);
+		if (!len || (len + i > dataSize)) continue;
+		if (strcmp(inst.ptr->mnemonic,"call")==0||strcmp(inst.ptr->mnemonic,"fstenv")==0||strcmp(inst.ptr->mnemonic,"fnstenv")==0)
 		{
-			continue;
-		}		
-		get_mnemonic_string(&inst, format,  string1, sizeof(string1));
-		if (strcmp(string1,"fnstenv")==0||strcmp(string1,"call")==0||strcmp(string1,"fstenv")==0)
-		{
+			char string1[256]; 
 			get_instruction_string(&inst, format, (DWORD)i, string1, sizeof(string1));
 			cout << "Instruction \"" << string1 << "\" on position " << i << "." << endl;
 			find_memory(i);
@@ -64,373 +63,282 @@ void Finder::find() {
 
 int Finder::find_memory(int pos)
 {
-	int _pos=pos; //position of seeding instruction
-	vector<string> *regs_target;
 	INSTRUCTION inst;
-	char string1[256], string2[256]; 
 	int len;
-	vector <INSTRUCTION>* instructions=new vector <INSTRUCTION>;
-	
-	//vector <int> len_inst;
-	instructions->clear();
-	//len_inst.clear();
-	for(; pos<dataSize; pos+=len)
+	vector <INSTRUCTION> instructions;
+	for (int p=pos; p<dataSize; p+=len)
 	{
-		len = get_instruction(&inst,&data[pos],MODE_32);
-		if (!len || (len + pos > dataSize))
+		len = get_instruction(&inst,&data[p],mode);
+		if (!len || (len + p > dataSize))
 		{
-			pos++;
+			p++;
 			continue;
 		}
-		get_instruction_string(&inst, format, (DWORD)pos, string1, sizeof(string1));
-		get_mnemonic_string(&inst, format,  string2, sizeof(string2));
-		instructions->push_back(inst);
-		//len_inst.push_back(len);
-		
-		for (int i=0; i<ComandsChangingCount; i++)
-			if (strcmp(string2,ComandsChanging[i])==0)
+		instructions.push_back(inst);
+		if (inst.op1.type != OPERAND_TYPE_MEMORY) continue;
+		/// TODO: add some inst-based logic here instead of string-based
+		char string1[256];
+		get_instruction_string(&inst, format, (DWORD)p, string1, sizeof(string1));
+		char *popen = index(string1,'['), *pclose = index(string1,']'), *pcomma = index(string1,',');
+		if ((popen==NULL)||(pclose<popen)||(pcomma<pclose)) continue;
+		for (int i=0; i<CommandsChangingCount; i++)
+			if (strcmp(inst.ptr->mnemonic,CommandsChanging[i])==0)
 			{
-				for(int j=0;j<RegistersCount;j++)
+				for (int j=0;j<RegistersCount;j++)
 				{
-					if ((my_pos(string1,"[")!=-1)&&(my_pos(string1,Registers[j])>my_pos(string1,"["))
-						&&(my_pos(string1,"]")>my_pos(string1,Registers[j]))&&(my_pos(string1,",")>my_pos(string1,"]")))
+					char *preg = strstr(string1,Registers[j]);
+					if ((preg<popen)||(pclose<preg)) continue;
+					cout << "Write to memory detected: " << string1 << " on position " << p << endl;
+					get_operands(p);
+					check1(&instructions); /// Checking whether operands of target instruction are defined
+					backwards_traversal(pos);
+					print_commands(&instructions,1);
+					memset(regs_target,false,RegistersCount);
+					return p;
+				}
+			}
+	}
+	return -1;
+}
+
+void Finder::check1(vector <INSTRUCTION>* instructions)
+{
+	for (int k=instructions->size()-1;k>=0;k--)
+	{
+		check_inst((*instructions)[k]);
+	}
+}
+
+bool Finder::check2(vector <int>* queue, vector <int>* prev)
+{
+	vector <INSTRUCTION> commands;
+	get_commands(&commands,queue,prev); 
+	check1(&commands);
+	for (int i=0; i<RegistersCount; i++) {
+		if (regs_target[i]) return false;
+	}
+	return true;
+}
+
+void Finder::get_commands(vector <INSTRUCTION>* commands, vector <int>* num_commands, vector <int>* prev)
+{
+	INSTRUCTION inst;
+	for (int i=num_commands->size()-1;i!=-1;i=(*prev)[i])
+	{
+		get_instruction(&inst,&data[(*num_commands)[i]],mode);
+		commands->push_back(inst);
+	}
+}
+
+void Finder::check_inst(INSTRUCTION inst)
+{
+	char string1[256];
+	get_instruction_string(&inst, format, 0, string1, sizeof(string1));
+	char *pos_reg, *pos_comma;
+	/// TODO: add more instruction types here
+	switch (inst.type)
+	{
+		case INSTRUCTION_TYPE_XOR:
+		case INSTRUCTION_TYPE_SUB:
+		case INSTRUCTION_TYPE_SBB:
+		case INSTRUCTION_TYPE_DIV:
+		case INSTRUCTION_TYPE_IDIV:
+			pos_comma = index(string1,',');
+			for (int i=0; i<RegistersCount; i++)
+			{
+				if (!regs_target[i]) continue;
+				pos_reg = strstr(string1,Registers[i]);
+				if ((pos_reg!=NULL)&&(pos_comma>pos_reg)&&(*(pos_reg-1)==' '))
+				{
+					if (strstr(pos_comma,Registers[i])!=NULL)
 					{
-						cout << "Write to memory detected: " << string1 << " on position " << pos << endl;
-						regs_target = get_operands(pos);
-						check1(instructions,regs_target);//checking whether operands of target instruction are defined
-						//for(int i=0;i<regs_target->size();i++)
-						//	cout<<(*regs_target)[i]<<" ";
-						//cout<<endl;
-						backwards_traversal(_pos,regs_target);
-						for(int ii=1;ii<instructions->size();ii++)
+						regs_target[i] = false;
+					}
+					for (int t=0; t<RegistersCount; t++)
+					{
+						if (strstr(pos_comma,Registers[t])!=NULL)
 						{
-							get_instruction_string(&((*instructions)[ii]), format, 0, string1, sizeof(string1));
-							cout<<string1<<endl;
+							regs_target[t] = true;
+							break;
 						}
-						delete regs_target;
-						return pos;
 					}
 				}
 			}
-				
-	}
-	return -1;
-	
-}
-
-void Finder::check1(vector <INSTRUCTION>* instructions, vector <string>* regs_target)
-{
-	for(int k=instructions->size()-1;k>=0;k--)
-	{
-		check_inst((*instructions)[k],regs_target);
-	}
-}
-
-bool Finder::check2(vector <int>* num_comands, vector <int>* prev, vector <string>* regs_target)
-{
-	vector <INSTRUCTION>* comands=get_comands(num_comands,prev);
-	check1(comands,regs_target);
-	return (regs_target->size()==0);
-}
-
-vector <INSTRUCTION>* Finder::get_comands(vector <int>* num_comands,vector <int>* prev)
-{
-	INSTRUCTION inst;
-	vector <INSTRUCTION>* comands= new vector <INSTRUCTION>;
-	comands->clear();
-	for(int i=num_comands->size()-1;i!=-1;i=(*prev)[i])
-	{
-		get_instruction(&inst,&data[(*num_comands)[i]],MODE_32);
-		comands->push_back(inst);
-	}
-	return comands;
-}
-
-void Finder::check_inst(INSTRUCTION inst, vector <string>* regs_target)
-{
-	char string1[256], string2[256];
-	int pos_reg, pos_comma, pos_reg2;
-	get_instruction_string(&inst, format, 0, string1, sizeof(string1));
-	get_mnemonic_string(&inst, format,  string2, sizeof(string2));
-	for(int ii=0;ii<ComandsChangingCount;ii++)
-	{
-		if (strcmp(string2,ComandsChanging[ii])==0)
-		{
-			switch(ii)
+			break;
+		case INSTRUCTION_TYPE_ADD:
+		case INSTRUCTION_TYPE_AND:
+		case INSTRUCTION_TYPE_OR:
+		case INSTRUCTION_TYPE_MUL:
+		case INSTRUCTION_TYPE_IMUL:
+			pos_comma = index(string1,',');
+			for (int i=0; i<RegistersCount; i++)
 			{
-				//{"xor","add","and","or","sub","mul","imul","div","mov","pop"}
-				/*xor, sub, div*/ case 0: case 4: case 7: for(int ij=0;ij<regs_target->size();ij++)
+				if (!regs_target[i]) continue;
+				pos_reg = strstr(string1,Registers[i]);
+				if ((pos_reg!=NULL)&&(pos_comma>pos_reg)&&(*(pos_reg-1)==' '))
+				{
+					for (int t=0; t<RegistersCount; t++)
+					{
+						if (strstr(pos_comma,Registers[t])!=NULL)
 						{
-							pos_reg=my_pos(string1,to_char((*regs_target)[ij]));
-							pos_comma=my_pos(string1,",");
-							pos_reg2=my_pos(string1,to_char((*regs_target)[ij]),pos_comma);
-							if (pos_reg!=-1&&pos_comma>pos_reg&&string1[pos_reg-1]==' '&&pos_reg2!=-1)
-							{
-								delete_from_vector(regs_target,ij);															
-							}
-							for(int t=0;t<RegistersCount;t++)
-							{
-								pos_reg2=my_pos(string1,to_char(Registers[t]),pos_comma);
-								if (pos_reg!=-1&&pos_comma>pos_reg&&string1[pos_reg-1]==' '&&pos_reg2!=-1)
-								{
-									regs_target->push_back(Registers[t]);
-									break;
-								}
-							}
+							regs_target[t] = true;
+							break;
 						}
-						break;
-				/*add, and, or, mul, imul*/ case 1: case 2: case 3: case 5: case 6: for(int ij=0;ij<regs_target->size();ij++)
-						{
-							pos_reg=my_pos(string1,to_char((*regs_target)[ij]));
-							pos_comma=my_pos(string1,",");
-							for(int t=0;t<RegistersCount;t++)
-							{
-								pos_reg2=my_pos(string1,to_char(Registers[t]),pos_comma);
-								if (pos_reg!=-1&&pos_comma>pos_reg&&string1[pos_reg-1]==' '&&pos_reg2!=-1)
-								{
-									regs_target->push_back(Registers[t]);
-									break;
-								}
-							}
-						}
-						break;
-				/*mov*/ case 8: for(int ij=0;ij<regs_target->size();ij++)
-						{
-							pos_reg=my_pos(string1,to_char((*regs_target)[ij]));
-							pos_comma=my_pos(string1,",");
-							if (pos_reg!=-1&&pos_comma>pos_reg&&string1[pos_reg-1]==' ')
-							{
-								delete_from_vector(regs_target,ij);															
-							}
-						}
-						break;
-				/*pop*/ case 9: //cout<<"!!!Comand "<<string2<<" "<<ii<<endl;
-						for(int ij=0;ij<regs_target->size();ij++)
-						{
-							pos_reg=my_pos(string1,to_char((*regs_target)[ij]));
-							if (pos_reg!=-1&&string1[pos_reg-1]==' ')
-							{
-								delete_from_vector(regs_target,ij);
-								regs_target->push_back("esp");
-							}
-						}
-						break;
-				
+					}
+				}
 			}
-			
-		}
-			
+			break;
+		case INSTRUCTION_TYPE_MOV:
+			pos_comma = index(string1,',');
+			for (int i=0; i<RegistersCount; i++)
+			{
+				if (!regs_target[i]) continue;
+				pos_reg = strstr(string1,Registers[i]);
+				if ((pos_reg!=NULL)&&(pos_comma>pos_reg)&&(*(pos_reg-1)==' '))
+				{
+					regs_target[i] = false;
+					break;
+				}
+			}
+			break;
+		case INSTRUCTION_TYPE_POP:
+			for (int i=0; i<RegistersCount; i++)
+			{
+				if (!regs_target[i]) continue;
+				pos_reg = strstr(string1,Registers[i]);
+				if ((pos_reg!=NULL)&&(*(pos_reg-1)==' '))
+				{
+					regs_target[i] = false;
+					regs_target[ESP] = true;
+					break;
+				}
+			}
+			break;
+		case INSTRUCTION_TYPE_FCMOVC:
+			regs_target[ESP] = false;
+			break;
 	}
-	int j=-1;
-	for(int i=0;i<regs_target->size();i++)
-		if (strcmp(to_char((*regs_target)[i]),"esp")==0)
-			j=i;
-	if (j!=-1&&my_pos(string2,"fcmov")!=-1)
-		delete_from_vector(regs_target,j);
 }
 
-void Finder::print_comands(vector <INSTRUCTION>* v)
+void Finder::print_commands(vector <INSTRUCTION>* v, int start)
 {
-	char string1[256],string2[256];
-	for(int i=0;i<v->size();i++)
+	char string1[256];
+	int i=0;
+	vector<INSTRUCTION>::iterator p;
+	for (vector<INSTRUCTION>::iterator p=v->begin(); p!=v->end(); i++,p++)
 	{
-		get_instruction_string(&((*v)[i]), format, 0, string1, sizeof(string1));
-		get_mnemonic_string(&((*v)[i]), format,  string2, sizeof(string2));
-		cout<<string1<<endl;
+		if (i<start) continue;
+		get_instruction_string(&(*p), format, 0, string1, sizeof(string1));
+		cout << string1 << endl;
 	}
 }
 
-void Finder::backwards_traversal(int pos, vector <string>* regs_target)
+void Finder::backwards_traversal(int pos)
 {
 	INSTRUCTION inst;
-	int len;
 	char string1[256];
-	int cur=0;
 	int length=1;
-	vector <int>* queue=new vector <int>;
-	vector <int>* prev=new vector <int>;
-	vector <string> copy_of_regs;
-	for(int i=0;i<regs_target->size();i++)
-		copy_of_regs.push_back((*regs_target)[i]);
-	queue->clear();
-	prev->clear();
-	queue->push_back(pos);
-	prev->push_back(-1);
-	while(cur<length)
+	bool regs_target_bak[RegistersCount];
+	memcpy(regs_target_bak,regs_target,RegistersCount);
+	vector <int> queue, prev;
+	queue.push_back(pos);
+	prev.push_back(-1);
+	for (int cur=0; cur<length;)
 	{
-		for(int i=1;i<=MaxCommandSize;i++)
+		for (int i=1;i<=MaxCommandSize;i++)
 		{
-			len = get_instruction(&inst,&data[(*queue)[cur]-i],MODE_32);
-			if (len==i)
+			if (get_instruction(&inst,&data[queue[cur]-i],mode)==i)
 			{
-				queue->push_back((*queue)[cur]-i);
-				prev->push_back(cur);
+				queue.push_back(queue[cur]-i);
+				prev.push_back(cur);
 				length++;
-				if (check2(queue,prev,regs_target))
+				if (check2(&queue,&prev))
 				{
 					length=0;
 					break;
 				}
 				else
 				{
-					regs_target->clear();
-					for(int j=0;j<copy_of_regs.size();j++)
-						regs_target->push_back(copy_of_regs[j]);
+					memcpy(regs_target,regs_target_bak,RegistersCount);
 				}
 			}
 		}
 		cur++;
 	}
-	vector <INSTRUCTION>* instructions=get_comands(queue,prev); 
-	print_comands(instructions);
+	vector <INSTRUCTION> commands;
+	get_commands(&commands,&queue,&prev); 
+	print_commands(&commands);
 }
 
-void Finder::delete_from_vector(vector <string>* regs_target, int ij)
+void Finder::get_operands(int pos)
 {
-	for(int ik=ij;ik<regs_target->size()-1;ik++)
-		(*regs_target)[ik]=(*regs_target)[ik+1];
-	regs_target->pop_back();
-}
-
-char* Finder::to_char(string s)
-{
-	int i;
-	char *str=new char [s.length()+1];
-	for(i=0;i<s.length();i++)
-		str[i]=s[i];
-	str[i]='\0';
-	return str;
-}
-
-vector<string> * Finder::get_operands(int pos)
-{
-	vector<string> *regs_target = new vector<string>;
-	regs_target->clear();
 	INSTRUCTION inst;
-	get_instruction(&inst,&data[pos],MODE_32);
-	char string1[256];
-	int _pos;
+	char string1[256], *p;
+	get_instruction(&inst,&data[pos],mode);
 	get_instruction_string(&inst,format,(DWORD)pos,string1,sizeof(string1));
-	for(int i=0; i<RegistersCount; i++)
+	for (int i=0; i<RegistersCount; i++)
 	{
-		_pos=my_pos(string1,Registers[i]);
-		if (_pos!=-1&&(string1[_pos-1]=='['||string1[_pos-1]==' '||string1[_pos-1]==','||string1[_pos-1]=='+'||string1[_pos-1]=='-'))
-		{
-			regs_target->push_back(Registers[i]);
-			//switch(i)
-			//{
-			//	/*ax*/case 8: regs_target->push_back("ah");
-			//		      regs_target->push_back("al"); break;
-			//	/*dx*/case 9: regs_target->push_back("dh");
-			//		      regs_target->push_back("dl"); break;
-			//	/*cx*/case 10: regs_target->push_back("ch");
-			//		       regs_target->push_back("cl"); break;
-			//	/*bx*/case 11: regs_target->push_back("bh");
-			//		       regs_target->push_back("bl"); break;
-			//	      default: regs_target->push_back(Registers[i]);
-				
-			//}			
-			
-			//cout<<Registers[i]<<" ";
+		if (regs_target[i]) continue;
+		p = strstr(string1,Registers[i]);
+		if (p==NULL) continue;
+		switch (*(p-1)) {
+			case '[': case ' ': case ',': case '+': case '-':
+				regs_target[i] = true;
+				/// TODO: split large registers into smaller ones?
+				break;
 		}
-		
-			
 	}
-	//clear same registers
-	//for(int i=0;i<regs_target->size();i++)
-	//	cout<<(*regs_target)[i]<<" ";
-	//cout<<endl;
-	return regs_target;
 }
 
 int Finder::find_jump(int pos)
 {
 	INSTRUCTION inst;
-	char string1[256], string2[256]; 
+	char string1[256]; 
 	int len;
-	
-	for(; pos<dataSize; pos+=len)
+	for (; pos<dataSize; pos+=len)
 	{
-		len = get_instruction(&inst,&data[pos],MODE_32);
+		len = get_instruction(&inst,&data[pos],mode);
 		if (!len || (len + pos > dataSize))
 		{
 			pos++;
 			continue;
 		}
 		get_instruction_string(&inst, format, (DWORD)pos, string1, sizeof(string1));
-		get_mnemonic_string(&inst, format,  string2, sizeof(string2));
-		
-		if (string2[0]=='j')
+		if (string1[0]=='j')
 		{
+			char *pspace = index(string1,' ');
+			if (pspace==NULL) continue;
 			for (int i=0; i<RegistersCount; i++)
-				if ((my_pos(string1," ")!=-1)&&(my_pos(string1,Registers[i])>my_pos(string1," ")))
+			{
+				if (strstr(string1,Registers[i]) > pspace)
 				{
 					cout << "Indirect jump detected: " << string1 << " on position " << pos << endl;
 					get_operands(pos);
 					return pos;
 				}
+			}
 		}
 	}
 	return -1;
 	
 }
 
-int Finder::my_pos(char* s, const char *p, int start) //naive
-{
-	bool ok;
-	int j,i1;
-	for(int i=start; s[i] != '\0'; i++)
-	{
-		ok=true;
-		for(j=0,i1=i; p[j]!='\0';j++,i1++)
-		{
-			if (s[i1]!=p[j])
-			{
-				ok=false;
-				break;
-			}
-		}
-		if (ok)
-			return i;
-	}
-	return -1;
-}
-/*
-int Finder::my_pos(char* s, const char *p, int start) {
-	char *pos = strstr(s+start, p);
-	return (pos==NULL)?-1:((int) (pos-s));
-}
-*/
-
 void Finder::read_file(char *name)
 {
-	clear_data();
-	FILE *fp;
-	int c;
-	struct stat sstat;
-
-	if ((fp = fopen(name, "r+b")) == NULL)
+	clear();
+	ifstream s(name);
+	if (!s.good()) 
 	{
-		cerr << "Error: unable to open file \"" << name << "\"" << endl;
-		exit(0);
+		cout << "Error opening file\n";
+		return;
 	}
-
-	/* Get file len */
-	if ((c = stat(name, &sstat)) == -1)
-	{
-		cerr << "Error: stat" << endl;
-		exit (1);
-	}
-
-	dataSize = sstat.st_size;
+	
+	/// TODO: rewrite this part
+		struct stat sstat;
+		stat(name, &sstat);
+		dataSize = sstat.st_size;
+	
 	data = new unsigned char[dataSize];
-
-	/* Read file in allocated space */
-	if ((c = fread(data, 1, dataSize, fp)) != dataSize)
-	{
-		cerr << "Error: fread" << endl;
-		exit (1);
-	}
-
-	fclose(fp);
-} 
+	s.read((char *) data,dataSize);
+	s.close();
+}
