@@ -1,3 +1,3 @@
 #!/bin/bash
 
-g++ libdasm.o myprogram.cpp finder.cpp -o ../bin/myprogram
+g++ -O3 libdasm.o myprogram.cpp finder.cpp -o ../bin/myprogram
