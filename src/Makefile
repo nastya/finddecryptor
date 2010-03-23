@@ -16,7 +16,7 @@ TARGET        = ../bin/myprogram
 
 ####### Build rules
 
-all: $(TARGET)
+all: $(TARGET) test
 
 clean:
 	-$(DEL_FILE) $(OBJECTS)
@@ -35,3 +35,8 @@ finder.o: finder.cpp finder.h libdasm.h
 
 emulator.o: emulator.cpp
 	$(CXX) -c emulator.cpp
+
+test: $(TARGET) 
+	./$(TARGET) ../input/input.exe > ../output.txt
+	./$(TARGET) ../input/adduserkate_encodedjmpcall.exe > ../output.txt 
+	./$(TARGET) ../input/cmd_exe_countdown.exe  > ../output.txt
