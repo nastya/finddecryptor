@@ -38,7 +38,7 @@
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_finder.html#a49f6d5e4dee557d60ad8e8eab2a3d628">clear</a> ()</td></tr>
 <tr><td colspan="2"><h2>Private Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_finder.html#ac5ee4ffa9c5df98268bd47937761293c">find_memory</a> (int pos)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_finder.html#ac46154144dc7e7e248c113759e743ebd">find_jump</a> (int)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_finder.html#a014b93615cd1d5b5ed3f215328b6ec59">find_jump</a> (int pos)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_finder.html#a88e95f4da3408deb9248e669aa352e68">backwards_traversal</a> (int)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_finder.html#aca9c00e757ee56aad905740a2ff4db77">get_operands</a> (int)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_finder.html#a349f02a5aeaa6e92643e4ecbdea46962">print_commands</a> (vector&lt; <a class="el" href="struct___i_n_s_t_r_u_c_t_i_o_n.html">INSTRUCTION</a> &gt; *, int start=0)</td></tr>
@@ -165,6 +165,13 @@ Here is the call graph for this function:</div>
       </table>
 </div>
 <div class="memdoc">
+<p>Implements techniques of backwards traversal. Disassembles bytes in reverse order from pos. Founds the most appropriate chain using special rules (all the variables of target instruction should be defined within that chain). </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>pos</em>&nbsp;</td><td>Starting point of the process. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 <p>Definition at line <a class="el" href="finder_8cpp_source.html#l00236">236</a> of file <a class="el" href="finder_8cpp_source.html">finder.cpp</a>.</p>
 
@@ -364,7 +371,7 @@ Here is the call graph for this function:</div>
 <div class="dynsection">
 <div class="center"><img src="class_finder_ad22c1d1209a2cda6cc7353302b1a5875_cgraph.png" border="0" usemap="#class_finder_ad22c1d1209a2cda6cc7353302b1a5875_cgraph_map" alt=""></div>
 <map name="class_finder_ad22c1d1209a2cda6cc7353302b1a5875_cgraph_map" id="class_finder_ad22c1d1209a2cda6cc7353302b1a5875_cgraph">
-<area shape="rect" id="node3" href="class_finder.html#ac46154144dc7e7e248c113759e743ebd" title="Finder::find_jump" alt="" coords="615,143,745,172"/><area shape="rect" id="node5" href="libdasm_8h.html#a2f59f203986bd0803fcefec8dfad0648" title="get_instruction" alt="" coords="1041,220,1159,249"/><area shape="rect" id="node7" href="libdasm_8h.html#a59bea58c0399283723ab9ec218ed3e38" title="get_instruction_string" alt="" coords="1216,351,1376,380"/><area shape="rect" id="node13" href="class_finder.html#ac5ee4ffa9c5df98268bd47937761293c" title="Finder::find_memory" alt="" coords="144,360,296,389"/><area shape="rect" id="node9" href="class_finder.html#aca9c00e757ee56aad905740a2ff4db77" title="Finder::get_operands" alt="" coords="823,245,977,275"/><area shape="rect" id="node15" href="class_finder.html#a88e95f4da3408deb9248e669aa352e68" title="Finder::backwards_traversal" alt="" coords="345,360,543,389"/><area shape="rect" id="node19" href="class_finder.html#a7be7255150d46dc847ca06adf83992b8" title="Finder::check1" alt="" coords="844,453,956,483"/><area shape="rect" id="node29" href="class_finder.html#a349f02a5aeaa6e92643e4ecbdea46962" title="Finder::print_commands" alt="" coords="592,452,768,481"/><area shape="rect" id="node17" href="class_finder.html#a532c53090ba713b6c220011a6cdb328b" title="Finder::check2" alt="" coords="624,399,736,428"/><area shape="rect" id="node24" href="class_finder.html#ae6f5f4197a59b5ac2a483866ba3fc5e5" title="Finder::get_commands" alt="" coords="816,349,984,379"/><area shape="rect" id="node21" href="class_finder.html#a06a03361e8b67462092bcce1c13e0f3e" title="Finder::check_inst" alt="" coords="1033,453,1167,483"/></map>
+<area shape="rect" id="node3" href="class_finder.html#a014b93615cd1d5b5ed3f215328b6ec59" title="Finder::find_jump" alt="" coords="615,143,745,172"/><area shape="rect" id="node5" href="libdasm_8h.html#a2f59f203986bd0803fcefec8dfad0648" title="get_instruction" alt="" coords="1041,220,1159,249"/><area shape="rect" id="node7" href="libdasm_8h.html#a59bea58c0399283723ab9ec218ed3e38" title="get_instruction_string" alt="" coords="1216,351,1376,380"/><area shape="rect" id="node13" href="class_finder.html#ac5ee4ffa9c5df98268bd47937761293c" title="Finder::find_memory" alt="" coords="144,360,296,389"/><area shape="rect" id="node9" href="class_finder.html#aca9c00e757ee56aad905740a2ff4db77" title="Finder::get_operands" alt="" coords="823,245,977,275"/><area shape="rect" id="node15" href="class_finder.html#a88e95f4da3408deb9248e669aa352e68" title="Finder::backwards_traversal" alt="" coords="345,360,543,389"/><area shape="rect" id="node19" href="class_finder.html#a7be7255150d46dc847ca06adf83992b8" title="Finder::check1" alt="" coords="844,453,956,483"/><area shape="rect" id="node29" href="class_finder.html#a349f02a5aeaa6e92643e4ecbdea46962" title="Finder::print_commands" alt="" coords="592,452,768,481"/><area shape="rect" id="node17" href="class_finder.html#a532c53090ba713b6c220011a6cdb328b" title="Finder::check2" alt="" coords="624,399,736,428"/><area shape="rect" id="node24" href="class_finder.html#ae6f5f4197a59b5ac2a483866ba3fc5e5" title="Finder::get_commands" alt="" coords="816,349,984,379"/><area shape="rect" id="node21" href="class_finder.html#a06a03361e8b67462092bcce1c13e0f3e" title="Finder::check_inst" alt="" coords="1033,453,1167,483"/></map>
 </div>
 </p>
 
@@ -379,7 +386,7 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a class="anchor" id="ac46154144dc7e7e248c113759e743ebd"></a><!-- doxytag: member="Finder::find_jump" ref="ac46154144dc7e7e248c113759e743ebd" args="(int)" -->
+<a class="anchor" id="a014b93615cd1d5b5ed3f215328b6ec59"></a><!-- doxytag: member="Finder::find_jump" ref="a014b93615cd1d5b5ed3f215328b6ec59" args="(int pos)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -394,14 +401,22 @@ Here is the caller graph for this function:</div>
       </table>
 </div>
 <div class="memdoc">
+<p>Finds indirect jumps (via disassembling sequence of bytes starting from pos). </p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>pos</em>&nbsp;</td><td>Position in binary file from which to start finding (number of byte). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>Returns the position of indirect or -1 if nothing found. </dd></dl>
 
 <p>Definition at line <a class="el" href="finder_8cpp_source.html#l00293">293</a> of file <a class="el" href="finder_8cpp_source.html">finder.cpp</a>.</p>
 
 <p><div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dynsection">
-<div class="center"><img src="class_finder_ac46154144dc7e7e248c113759e743ebd_cgraph.png" border="0" usemap="#class_finder_ac46154144dc7e7e248c113759e743ebd_cgraph_map" alt=""></div>
-<map name="class_finder_ac46154144dc7e7e248c113759e743ebd_cgraph_map" id="class_finder_ac46154144dc7e7e248c113759e743ebd_cgraph">
+<div class="center"><img src="class_finder_a014b93615cd1d5b5ed3f215328b6ec59_cgraph.png" border="0" usemap="#class_finder_a014b93615cd1d5b5ed3f215328b6ec59_cgraph_map" alt=""></div>
+<map name="class_finder_a014b93615cd1d5b5ed3f215328b6ec59_cgraph_map" id="class_finder_a014b93615cd1d5b5ed3f215328b6ec59_cgraph">
 <area shape="rect" id="node3" href="libdasm_8h.html#a2f59f203986bd0803fcefec8dfad0648" title="get_instruction" alt="" coords="411,5,528,35"/><area shape="rect" id="node5" href="libdasm_8h.html#a59bea58c0399283723ab9ec218ed3e38" title="get_instruction_string" alt="" coords="389,71,549,100"/><area shape="rect" id="node7" href="class_finder.html#aca9c00e757ee56aad905740a2ff4db77" title="Finder::get_operands" alt="" coords="185,44,340,73"/></map>
 </div>
 </p>
@@ -409,8 +424,8 @@ Here is the call graph for this function:</div>
 <p><div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dynsection">
-<div class="center"><img src="class_finder_ac46154144dc7e7e248c113759e743ebd_icgraph.png" border="0" usemap="#class_finder_ac46154144dc7e7e248c113759e743ebd_icgraph_map" alt=""></div>
-<map name="class_finder_ac46154144dc7e7e248c113759e743ebd_icgraph_map" id="class_finder_ac46154144dc7e7e248c113759e743ebd_icgraph">
+<div class="center"><img src="class_finder_a014b93615cd1d5b5ed3f215328b6ec59_icgraph.png" border="0" usemap="#class_finder_a014b93615cd1d5b5ed3f215328b6ec59_icgraph_map" alt=""></div>
+<map name="class_finder_a014b93615cd1d5b5ed3f215328b6ec59_icgraph_map" id="class_finder_a014b93615cd1d5b5ed3f215328b6ec59_icgraph">
 <area shape="rect" id="node3" href="class_finder.html#ad22c1d1209a2cda6cc7353302b1a5875" title="Finder::find" alt="" coords="184,5,275,35"/><area shape="rect" id="node5" href="myprogram_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627" title="main" alt="" coords="324,5,377,35"/></map>
 </div>
 </p>
@@ -432,7 +447,7 @@ Here is the caller graph for this function:</div>
       </table>
 </div>
 <div class="memdoc">
-<p>Finds instructions that write to memory. </p>
+<p>Finds instructions that write to memory (via disassembling sequence of bytes starting from pos). </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>pos</em>&nbsp;</td><td>Position in binary file from which to start finding (number of byte). </td></tr>
@@ -554,7 +569,7 @@ Here is the caller graph for this function:</div>
 <div class="dynsection">
 <div class="center"><img src="class_finder_aca9c00e757ee56aad905740a2ff4db77_icgraph.png" border="0" usemap="#class_finder_aca9c00e757ee56aad905740a2ff4db77_icgraph_map" alt=""></div>
 <map name="class_finder_aca9c00e757ee56aad905740a2ff4db77_icgraph_map" id="class_finder_aca9c00e757ee56aad905740a2ff4db77_icgraph">
-<area shape="rect" id="node3" href="class_finder.html#ac46154144dc7e7e248c113759e743ebd" title="Finder::find_jump" alt="" coords="221,5,352,35"/><area shape="rect" id="node9" href="class_finder.html#ac5ee4ffa9c5df98268bd47937761293c" title="Finder::find_memory" alt="" coords="211,59,363,88"/><area shape="rect" id="node5" href="class_finder.html#ad22c1d1209a2cda6cc7353302b1a5875" title="Finder::find" alt="" coords="411,32,501,61"/><area shape="rect" id="node7" href="myprogram_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627" title="main" alt="" coords="551,32,604,61"/></map>
+<area shape="rect" id="node3" href="class_finder.html#a014b93615cd1d5b5ed3f215328b6ec59" title="Finder::find_jump" alt="" coords="221,5,352,35"/><area shape="rect" id="node9" href="class_finder.html#ac5ee4ffa9c5df98268bd47937761293c" title="Finder::find_memory" alt="" coords="211,59,363,88"/><area shape="rect" id="node5" href="class_finder.html#ad22c1d1209a2cda6cc7353302b1a5875" title="Finder::find" alt="" coords="411,32,501,61"/><area shape="rect" id="node7" href="myprogram_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627" title="main" alt="" coords="551,32,604,61"/></map>
 </div>
 </p>
 
@@ -685,7 +700,7 @@ Here is the caller graph for this function:</div>
 </div>
 <div class="memdoc">
 
-<p>Definition at line <a class="el" href="finder_8h_source.html#l00046">46</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
+<p>Definition at line <a class="el" href="finder_8h_source.html#l00056">56</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
 
 </div>
 </div>
@@ -700,7 +715,7 @@ Here is the caller graph for this function:</div>
 </div>
 <div class="memdoc">
 
-<p>Definition at line <a class="el" href="finder_8h_source.html#l00045">45</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
+<p>Definition at line <a class="el" href="finder_8h_source.html#l00055">55</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
 
 </div>
 </div>
@@ -715,7 +730,7 @@ Here is the caller graph for this function:</div>
 </div>
 <div class="memdoc">
 
-<p>Definition at line <a class="el" href="finder_8h_source.html#l00043">43</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
+<p>Definition at line <a class="el" href="finder_8h_source.html#l00053">53</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
 
 </div>
 </div>
@@ -730,7 +745,7 @@ Here is the caller graph for this function:</div>
 </div>
 <div class="memdoc">
 
-<p>Definition at line <a class="el" href="finder_8h_source.html#l00044">44</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
+<p>Definition at line <a class="el" href="finder_8h_source.html#l00054">54</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
 
 </div>
 </div>
@@ -745,7 +760,7 @@ Here is the caller graph for this function:</div>
 </div>
 <div class="memdoc">
 
-<p>Definition at line <a class="el" href="finder_8h_source.html#l00049">49</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
+<p>Definition at line <a class="el" href="finder_8h_source.html#l00059">59</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
 
 </div>
 </div>
@@ -760,7 +775,7 @@ Here is the caller graph for this function:</div>
 </div>
 <div class="memdoc">
 
-<p>Definition at line <a class="el" href="finder_8h_source.html#l00047">47</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
+<p>Definition at line <a class="el" href="finder_8h_source.html#l00057">57</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
 
 </div>
 </div>
@@ -775,7 +790,7 @@ Here is the caller graph for this function:</div>
 </div>
 <div class="memdoc">
 
-<p>Definition at line <a class="el" href="finder_8h_source.html#l00048">48</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
+<p>Definition at line <a class="el" href="finder_8h_source.html#l00058">58</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
 
 </div>
 </div>
@@ -792,7 +807,7 @@ Here is the caller graph for this function:</div>
 <b>Initial value:</b><div class="fragment"><pre class="fragment"> {<span class="stringliteral">&quot;eax&quot;</span>,<span class="stringliteral">&quot;edx&quot;</span>,<span class="stringliteral">&quot;ecx&quot;</span>,<span class="stringliteral">&quot;ebx&quot;</span>,<span class="stringliteral">&quot;edi&quot;</span>,<span class="stringliteral">&quot;esi&quot;</span>,<span class="stringliteral">&quot;ebp&quot;</span>,<span class="stringliteral">&quot;esp&quot;</span>,<span class="stringliteral">&quot;ax&quot;</span>,<span class="stringliteral">&quot;dx&quot;</span>,<span class="stringliteral">&quot;cx&quot;</span>,<span class="stringliteral">&quot;bx&quot;</span>,<span class="stringliteral">&quot;di&quot;</span>,<span class="stringliteral">&quot;si&quot;</span>,<span class="stringliteral">&quot;bp&quot;</span>,<span class="stringliteral">&quot;sp&quot;</span>,
 <span class="stringliteral">&quot;ah&quot;</span>,<span class="stringliteral">&quot;dh&quot;</span>,<span class="stringliteral">&quot;ch&quot;</span>,<span class="stringliteral">&quot;bh&quot;</span>,<span class="stringliteral">&quot;al&quot;</span>,<span class="stringliteral">&quot;dl&quot;</span>,<span class="stringliteral">&quot;cl&quot;</span>,<span class="stringliteral">&quot;bl&quot;</span> }
 </pre></div>
-<p>Definition at line <a class="el" href="finder_8h_source.html#l00046">46</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
+<p>Definition at line <a class="el" href="finder_8h_source.html#l00056">56</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
 
 </div>
 </div>
@@ -807,7 +822,7 @@ Here is the caller graph for this function:</div>
 </div>
 <div class="memdoc">
 
-<p>Definition at line <a class="el" href="finder_8h_source.html#l00045">45</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
+<p>Definition at line <a class="el" href="finder_8h_source.html#l00055">55</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
 
 </div>
 </div>
@@ -822,7 +837,7 @@ Here is the caller graph for this function:</div>
 </div>
 <div class="memdoc">
 
-<p>Definition at line <a class="el" href="finder_8h_source.html#l00042">42</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
+<p>Definition at line <a class="el" href="finder_8h_source.html#l00052">52</a> of file <a class="el" href="finder_8h_source.html">finder.h</a>.</p>
 
 </div>
 </div>
@@ -831,7 +846,7 @@ Here is the caller graph for this function:</div>
 <li><a class="el" href="finder_8cpp_source.html">finder.cpp</a></li>
 </ul>
 </div>
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Mar 22 18:43:24 2010 for Course work by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Mon Mar 22 22:29:26 2010 for Course work by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

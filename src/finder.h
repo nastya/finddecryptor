@@ -24,12 +24,22 @@ public:
 	void clear();
 private:
 	/**
-	Finds instructions that write to memory.
+	Finds instructions that write to memory (via disassembling sequence of bytes starting from pos).
 	@param pos Position in binary file from which to start finding (number of byte).
 	@return Returns the position of write to memory or -1 if nothing found.
 	*/
 	int find_memory(int pos);
-	int find_jump(int);
+	/**
+	Finds indirect jumps (via disassembling sequence of bytes starting from pos).
+	@param pos Position in binary file from which to start finding (number of byte).
+	@return Returns the position of indirect or -1 if nothing found.
+	*/
+	int find_jump(int pos);
+	/**
+	Implements techniques of backwards traversal.
+	Disassembles bytes in reverse order from pos. Founds the most appropriate chain using special rules (all the variables of target instruction should be defined within that chain). 
+	@param pos Starting point of the process.
+	*/
 	void backwards_traversal(int);
 	void get_operands(int);
 	void print_commands(vector <INSTRUCTION>*, int start=0);
