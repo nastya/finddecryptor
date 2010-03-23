@@ -76,7 +76,7 @@ int Finder::find_memory(int pos)
 		}
 		instructions.push_back(inst);
 		if (inst.op1.type != OPERAND_TYPE_MEMORY) continue;
-		/// TODO: add some inst-based logic here instead of string-based
+		/// TODO: add some inst-based logic here instead of string-based.
 		char string1[256];
 		get_instruction_string(&inst, format, (DWORD)p, string1, sizeof(string1));
 		char *popen = index(string1,'['), *pclose = index(string1,']'), *pcomma = index(string1,',');
@@ -90,7 +90,7 @@ int Finder::find_memory(int pos)
 					if ((preg<popen)||(pclose<preg)) continue;
 					cout << "Write to memory detected: " << string1 << " on position " << p << endl;
 					get_operands(p);
-					check1(&instructions); /// Checking whether operands of target instruction are defined
+					check1(&instructions); // Checking whether operands of target instruction are defined
 					backwards_traversal(pos);
 					print_commands(&instructions,1);
 					memset(regs_target,false,RegistersCount);
@@ -327,17 +327,16 @@ void Finder::read_file(char *name)
 {
 	clear();
 	ifstream s(name);
-	if (!s.good()) 
+	if (!s.good() || s.eof() || !s.is_open()) 
 	{
 		cout << "Error opening file\n";
 		return;
 	}
-	
-	/// TODO: rewrite this part
-		struct stat sstat;
-		stat(name, &sstat);
-		dataSize = sstat.st_size;
-	
+	s.seekg(0, ios_base::beg);
+	ifstream::pos_type begin_pos = s.tellg();
+	s.seekg(0, ios_base::end);
+	dataSize = static_cast<int>(s.tellg() - begin_pos);
+	s.seekg(0, ios_base::beg);
 	data = new unsigned char[dataSize];
 	s.read((char *) data,dataSize);
 	s.close();

@@ -5,9 +5,11 @@ DEL_FILE      = rm -f
 ####### Files
 
 SOURCES       = myprogram.cpp \
+		emulator.cpp \
 		finder.cpp 
 
 OBJECTS       = myprogram.o \
+		emulator.o \
 		finder.o 
 
 TARGET        = ../bin/myprogram
@@ -30,3 +32,6 @@ myprogram.o: myprogram.cpp finder.h
 
 finder.o: finder.cpp finder.h libdasm.h
 	$(CXX) -c finder.cpp
+
+emulator.o: emulator.cpp
+	$(CXX) -c emulator.cpp

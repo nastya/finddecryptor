@@ -1,7 +1,6 @@
 #ifndef FINDER_H
 #define FINDER_H
 
-#include <sys/stat.h> /// TODO: ok, we really should remove this
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -24,7 +23,12 @@ public:
 	void read_file(char *);
 	void clear();
 private:
-	int find_memory(int);
+	/**
+	Finds instructions that write to memory.
+	@param pos Position in binary file from which to start finding (number of byte).
+	@return Returns the position of write to memory or -1 if nothing found.
+	*/
+	int find_memory(int pos);
 	int find_jump(int);
 	void backwards_traversal(int);
 	void get_operands(int);
