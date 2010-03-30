@@ -16,27 +16,26 @@ TARGET        = ../bin/myprogram
 
 ####### Build rules
 
+$(TARGET): libdasm.o $(OBJECTS)
+	$(CXX) -o $(TARGET) libdasm.o $(OBJECTS)
+
 all: $(TARGET) test
 
 clean:
 	-$(DEL_FILE) $(OBJECTS)
 	-$(DEL_FILE) *~
 
-$(TARGET): libdasm.o $(OBJECTS)
-	$(CXX) -o $(TARGET) libdasm.o $(OBJECTS)
-
 ####### Compile
 
 myprogram.o: myprogram.cpp finder.h
 	$(CXX) -c myprogram.cpp
 
-finder.o: finder.cpp finder.h libdasm.h
+finder.o: finder.cpp finder.h libdasm.h emulator.h
 	$(CXX) -c finder.cpp
 
-emulator.o: emulator.cpp
+emulator.o: emulator.cpp emulator.h
 	$(CXX) -c emulator.cpp
 
 test: $(TARGET) 
-	./$(TARGET) ../input/input.exe > ../output.txt
-	./$(TARGET) ../input/adduserkate_encodedjmpcall.exe > ../output.txt 
-	./$(TARGET) ../input/cmd_exe_countdown.exe  > ../output.txt
+	./$(TARGET) ../input/adduserkate_encodedjmpcall.exe > ../output_adduserkate_encodedjmpcall.txt 
+	./$(TARGET) ../input/cmd_exe_countdown.exe > ../output_cmd_exe_countdown.txt

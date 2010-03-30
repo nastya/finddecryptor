@@ -7,6 +7,7 @@
 #include <cstring>
 
 #include "libdasm.h" 
+#include "emulator.h"
 
 using namespace std;
 
@@ -110,6 +111,7 @@ private:
 	bool *regs_target; ///<registers to be defined (array which size is number of registers, regs_target[i]=true if register is to be defined and regs_target[i]=false vice versa)
 	unsigned char *data; ///<buffer containing binary file
 	int dataSize; ///<size of buffer data
+	Emulator emulator;
 	static const int RegistersCount, ///<an amount of registers (only observed registers)
 			 CommandsChangingCount; ///<an amount of commands writing to memory (only observed commands, not all)
 	static const char *Registers[], ///<observed registers

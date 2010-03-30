@@ -4,8 +4,11 @@
 class Emulator {
 public:
 	Emulator();
+	~Emulator();
+	void launch();
+	void destroy();
 private:
-	static const char *command_start;
+	int pid;
 };
 
 #endif
