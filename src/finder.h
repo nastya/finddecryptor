@@ -7,20 +7,17 @@
 #include <cstring>
 
 #include "libdasm.h" 
+#include "data.h"
 #include "emulator.h"
+#include "PEReader.h"
 
 using namespace std;
-
-///Enum type - observed registers
-enum Register {
-	EAX,EDX,ECX,EBX,EDI,ESI,EBP,ESP,AX,DX,CX,BX,DI,SI,BP,SP,AH,DH,CH,BH,AL,DL,CL,BL
-};
 
 /**
   @brief
     Class finding instructions to emulate.
  */
-class Finder {
+class Finder : private Data {
 public:
 	/**
 	Constructor of class Finder. Calls initialization function.
@@ -66,18 +63,13 @@ private:
 	Disassembles bytes in reverse order from pos. Founds the most appropriate chain using special rules (all the variables of target instruction should be defined within that chain) and prints it. 
 	@param pos Starting point of the process.
 	*/
-	void backwards_traversal(int pos);
+	int backwards_traversal(int pos);
 	/**
 	Gets operands of target instruction (registers used in it).
 	Saves this information in regs_target.
 	@param pos Position of target instruction in binary file.
 	*/
 	void get_operands(int pos);
-	/**
-	Prints commands from vector of instructions v.
-	@param start Position from which to print commands.
-	*/
-	void print_commands(vector <INSTRUCTION>* v, int start=0);
 	/**
 	Forms a chain of commands from the information containing in num_commands and prev vectors (they are formed in backwards_traversal).
 	@param num_commands - vector containing the starting positions of instructions (reference to first byte of instruction).
@@ -107,18 +99,44 @@ private:
 	Initializes variables for further use.
 	*/
 	void init();
-
+	void launch(int start, int pos=0);
+	int verify(char cycle[256][1024],int size);
+	bool verify_changing_reg(char cycle[256][1024], int size, int reg);
+	bool is_indirect_write(char * str, int * reg);
+	int get_address_jump(char *str);
+	int get_address(char *str);
+	int get_reg(char* str);
+	int str_to_int(const char *str);
+	void int_to_str(int num, char *str);
+	void get_operands_string(char* string1);
+	void smaller_to_greater_regs();
+	
+	vector <INSTRUCTION> instructions_after_getpc;
+	int starting_point;
+	int start_emul;
+	int pos_getpc;
+	ofstream *out;
+	PEReader reader;
+	
+	bool *all_regs_target;
 	bool *regs_target; ///<registers to be defined (array which size is number of registers, regs_target[i]=true if register is to be defined and regs_target[i]=false vice versa)
+	
+	char* filename; ///<input file name
 	unsigned char *data; ///<buffer containing binary file
 	int dataSize; ///<size of buffer data
 	Emulator emulator;
-	static const int RegistersCount, ///<an amount of registers (only observed registers)
-			 CommandsChangingCount; ///<an amount of commands writing to memory (only observed commands, not all)
-	static const char *Registers[], ///<observed registers
-			  *CommandsChanging[]; ///<observed commands writing to memory
-	static const int MaxCommandSize; ///<maximum size of command in 32-bit architecture
 	static const Mode mode; ///<mode of disassembling (here it is MODE_32)
 	static const Format format; ///<format of commands (here it is Intel)
+
+	/** Debug **/
+	/**
+	Prints commands from vector of instructions v.
+	@param start Position from which to print commands.
+	*/
+	void print_commands(vector <INSTRUCTION>* v, int start=0);
+	string instruction_string(int pos);
+	ofstream *log;
+	/** /Debug **/
 };
 
 #endif
