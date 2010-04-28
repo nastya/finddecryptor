@@ -3,13 +3,15 @@
 #include <signal.h> 
 #include <stdio.h>
 #include <string.h>
-
-#include <stdlib.h>
-
+#include <stdlib.h>  
+#include <fcntl.h> 
+#include <fstream>
+#include "fdostream.h"
 
 Emulator::Emulator()
 {
 	pid[0] = pid[1] = 0;
+	out = NULL;
 }
 Emulator::~Emulator()
 {
@@ -26,8 +28,6 @@ void Emulator::start(char* filename)
 	stream_gdb(fd,filename);
 	stream_ctl(fd);
 	stream_main(fd);
-	
-	
 }
 void Emulator::stop()
 {
@@ -37,128 +37,144 @@ void Emulator::stop()
 		kill(pid[i], SIGKILL);
 		pid[i] = 0;
 	}
-	
+	if (out) delete out;
 } 
 
 void Emulator::end()
 {
-	cout << "kill" << endl;
-	cout << "exec-file wine" << endl;
+	(*out) << "kill" << endl;
+	(*out) << "exec-file wine" << endl;
 }
 void Emulator::begin(int start, int pos)
 {
-	cout << "b * 0xb7fff424" << endl;
-	cout << "run" << endl;
-	cout << "d" << endl;
-	cout << "b * 0xb7ea9c72" << endl;
-	cout << "c" << endl;
-	cout << "c 29" << endl;
-	cout << "d" << endl;
-	cout << "b * 0x"<< hex<<start<< endl;
-	cout << "c" << endl;
-	cout << "d" << endl;
+	(*out) << "tc syscall set_tid_address" << endl;
+	(*out) << "run" << endl;
+	(*out) << "tc syscall set_thread_area" << endl;
+	(*out) << "c" << endl;
+	(*out) << "tc syscall rt_sigaction" << endl;
+	(*out) << "c" << endl;
+	(*out) << "catch syscall open" << endl;
+	(*out) << "c" << endl;
+	(*out) << "c 29" << endl;
+	(*out) << "d" << endl;
+	(*out) << "tb * 0x" << hex << start << endl;
+	(*out) << "c" << endl;
 
 	if (pos!=0) jump(pos);
 }
 void Emulator::jump(int pos)
 {
-	cout << "b * 0x" << hex << pos << endl;
-	cout << "j * 0x" << hex << pos << endl;
-	cout << "d" << endl;	
-}
-void Emulator::stream_main(int fd[3][2]) 
-{
-	set_dup(fd, 2, 0);
-}
-void Emulator::set_dup(int fd[3][2], int s0, int s1)
-{
-	dup2(fd[s0][0], 0);
-	dup2(fd[s1][1], 1);
-	close(fd[0][1]);
-	close(fd[0][0]);
-	close(fd[1][1]);
-	close(fd[1][0]);
-	close(fd[2][0]);
-	close(fd[2][1]);
+	(*out) << "tb * 0x" << hex << pos << endl;
+	(*out) << "j * 0x" << hex << pos << endl;
 }
 
-string Emulator::get_command_string(bool do_step)
-{
-	cout << "x/i $eip" << endl;
-	if (do_step) step();
+bool Emulator::get_clean() {
 	string str = " ";
-	while (str[0]!='=')
+	bool ok = true;
+	/// TODO: rework this? We need to scan until input stops and buffer ends.
+	(*out) << "show prompt" << endl;
+	while (str[0]!='G')
 	{
 		getline(cin,str);
-		//cerr<<"\t"<<str<<endl;
-		while ((str[0]=='(') && (str.length() > 6)) 
-		{
-			str.replace(0,6,"");
-		}
+		if (str[0]=='!') ok = false;
 	}
-	str.replace(0,3,"");
-	//cerr<<"\t"<<str<<endl;
-	return str;
-} 
+	return ok;
+}
+bool Emulator::get_command(char *buff, int size)
+{
+	if (!get_clean()) return false;
+	string str;
+	int x;
+	char *y = (char *) &x;
+
+	for (int i=0; i<size; i+=2) {
+		(*out) << "x/hex $eip+" << i << endl;
+		getline(cin,str);
+		if (str[0]=='!') return false;
+		str.replace(0,str.find(':'),"");
+		x = str_to_int(str);
+		buff[0+i] = y[0];
+		buff[1+i] = y[1];
+	}
+	return true;
+}
 int Emulator::get_register(Register reg)
 {
-	cout << "i r " << Registers[reg] << endl;
+	if (!get_clean()) return -1;
+	(*out) << "i r " << Registers[reg] << endl;
 	string str;
-	while (str[0]!=Registers[reg][0])
-	{
-		getline(cin,str);
-		//cerr<<"\t"<<str<<endl;
-		while ((str[0]=='(') && (str.length() > 6)) 
-		{
-			str.replace(0,6,"");
-		}
-	}
-	for(int i=0;str.c_str()[i]!='\0';i++)
-		if (str.c_str()[i]=='0'&&str.c_str()[i+1]=='x')
-			return str_to_int(&str.c_str()[i+2]);
+	getline(cin,str);
+	return str_to_int(str);
 }
-int Emulator::str_to_int(const char *str)
+int Emulator::str_to_int(string str)
 {
 	int num;
-	sscanf(str,"%X",&num); ///TODO: is it really %X we need to use? May be %x?
-	//cerr << "0x" << hex << num << endl;
+	str.replace(0,str.find("0x"),"");
+	sscanf(str.c_str(),"%x",&num);
 	return num;
 }
 void Emulator::step()
 {
-	cout << "si" << endl;	
+	(*out) << "si" << endl;
+}
+void Emulator::fd_dup(int fd[3][2], int s0, int s1)
+{
+	dup2(fd[s0][0], 0);
+	dup2(fd[s1][1], 1);
+	fd_close(fd);
+}
+void Emulator::fd_close(int fd[3][2])
+{
+	close(fd[0][0]);
+	close(fd[0][1]);
+	close(fd[1][0]);
+	close(fd[1][1]);
+	close(fd[2][0]);
+	close(fd[2][1]);
+}
+void Emulator::stream_main(int fd[3][2]) 
+{
+	dup2(fd[2][0], 0);
+	out = new fdostream(fcntl(fd[0][1],F_DUPFD,0));
+	fd_close(fd);
 }
 void Emulator::stream_gdb(int fd[3][2], char* filename) 
 {
 	pid[0] = fork();
 	if (pid[0]) return;
 	
-	set_dup(fd,0,1);
+	fd_dup(fd,0,1);
+	dup2(1,2); /// We want to get cerr in cout.
 	
-	execlp("gdb","gdb","-silent","--args","wine",filename,NULL);
+	execlp("gdb","gdb","--quiet","--args","wine",filename,NULL);
 }
 
+/// Reading from gdb output with some post-processing
 void Emulator::stream_ctl(int fd[3][2]) 
 {
 	pid[1] = fork();
 	if (pid[1]) return;
 	
-	set_dup(fd,1,2);
+	fd_dup(fd,1,2);
 	
-	char buf[1];
-	char str[5000];
-	int pos=0,i=0;
+	string str;
+	//ofstream log("../dbg.txt");
+	//log.close();
 	for(;;)
 	{
-		while (read(0,buf,1))
+		getline(cin,str);
+		while ((str[0]=='(') && (str.length() >= 6)) 
 		{
-			str[pos]=buf[0];
-			pos++;
-			if((buf[0]==' ')||(buf[0]=='\n'))
-				break;
+			str.replace(0,6,"");
 		}
-		str[pos]='\0';
-		write(1,&str,pos);
-		pos=0;
+		if (str.length() == 0) continue;
+		//log.open("../dbg.txt",ios_base::out|ios_base::app);
+		//log << str << endl;
+		//log.close();
+		if ((str.find("Cannot")!=string::npos)||(str.find("Program received")!=string::npos)) {
+			str = "!Error!";
+		}
+		cout.write(str.c_str(),str.length()); /// We don't want to pass \0 to gdb.
+		cout << endl;
 	}
 }

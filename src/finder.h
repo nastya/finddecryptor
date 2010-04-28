@@ -13,6 +13,12 @@
 
 using namespace std;
 
+struct Command {
+	Command(int a=0, string s="");
+	int addr;
+	string str;
+};
+
 /**
   @brief
     Class finding instructions to emulate.
@@ -69,7 +75,7 @@ private:
 	Saves this information in regs_target.
 	@param pos Position of target instruction in binary file.
 	*/
-	void get_operands(int pos);
+	void get_operands(int pos, bool all=false);
 	/**
 	Forms a chain of commands from the information containing in num_commands and prev vectors (they are formed in backwards_traversal).
 	@param num_commands - vector containing the starting positions of instructions (reference to first byte of instruction).
@@ -100,22 +106,16 @@ private:
 	*/
 	void init();
 	void launch(int start, int pos=0);
-	int verify(char cycle[256][1024],int size);
-	bool verify_changing_reg(char cycle[256][1024], int size, int reg);
-	bool is_indirect_write(char * str, int * reg);
-	int get_address_jump(char *str);
-	int get_address(char *str);
-	int get_reg(char* str);
-	int str_to_int(const char *str);
-	void int_to_str(int num, char *str);
-	void get_operands_string(char* string1);
+	int verify(Command cycle[256],int size);
+	bool verify_changing_reg(Command cycle[256], int size, int reg);
+	bool is_indirect_write(string str, int * reg);
+	void get_operands(string str, bool all=true);
 	void smaller_to_greater_regs();
 	
 	vector <INSTRUCTION> instructions_after_getpc;
 	int starting_point;
 	int start_emul;
 	int pos_getpc;
-	ofstream *out;
 	PEReader reader;
 	
 	bool *all_regs_target;
@@ -128,13 +128,16 @@ private:
 	static const Mode mode; ///<mode of disassembling (here it is MODE_32)
 	static const Format format; ///<format of commands (here it is Intel)
 
+	string instruction_string(INSTRUCTION *inst);
+	string instruction_string(BYTE *data);
+	string instruction_string(int pos);
+
 	/** Debug **/
 	/**
 	Prints commands from vector of instructions v.
 	@param start Position from which to print commands.
 	*/
 	void print_commands(vector <INSTRUCTION>* v, int start=0);
-	string instruction_string(int pos);
 	ofstream *log;
 	/** /Debug **/
 };

@@ -3,7 +3,7 @@
 
 ///Enum type - observed registers
 enum Register {
-	EAX,EDX,ECX,EBX,EDI,ESI,EBP,ESP,AX,DX,CX,BX,DI,SI,BP,SP,AH,DH,CH,BH,AL,DL,CL,BL
+	EAX,EDX,ECX,EBX,EDI,ESI,EBP,ESP,EIP,AX,DX,CX,BX,DI,SI,BP,SP,AH,DH,CH,BH,AL,DL,CL,BL
 };
 
 class Data {

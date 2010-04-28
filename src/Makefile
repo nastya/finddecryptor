@@ -6,6 +6,7 @@ DEL_FILE	= rm -f
 ####### Files
 OBJECTS       = myprogram.o \
 		data.o \
+		fdostream.o \
 		libdasm.o \
 		emulator.o \
 		finder.o \
@@ -29,6 +30,9 @@ clean:
 libdasm.o: libdasm.c
 	$(CC) -c libdasm.c
 
+fdostream.o: fdostream.cpp fdostream.h
+	$(CXX) -c fdostream.cpp
+
 myprogram.o: myprogram.cpp finder.h
 	$(CXX) -c myprogram.cpp
 
@@ -45,5 +49,8 @@ emulator.o: emulator.cpp emulator.h
 	$(CXX) -c emulator.cpp
 
 test: $(TARGET) 
-	./$(TARGET) ../input/adduserkate_encodedjmpcall.exe > ../output_adduserkate_encodedjmpcall.txt 
-	./$(TARGET) ../input/cmd_exe_countdown.exe > ../output_cmd_exe_countdown.txt
+	./$(TARGET) ../input/cmd_exec_notepad.call4_dword_xor.exe > ../output.call4_dword_xor.txt
+	./$(TARGET) ../input/cmd_exec_notepad.fnstenv_mov.exe > ../output.fnstenv_mov.txt
+	./$(TARGET) ../input/cmd_exec_notepad.nonalpha.exe > ../output.nonalpha.txt
+	./$(TARGET) ../input/cmd_exec_notepad.countdown.exe > ../output.countdown.txt
+	./$(TARGET) ../input/cmd_exec_notepad.jmp_call_additive.exe > ../output.jmp_call_additive.txt

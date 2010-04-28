@@ -1,8 +1,10 @@
 #ifndef EMULATOR_H
 #define EMULATOR_H
+
 #include <iostream>
 #include <cstring>
 #include "data.h"
+
 using namespace std;
 
 class Emulator: Data{
@@ -16,16 +18,19 @@ public:
 	
 	void jump(int pos);
 	void step();
-	string get_command_string(bool do_step = true);
+	bool get_command(char *buff, int size=10);
 	int get_register(Register reg);
 private:
-	int str_to_int(const char *str);
+	bool get_clean();
+	int str_to_int(string str);
 	
 	void stream_gdb(int fd[3][2], char* filename);
 	void stream_ctl(int fd[3][2]);
 	void stream_main(int fd[3][2]);
-	void set_dup(int fd[3][2], int s0, int s1);	
-	int pid[2];	
+	void fd_dup(int fd[3][2], int s0, int s1);
+	void fd_close(int fd[3][2]);	
+	int pid[2];
+	ostream *out;
 };
 
 #endif 
