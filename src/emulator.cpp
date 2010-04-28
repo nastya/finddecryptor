@@ -47,6 +47,9 @@ void Emulator::end()
 }
 void Emulator::begin(int start, int pos)
 {
+	/// Ok, with this method wine should be launched before starting the program.
+	/// You can, for example, lauch winecfg, and keep it open while running the program.
+	
 	(*out) << "tc syscall set_tid_address" << endl;
 	(*out) << "run" << endl;
 	(*out) << "tc syscall set_thread_area" << endl;
