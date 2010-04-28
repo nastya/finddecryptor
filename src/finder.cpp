@@ -493,23 +493,23 @@ void Finder::get_operands(string str, bool all)
 }
 void Finder::smaller_to_greater_regs()
 {
-	for (int i=16;i<20;i++)
+	for (int i=AL;i<DL;i++)
 		if (regs_target[i])
 		{
-			regs_target[i]=false;
-			regs_target[i-8]=true;
+			regs_target[EAX-AL+i] = true;
+			regs_target[i] = false;
 		}
-	for (int i=20;i<24;i++)
+	for (int i=AH;i<DH;i++)
 		if (regs_target[i])
 		{
-			regs_target[i]=false;
-			regs_target[i-12]=true;
+			regs_target[EAX-AH+i] = true;
+			regs_target[i] = false;
 		}
-	for (int i=8;i<16;i++)
+	for (int i=AX;i<DX;i++)
 		if (regs_target[i])
 		{
-			regs_target[i]=false;
-			regs_target[i-8]=true;
+			regs_target[EAX-AX+i] = true;
+			regs_target[i] = false;
 		}
 }
 
