@@ -38,7 +38,8 @@ void Emulator::stop()
 		pid[i] = 0;
 	}
 	if (out) delete out;
-} 
+	out = NULL;
+}
 
 void Emulator::end()
 {
@@ -91,7 +92,7 @@ bool Emulator::get_command(char *buff, int size)
 	char *y = (char *) &x;
 
 	for (int i=0; i<size; i+=2) {
-		(*out) << "x/hex $eip+" << i << endl;
+		(*out) << "x/x $eip+" << i << endl;
 		getline(cin,str);
 		if (str[0]=='!') return false;
 		str.replace(0,str.find(':'),"");
@@ -177,7 +178,6 @@ void Emulator::stream_ctl(int fd[3][2])
 		if ((str.find("Cannot")!=string::npos)||(str.find("Program received")!=string::npos)) {
 			str = "!Error!";
 		}
-		cout.write(str.c_str(),str.length()); /// We don't want to pass \0 to gdb.
-		cout << endl;
+		cout << str << endl;
 	}
 }

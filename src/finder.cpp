@@ -28,8 +28,8 @@ Finder::Finder(char* name)
 Finder::~Finder()
 {
 	clear();
+	delete[] regs_known;
 	delete[] regs_target;
-	delete[] all_regs_target;
 	log->close();
 	delete log;
 }
@@ -49,32 +49,38 @@ void Finder::launch(int start, int pos)
 			emulator.end();
 			return;
 		}
-		command = instruction_string((BYTE *) buff);
 		num = emulator.get_register(EIP);
+		command = instruction_string((BYTE *) buff, num);
 		emulator.step();
 		(*log) << "  Command: 0x" << hex << num << ": " << command << endl;
-		get_operands(command,false);
+		get_operands(command);
 		for (i=0;i<RegistersCount;i++)
 		{
-			if (regs_target[i]&&all_regs_target[i])
+			if (regs_target[i]&&regs_known[i])
 			{
 				regs_target[i] = false;
 			}
-			else if (regs_target[i]&&!all_regs_target[i])
+			else if (regs_target[i]&&!regs_known[i])
 			{
+				emulator.end();
 				for (k=0;k<RegistersCount;k++)
 				{
 					if (!regs_target[k])
 					{
-						regs_target[k] = all_regs_target[k];
+						regs_target[k] = regs_known[k];
 					} else {
-						all_regs_target[k] = regs_target[k];
+						regs_known[k] = regs_target[k];
 					}
 				}
 				check1(&instructions_after_getpc); // Checking whether operands of target instruction are defined
-				int em_start = backwards_traversal(pos_getpc), startn = reader.get_starting_point(), posn = reader.calculate_virt_addr(em_start);
-				emulator.end();
-				(*log) <<  " relaunch " << dec << em_start <<" 0x" << hex << startn << " 0x" << hex << posn << endl;
+				int em_start = backwards_traversal(pos_getpc);
+				if (em_start<0)
+				{
+					(*log) <<  " Backwards traversal failed (nothing suitable found)." << endl;
+					return;
+				}
+				int startn = reader.get_starting_point(), posn = reader.calculate_virt_addr(em_start);
+				(*log) <<  " relaunch (because of " << Registers[i] << ") 0x" << hex << startn << " 0x" << hex << posn << endl;
 //				if ((start==startn)&&(pos==posn)) return; /// TODO: check this
 				return launch(startn,posn);
 			}
@@ -99,8 +105,8 @@ void Finder::launch(int start, int pos)
 					emulator.end();
 					return;
 				}
-				command = instruction_string((BYTE *) buff);
 				num = emulator.get_register(EIP);
+				command = instruction_string((BYTE *) buff, num);
 				emulator.step();
 				(*log) << "  Command: 0x" << hex << num << ": " << command << endl;
 				if (num==neednum)
@@ -144,39 +150,32 @@ void Finder::launch(int start, int pos)
 
 void Finder::init()
 {
+	regs_known = new bool[RegistersCount];
 	regs_target = new bool[RegistersCount];
-	all_regs_target = new bool[RegistersCount];
-	memset(regs_target,false,RegistersCount);
-	memset(all_regs_target,false,RegistersCount);
 	data = NULL;
 	dataSize = 0;
 	log = new ofstream("../log.txt");
 }
 void Finder::clear()
 {
-	memset(regs_target,false,RegistersCount);
-	memset(all_regs_target,false,RegistersCount);
 	delete[] data;
 	data = NULL;
 	dataSize = 0;
 }
-string Finder::instruction_string(INSTRUCTION *inst) {
+string Finder::instruction_string(INSTRUCTION *inst, int pos) {
 	char str[256];
-	get_instruction_string(inst, format, 0, str, sizeof(str));
+	get_instruction_string(inst, format, (DWORD)pos, str, sizeof(str));
 	return (string) str;
 }
-string Finder::instruction_string(BYTE *data) {
-	char str[256];
+string Finder::instruction_string(BYTE *data, int pos) {
 	INSTRUCTION inst;
 	get_instruction(&inst, data, mode);
-	return instruction_string(&inst);
+	return instruction_string(&inst,pos);
 }
 string Finder::instruction_string(int pos) {
-	char str[256];
 	INSTRUCTION inst;
 	get_instruction(&inst, &data[pos], mode);
-	get_instruction_string(&inst, format, (DWORD)pos, str, sizeof(str));
-	return (string) str;
+	return instruction_string(&inst,pos);
 }
 void Finder::find() 
 {
@@ -197,7 +196,7 @@ void Finder::find()
 	}
 }
 
-int Finder::find_memory(int pos)
+void Finder::find_memory(int pos)
 {
 	INSTRUCTION inst;
 	int len;
@@ -224,18 +223,28 @@ int Finder::find_memory(int pos)
 					char *preg = strstr(str,Registers[j]);
 					if ((preg<popen)||(pclose<preg)) continue;
 					(*log) << "Write to memory detected: " << str << " on position " << p << endl;
+					if (start_positions.count(p))
+					{
+						(*log) << "Not running, already checked." << endl;
+						return;
+					}
+					start_positions.insert(p);
+					memset(regs_known,false,RegistersCount);
+					memset(regs_target,false,RegistersCount);
 					get_operands(p);
 					check1(&instructions_after_getpc); // Checking whether operands of target instruction are defined
 					int em_start = backwards_traversal(pos);
-					print_commands(&instructions_after_getpc,1);
+					if (em_start<0)
+					{
+						(*log) <<  " Backwards traversal failed (nothing suitable found)." << endl;
+						return;
+					}
+					print_commands(&instructions_after_getpc,1);					
 					launch(reader.get_starting_point(),reader.calculate_virt_addr(em_start));
-					memset(regs_target,false,RegistersCount);
-					memset(all_regs_target,false,RegistersCount);
-					return p;
+					return;
 				}
 			}
 	}
-	return -1;
 }
 
 void Finder::check1(vector <INSTRUCTION>* instructions)
@@ -243,6 +252,7 @@ void Finder::check1(vector <INSTRUCTION>* instructions)
 	for (int k=instructions->size()-1;k>=0;k--)
 	{
 		check_inst((*instructions)[k]);
+		check_inst_reg_known((*instructions)[k]);
 	}
 }
 
@@ -297,7 +307,6 @@ void Finder::check_inst(INSTRUCTION inst)
 						if (strstr(pos_comma,Registers[t])!=NULL)
 						{
 							regs_target[t] = true;
-							all_regs_target[t] = true;
 							break;
 						}
 					}
@@ -321,7 +330,6 @@ void Finder::check_inst(INSTRUCTION inst)
 						if (strstr(pos_comma,Registers[t])!=NULL)
 						{
 							regs_target[t] = true;
-							all_regs_target[t] = true;
 							break;
 						}
 					}
@@ -350,7 +358,6 @@ void Finder::check_inst(INSTRUCTION inst)
 				{
 					regs_target[i] = false;
 					regs_target[ESP] = true;
-					all_regs_target[ESP] = true;
 					break;
 				}
 			}
@@ -363,12 +370,71 @@ void Finder::check_inst(INSTRUCTION inst)
 	smaller_to_greater_regs();
 }
 
+void Finder::check_inst_reg_known(INSTRUCTION inst)
+{
+	string str = instruction_string(&inst);
+	char *str1 = (char *) str.c_str();
+	char *pos_reg, *pos_comma;
+	/// TODO: add more instruction types here
+	switch (inst.type)
+	{
+		case INSTRUCTION_TYPE_XOR:
+		case INSTRUCTION_TYPE_SUB:
+		case INSTRUCTION_TYPE_SBB:
+		case INSTRUCTION_TYPE_DIV:
+		case INSTRUCTION_TYPE_IDIV:
+			pos_comma = index(str1,',');
+			for (int i=0; i<RegistersCount; i++)
+			{
+				pos_reg = strstr(str1,Registers[i]);
+				if ((pos_reg!=NULL)&&(pos_comma>pos_reg)&&(*(pos_reg-1)==' '))
+				{
+					if (strstr(pos_comma,Registers[i])!=NULL)
+					{
+						regs_known[i] = true;
+						break;
+					}
+					
+				}
+			}
+			break;
+		
+		case INSTRUCTION_TYPE_MOV:
+			pos_comma = index(str1,',');
+			for (int i=0; i<RegistersCount; i++)
+			{
+				pos_reg = strstr(str1,Registers[i]);
+				if ((pos_reg!=NULL)&&(pos_comma>pos_reg)&&(*(pos_reg-1)==' '))
+				{
+					regs_known[i] = true;
+					break;
+				}
+			}
+			break;
+		case INSTRUCTION_TYPE_POP:
+			for (int i=0; i<RegistersCount; i++)
+			{
+				pos_reg = strstr(str1,Registers[i]);
+				if ((pos_reg!=NULL)&&(*(pos_reg-1)==' '))
+				{
+					regs_known[i] = true;
+					break;
+				}
+			}
+			break;
+//		case INSTRUCTION_TYPE_FPU:	/// TODO: add more filters for this one
+		case INSTRUCTION_TYPE_FCMOVC:
+			regs_known[ESP] = true;
+			break;
+	}
+}
+
 void Finder::print_commands(vector <INSTRUCTION>* v, int start)
 {
 	char str[256];
 	int i=0;
 	vector<INSTRUCTION>::iterator p;
-	(*log) << " Commands in queue :"<< endl;
+	(*log) << " Commands in queue:"<< endl;
 	for (vector<INSTRUCTION>::iterator p=v->begin(); p!=v->end(); i++,p++)
 	{
 		if (i<start) continue;
@@ -380,38 +446,42 @@ int Finder::backwards_traversal(int pos)
 {
 	INSTRUCTION inst;
 	int length=1;
-	bool regs_target_bak[RegistersCount];
+	bool regs_target_bak[RegistersCount], regs_known_bak[RegistersCount];
 	memcpy(regs_target_bak,regs_target,RegistersCount);
+	memcpy(regs_known_bak,regs_known,RegistersCount);
 	vector <int> queue, prev;
 	queue.push_back(pos);
 	prev.push_back(-1);
-	for (int cur=0; cur<length;)
+	for (int cur=0; cur<length;cur++)
 	{
 		for (int i=1;i<=MaxCommandSize;i++)
 		{
 			if (get_instruction(&inst,&data[queue[cur]-i],mode)==i)
 			{
-								
 				queue.push_back(queue[cur]-i);
 				prev.push_back(cur);
 				length++;
 				if (check2(&queue,&prev))
 				{
-					length=0;
+					length = 0;
 					break;
 				}
 				else
 				{
 					memcpy(regs_target,regs_target_bak,RegistersCount);
+					memcpy(regs_known,regs_known_bak,RegistersCount);
 				}
 			}
 		}
-		cur++;
+		/// TODO: We should also check all static jumps to this point.
 	}
 	vector <INSTRUCTION> commands;
 	get_commands(&commands,&queue,&prev);
+	for (int i=0;i<RegistersCount;i++)
+	{
+		if (regs_target[i]) return -1;
+	}
 	return queue[queue.size()-1];
-	
 }
 
 int Finder::verify(Command cycle[256],int size)
@@ -466,11 +536,11 @@ bool Finder::is_indirect_write(string str, int *reg)
 	return false;
 }
 
-void Finder::get_operands(int pos, bool all)
+void Finder::get_operands(int pos)
 {
 	return get_operands(instruction_string(pos));
 }
-void Finder::get_operands(string str, bool all)
+void Finder::get_operands(string str)
 {
 	if (str.find("loop")!=string::npos) 
 	{
@@ -479,12 +549,11 @@ void Finder::get_operands(string str, bool all)
 	for (int i=0; i<RegistersCount; i++)
 	{
 		if (regs_target[i]) continue;
-		int p = str.rfind(Registers[i]);
+		int p = str.find(Registers[i]);
 		if (p==string::npos) continue;
 		switch (str[p-1]) {
 			case '[': case ',': case '+': case '-':
 				regs_target[i] = true;
-				if (all) all_regs_target[i] = true;
 				/// TODO: split large registers into smaller ones?
 				break;
 		}
@@ -494,23 +563,35 @@ void Finder::get_operands(string str, bool all)
 void Finder::smaller_to_greater_regs()
 {
 	for (int i=AL;i<DL;i++)
+	{
+		
 		if (regs_target[i])
 		{
 			regs_target[EAX-AL+i] = true;
 			regs_target[i] = false;
 		}
+		
+	}
 	for (int i=AH;i<DH;i++)
+	{
+		
 		if (regs_target[i])
 		{
 			regs_target[EAX-AH+i] = true;
 			regs_target[i] = false;
 		}
+		
+	}
 	for (int i=AX;i<DX;i++)
+	{
+		
 		if (regs_target[i])
 		{
 			regs_target[EAX-AX+i] = true;
 			regs_target[i] = false;
 		}
+	}
+		
 }
 
 int Finder::find_jump(int pos)
