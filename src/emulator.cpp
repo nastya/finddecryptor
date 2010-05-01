@@ -12,6 +12,7 @@ Emulator::Emulator()
 {
 	pid[0] = pid[1] = 0;
 	out = NULL;
+	dirty = false;
 }
 Emulator::~Emulator()
 {
@@ -31,6 +32,9 @@ void Emulator::start(char* filename)
 }
 void Emulator::stop()
 {
+	if (dirty) {
+		(*out) << "kill" << endl;
+	}
 	for (int i=0; i<2; i++)
 	{
 		if (!pid[i]) continue;
@@ -41,13 +45,14 @@ void Emulator::stop()
 	out = NULL;
 }
 
-void Emulator::end()
-{
-	(*out) << "kill" << endl;
-	(*out) << "exec-file wine" << endl;
-}
 void Emulator::begin(int start, int pos)
 {
+	if (dirty) {
+		(*out) << "kill" << endl;
+		(*out) << "exec-file wine" << endl;
+	}
+	dirty = true;
+	
 	/// Ok, with this method wine should be launched before starting the program.
 	/// You can, for example, lauch winecfg, and keep it open while running the program.
 	

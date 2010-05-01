@@ -5,8 +5,9 @@ using namespace std;
 const Mode Finder::mode = MODE_32;
 const Format Finder::format = FORMAT_INTEL;
 
-Command::Command(int a, string s) {
+Command::Command(int a, INSTRUCTION i, string s) {
 	addr = a;
+	inst = i;
 	str = s;
 }
 
@@ -40,16 +41,17 @@ void Finder::launch(int start, int pos)
 	bool flag = false;
 	Command cycle[256];
 	string command;
+	INSTRUCTION inst;
 	emulator.begin(start,pos);
 	char buff[10] = {0};
 	for (int strnum=0;;strnum++)
 	{
 		if (!emulator.get_command(buff)) { /// Die on error, it will get SIGSEGV anyway.
 			(*log) << " Execution error, stopping instance." << endl;
-			emulator.end();
 			return;
 		}
 		num = emulator.get_register(EIP);
+		get_instruction(&inst, (BYTE *) buff, mode);
 		command = instruction_string((BYTE *) buff, num);
 		emulator.step();
 		(*log) << "  Command: 0x" << hex << num << ": " << command << endl;
@@ -62,7 +64,6 @@ void Finder::launch(int start, int pos)
 			}
 			else if (regs_target[i]&&!regs_known[i])
 			{
-				emulator.end();
 				for (k=0;k<RegistersCount;k++)
 				{
 					if (!regs_target[k])
@@ -99,13 +100,13 @@ void Finder::launch(int start, int pos)
 			int neednum = num;
 			for (barrier=0;barrier<strnum+10;barrier++)
 			{
-				cycle[barrier] = Command(num,command);
+				cycle[barrier] = Command(num,inst,command);
 				if (!emulator.get_command(buff)) { /// Die on error, it will get SIGSEGV anyway.
 					(*log) << " Execution error, stopping instance." << endl;
-					emulator.end();
 					return;
 				}
 				num = emulator.get_register(EIP);
+				get_instruction(&inst, (BYTE *) buff, mode);
 				command = instruction_string((BYTE *) buff, num);
 				emulator.step();
 				(*log) << "  Command: 0x" << hex << num << ": " << command << endl;
@@ -145,7 +146,6 @@ void Finder::launch(int start, int pos)
 			(*log) << " No indirect writes." << endl;
 		}
 	}
-	emulator.end();
 }
 
 void Finder::init()
@@ -211,17 +211,16 @@ void Finder::find_memory(int pos)
 		instructions_after_getpc.push_back(inst);
 		if (inst.op1.type != OPERAND_TYPE_MEMORY) continue;
 		/// TODO: add some int-based logic here instead of string-based.
-		char str[256];
-		get_instruction_string(&inst, format, (DWORD)p, str, sizeof(str));
-		char *popen = index(str,'['), *pclose = index(str,']'), *pcomma = index(str,',');
-		if ((popen==NULL)||(pclose<popen)||(pcomma<pclose)) continue;
+		string str = instruction_string(&inst,p);
+		string::size_type popen = str.find('['), pclose = str.find(']'), pcomma = str.find(',');
+		if ((popen==string::npos) || (pclose<popen) || (pcomma<pclose)) continue;
 		for (int i=0; i<CommandsChangingCount; i++)
 			if (strcmp(inst.ptr->mnemonic,CommandsChanging[i])==0)
 			{
 				for (int j=0;j<RegistersCount;j++)
 				{
-					char *preg = strstr(str,Registers[j]);
-					if ((preg<popen)||(pclose<preg)) continue;
+					string::size_type preg = str.find(Registers[j]);
+					if ((preg==string::npos) || (preg<popen) || (pclose<preg)) continue;
 					(*log) << "Write to memory detected: " << str << " on position " << p << endl;
 					if (start_positions.count(p))
 					{
@@ -239,7 +238,7 @@ void Finder::find_memory(int pos)
 						(*log) <<  " Backwards traversal failed (nothing suitable found)." << endl;
 						return;
 					}
-					print_commands(&instructions_after_getpc,1);					
+					print_commands(&instructions_after_getpc,1);
 					launch(reader.get_starting_point(),reader.calculate_virt_addr(em_start));
 					return;
 				}
@@ -250,10 +249,7 @@ void Finder::find_memory(int pos)
 void Finder::check1(vector <INSTRUCTION>* instructions)
 {
 	for (int k=instructions->size()-1;k>=0;k--)
-	{
 		check_inst((*instructions)[k]);
-		check_inst_reg_known((*instructions)[k]);
-	}
 }
 
 bool Finder::check2(vector <int>* queue, vector <int>* prev)
@@ -280,8 +276,7 @@ void Finder::get_commands(vector <INSTRUCTION>* commands, vector <int>* num_comm
 void Finder::check_inst(INSTRUCTION inst)
 {
 	string str = instruction_string(&inst);
-	char *str1 = (char *) str.c_str();
-	char *pos_reg, *pos_comma;
+	string::size_type preg, pcomma;
 	/// TODO: add more instruction types here
 	switch (inst.type)
 	{
@@ -290,27 +285,25 @@ void Finder::check_inst(INSTRUCTION inst)
 		case INSTRUCTION_TYPE_SBB:
 		case INSTRUCTION_TYPE_DIV:
 		case INSTRUCTION_TYPE_IDIV:
-			pos_comma = index(str1,',');
+			pcomma = str.find(',');
 			for (int i=0; i<RegistersCount; i++)
 			{
 				if (!regs_target[i]) continue;
-				pos_reg = strstr(str1,Registers[i]);
-				if ((pos_reg!=NULL)&&(pos_comma>pos_reg)&&(*(pos_reg-1)==' '))
+				preg = str.find(Registers[i]);
+				if ((preg==string::npos) || (pcomma<preg) || (str[preg-1]!=' ')) continue;
+				for (int j=0; j<RegistersCount; j++)
 				{
-					if (strstr(pos_comma,Registers[i])!=NULL)
-					{
-						regs_target[i] = false;
-						break;
-					}
-					for (int t=0; t<RegistersCount; t++)
-					{
-						if (strstr(pos_comma,Registers[t])!=NULL)
-						{
-							regs_target[t] = true;
-							break;
-						}
-					}
+					if (str.find(Registers[j],pcomma)==string::npos) continue;
+					regs_target[j] = (i!=j);
+					break;
 				}
+			}
+			for (int i=0; i<RegistersCount; i++)
+			{
+				preg = str.find(Registers[i]);
+				if ((preg==string::npos) || (str[preg-1]!=' ') || (pcomma<preg) || (str.find(Registers[i],pcomma)==string::npos)) continue;
+				regs_known[i] = true;
+				break;
 			}
 			break;
 		case INSTRUCTION_TYPE_ADD:
@@ -318,115 +311,63 @@ void Finder::check_inst(INSTRUCTION inst)
 		case INSTRUCTION_TYPE_OR:
 		case INSTRUCTION_TYPE_MUL:
 		case INSTRUCTION_TYPE_IMUL:
-			pos_comma = index(str1,',');
+			pcomma = str.find(',');
 			for (int i=0; i<RegistersCount; i++)
 			{
 				if (!regs_target[i]) continue;
-				pos_reg = strstr(str1,Registers[i]);
-				if ((pos_reg!=NULL)&&(pos_comma>pos_reg)&&(*(pos_reg-1)==' '))
+				preg = str.find(Registers[i]);
+				if ((preg==string::npos) || (pcomma<preg) || (str[preg-1]!=' ')) continue;
+				for (int j=0; j<RegistersCount; j++)
 				{
-					for (int t=0; t<RegistersCount; t++)
-					{
-						if (strstr(pos_comma,Registers[t])!=NULL)
-						{
-							regs_target[t] = true;
-							break;
-						}
-					}
+					if (str.find(Registers[j],pcomma)==string::npos) continue;
+					regs_target[j] = true;
+					break;
 				}
 			}
 			break;
 		case INSTRUCTION_TYPE_MOV:
-			pos_comma = index(str1,',');
+			pcomma = str.find(',');
 			for (int i=0; i<RegistersCount; i++)
 			{
 				if (!regs_target[i]) continue;
-				pos_reg = strstr(str1,Registers[i]);
-				if ((pos_reg!=NULL)&&(pos_comma>pos_reg)&&(*(pos_reg-1)==' '))
-				{
-					regs_target[i] = false;
-					break;
-				}
+				preg = str.find(Registers[i]);
+				if ((preg==string::npos) || (str[preg-1]!=' ') || (pcomma<preg)) continue;
+				regs_target[i] = false;
+				break;
+			}
+			for (int i=0; i<RegistersCount; i++)
+			{
+				preg = str.find(Registers[i]);
+				if ((preg==string::npos) || (str[preg-1]!=' ') || (pcomma<preg)) continue;
+				regs_known[i] = true;
+				break;
 			}
 			break;
 		case INSTRUCTION_TYPE_POP:
 			for (int i=0; i<RegistersCount; i++)
 			{
 				if (!regs_target[i]) continue;
-				pos_reg = strstr(str1,Registers[i]);
-				if ((pos_reg!=NULL)&&(*(pos_reg-1)==' '))
-				{
-					regs_target[i] = false;
-					regs_target[ESP] = true;
-					break;
-				}
+				preg = str.find(Registers[i]);
+				if ((preg==string::npos) || (str[preg-1]!=' ')) continue;
+				regs_target[i] = false;
+				regs_target[ESP] = true;
+				break;
+			}
+			for (int i=0; i<RegistersCount; i++)
+			{
+				preg = str.find(Registers[i]);
+				if ((preg==string::npos) || (str[preg-1]!=' ')) continue;
+				regs_known[i] = true;
+				break;
 			}
 			break;
 //		case INSTRUCTION_TYPE_FPU:	/// TODO: add more filters for this one
 		case INSTRUCTION_TYPE_FCMOVC:
 			regs_target[ESP] = false;
-			break;
-	}
-	smaller_to_greater_regs();
-}
-
-void Finder::check_inst_reg_known(INSTRUCTION inst)
-{
-	string str = instruction_string(&inst);
-	char *str1 = (char *) str.c_str();
-	char *pos_reg, *pos_comma;
-	/// TODO: add more instruction types here
-	switch (inst.type)
-	{
-		case INSTRUCTION_TYPE_XOR:
-		case INSTRUCTION_TYPE_SUB:
-		case INSTRUCTION_TYPE_SBB:
-		case INSTRUCTION_TYPE_DIV:
-		case INSTRUCTION_TYPE_IDIV:
-			pos_comma = index(str1,',');
-			for (int i=0; i<RegistersCount; i++)
-			{
-				pos_reg = strstr(str1,Registers[i]);
-				if ((pos_reg!=NULL)&&(pos_comma>pos_reg)&&(*(pos_reg-1)==' '))
-				{
-					if (strstr(pos_comma,Registers[i])!=NULL)
-					{
-						regs_known[i] = true;
-						break;
-					}
-					
-				}
-			}
-			break;
-		
-		case INSTRUCTION_TYPE_MOV:
-			pos_comma = index(str1,',');
-			for (int i=0; i<RegistersCount; i++)
-			{
-				pos_reg = strstr(str1,Registers[i]);
-				if ((pos_reg!=NULL)&&(pos_comma>pos_reg)&&(*(pos_reg-1)==' '))
-				{
-					regs_known[i] = true;
-					break;
-				}
-			}
-			break;
-		case INSTRUCTION_TYPE_POP:
-			for (int i=0; i<RegistersCount; i++)
-			{
-				pos_reg = strstr(str1,Registers[i]);
-				if ((pos_reg!=NULL)&&(*(pos_reg-1)==' '))
-				{
-					regs_known[i] = true;
-					break;
-				}
-			}
-			break;
-//		case INSTRUCTION_TYPE_FPU:	/// TODO: add more filters for this one
-		case INSTRUCTION_TYPE_FCMOVC:
 			regs_known[ESP] = true;
 			break;
 	}
+	smaller_to_greater_regs();
 }
 
 void Finder::print_commands(vector <INSTRUCTION>* v, int start)
@@ -500,20 +441,16 @@ int Finder::verify(Command cycle[256],int size)
 
 bool Finder::verify_changing_reg(Command cycle[256], int size, int reg)
 {
-	char *str1;
 	if (!reader.is_within_one_block(emulator.get_register((Register)reg),cycle[0].addr))
 		return false;
 	for (int i=0;i<size;i++)
 	{
-		str1 = (char *) cycle[i].str.c_str();
 		for (int j=0;j<CommandsChangingCount;j++)
 		{
-			if (cycle[i].str.find(CommandsChanging[j])!=string::npos) 
-			{
-				int p = cycle[i].str.find(Registers[reg]);
-				if ((p!=string::npos)&&(cycle[i].str[p-1]==' ')) /// op reg...
-					return true;
-			}
+			if (cycle[i].str.find(CommandsChanging[j])==string::npos) continue; 
+			int p = cycle[i].str.find(Registers[reg]);
+			if ((p!=string::npos)&&(cycle[i].str[p-1]==' ')) /// op reg...
+				return true;
 		}
 	}
 	return false;
@@ -522,15 +459,13 @@ bool Finder::is_indirect_write(string str, int *reg)
 {
 	for (int i=0;i<CommandsChangingCount;i++)
 	{
-		if (str.find(CommandsChanging[i])!=string::npos) 
+		if (str.find(CommandsChanging[i])==string::npos) continue; 
+		for (int j=0;j<RegistersCount;j++)
 		{
-			for (int j=0;j<RegistersCount;j++)
-			{
-				(*reg) = j;
-				int p = str.rfind(Registers[j]);
-				if ((p!=string::npos)&&(str[p-1]=='[')&&(str[p-2]==' ')) /// op [reg...],
-					return true;
-			}
+			(*reg) = j;
+			int p = str.rfind(Registers[j]);
+			if ((p!=string::npos)&&(str[p-1]=='[')&&(str[p-2]==' ')) /// op [reg...],
+				return true;
 		}
 	}
 	return false;
@@ -563,35 +498,23 @@ void Finder::get_operands(string str)
 void Finder::smaller_to_greater_regs()
 {
 	for (int i=AL;i<DL;i++)
-	{
-		
 		if (regs_target[i])
 		{
 			regs_target[EAX-AL+i] = true;
 			regs_target[i] = false;
 		}
-		
-	}
 	for (int i=AH;i<DH;i++)
-	{
-		
 		if (regs_target[i])
 		{
 			regs_target[EAX-AH+i] = true;
 			regs_target[i] = false;
 		}
-		
-	}
 	for (int i=AX;i<DX;i++)
-	{
-		
 		if (regs_target[i])
 		{
 			regs_target[EAX-AX+i] = true;
 			regs_target[i] = false;
 		}
-	}
-		
 }
 
 int Finder::find_jump(int pos)
@@ -606,21 +529,22 @@ int Finder::find_jump(int pos)
 			pos++;
 			continue;
 		}
-		string str = instruction_string(&inst);
-		char *str1 = (char *) str.c_str();
-		if (str[0]=='j')
+		switch (inst.type)
 		{
-			char *pspace = index(str1,' ');
-			if (pspace==NULL) continue;
-			for (int i=0; i<RegistersCount; i++)
-			{
-				if (strstr(str1,Registers[i]) > pspace)
+			/// TODO: check
+			case INSTRUCTION_TYPE_JMP:
+			case INSTRUCTION_TYPE_JMPC:
+				string str = instruction_string(&inst);
+				string::size_type pspace = str.find(' ');
+				if (pspace==string::npos) continue;
+				for (int i=0; i<RegistersCount; i++)
 				{
+					string::size_type preg = str.find(Registers[i]);
+					if ((preg==string::npos) || (preg<pspace)) continue;
 					(*log) << " Indirect jump detected: " << str << " on position " << dec << pos << endl;
 					get_operands(pos);
 					return pos;
 				}
-			}
 		}
 	}
 	return -1;

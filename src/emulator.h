@@ -14,7 +14,6 @@ public:
 	void start(char* filename);
 	void stop();
 	void begin(int start,int pos=0);
-	void end();
 	
 	void jump(int pos);
 	void step();
@@ -31,6 +30,7 @@ private:
 	void fd_close(int fd[3][2]);	
 	int pid[2];
 	ostream *out;
+	bool dirty;
 };
 
 #endif 

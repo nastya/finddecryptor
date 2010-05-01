@@ -15,8 +15,9 @@
 using namespace std;
 
 struct Command {
-	Command(int a=0, string s="");
+	Command(int a = 0, INSTRUCTION inst = INSTRUCTION(), string s = "");
 	int addr;
+	INSTRUCTION inst;
 	string str;
 };
 
@@ -104,7 +105,6 @@ private:
 	/**
 	Initializes variables for further use.
 	*/
-	void check_inst_reg_known(INSTRUCTION inst);
 	void init();
 	void launch(int start, int pos=0);
 	int verify(Command cycle[256],int size);

@@ -1,16 +1,15 @@
 #ifndef PEREADER_H
 #define PEREADER_H
 
-struct ste
-{
-	char name[8];
-	int virt_addr;
-	int virt_size;
-	int raw_offset;
-};
-typedef struct ste entry;
 class PEReader
 {
+	struct entry
+	{
+		char name[8];
+		int virt_addr;
+		int virt_size;
+		int raw_offset;
+	};
 public:
 	PEReader();
 	~PEReader();
@@ -22,7 +21,6 @@ public:
 private:
 	int get(unsigned char *data, int pos, int size=4);
 	void sort();
-	void swap(entry* entry1, entry* entry2);
 	int number_of_sections;
 	int base;
 	int entry_point;
