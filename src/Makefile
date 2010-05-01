@@ -49,8 +49,10 @@ emulator.o: emulator.cpp emulator.h
 	$(CXX) -c emulator.cpp
 
 test: $(TARGET) 
+	./$(TARGET) ../input/cmd_exec_notepad.avoid_utf8_tolower.exe > ../output.avoid_utf8_tolower.txt
 	./$(TARGET) ../input/cmd_exec_notepad.call4_dword_xor.exe > ../output.call4_dword_xor.txt
-	./$(TARGET) ../input/cmd_exec_notepad.fnstenv_mov.exe > ../output.fnstenv_mov.txt
-	./$(TARGET) ../input/cmd_exec_notepad.nonalpha.exe > ../output.nonalpha.txt
 	./$(TARGET) ../input/cmd_exec_notepad.countdown.exe > ../output.countdown.txt
+	./$(TARGET) ../input/cmd_exec_notepad.fnstenv_mov.exe > ../output.fnstenv_mov.txt
 	./$(TARGET) ../input/cmd_exec_notepad.jmp_call_additive.exe > ../output.jmp_call_additive.txt
+	./$(TARGET) ../input/cmd_exec_notepad.nonalpha.exe > ../output.nonalpha.txt
+	./$(TARGET) ../input/cmd_exec_notepad.shikata_ga_nai.exe > ../output.shikata_ga_nai.txt

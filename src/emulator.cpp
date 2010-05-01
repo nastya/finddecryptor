@@ -124,7 +124,10 @@ int Emulator::str_to_int(string str)
 }
 void Emulator::step()
 {
+	get_clean();
 	(*out) << "si" << endl;
+	string str;
+	getline(cin,str);
 }
 void Emulator::fd_dup(int fd[3][2], int s0, int s1)
 {
@@ -167,8 +170,8 @@ void Emulator::stream_ctl(int fd[3][2])
 	fd_dup(fd,1,2);
 	
 	string str;
-	//ofstream log("../dbg.txt");
-	//log.close();
+//	ofstream log("../dbg.txt");
+//	log.close();
 	for(;;)
 	{
 		getline(cin,str);
@@ -177,10 +180,15 @@ void Emulator::stream_ctl(int fd[3][2])
 			str.replace(0,6,"");
 		}
 		if (str.length() == 0) continue;
-		//log.open("../dbg.txt",ios_base::out|ios_base::app);
-		//log << str << endl;
-		//log.close();
-		if ((str.find("Cannot")!=string::npos)||(str.find("Program received")!=string::npos)) {
+//		log.open("../dbg.txt",ios_base::out|ios_base::app);
+//		log << str << endl;
+//		log.close();
+		if (str.find("Cannot")!=string::npos)
+		{
+			str = "!Warning!";
+		}
+		else if (str.find("Program received")!=string::npos)
+		{
 			str = "!Error!";
 		}
 		cout << str << endl;

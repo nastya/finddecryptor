@@ -52,7 +52,7 @@ void Finder::launch(int start, int pos)
 		}
 		num = emulator.get_register(EIP);
 		get_instruction(&inst, (BYTE *) buff, mode);
-		command = instruction_string((BYTE *) buff, num);
+		command = instruction_string(&inst, num);
 		emulator.step();
 		(*log) << "  Command: 0x" << hex << num << ": " << command << endl;
 		get_operands(command);
@@ -73,7 +73,7 @@ void Finder::launch(int start, int pos)
 						regs_known[k] = regs_target[k];
 					}
 				}
-				check1(&instructions_after_getpc); // Checking whether operands of target instruction are defined
+				check(&instructions_after_getpc);
 				int em_start = backwards_traversal(pos_getpc);
 				if (em_start<0)
 				{
@@ -107,7 +107,7 @@ void Finder::launch(int start, int pos)
 				}
 				num = emulator.get_register(EIP);
 				get_instruction(&inst, (BYTE *) buff, mode);
-				command = instruction_string((BYTE *) buff, num);
+				command = instruction_string(&inst, num);
 				emulator.step();
 				(*log) << "  Command: 0x" << hex << num << ": " << command << endl;
 				if (num==neednum)
@@ -231,7 +231,7 @@ void Finder::find_memory(int pos)
 					memset(regs_known,false,RegistersCount);
 					memset(regs_target,false,RegistersCount);
 					get_operands(p);
-					check1(&instructions_after_getpc); // Checking whether operands of target instruction are defined
+					check(&instructions_after_getpc);
 					int em_start = backwards_traversal(pos);
 					if (em_start<0)
 					{
@@ -246,25 +246,14 @@ void Finder::find_memory(int pos)
 	}
 }
 
-void Finder::check1(vector <INSTRUCTION>* instructions)
-{
-	for (int k=instructions->size()-1;k>=0;k--)
-		check_inst((*instructions)[k]);
-}
-
-bool Finder::check2(vector <int>* queue, vector <int>* prev)
-{
-	vector <INSTRUCTION> commands;
-	get_commands(&commands,queue,prev); 
-	check1(&commands);
-	for (int i=0; i<RegistersCount; i++) {
+bool Finder::regs_closed() {
+	for (int i=0; i<RegistersCount; i++)
 		if (regs_target[i]) return false;
-	}
 	return true;
 }
-
 void Finder::get_commands(vector <INSTRUCTION>* commands, vector <int>* num_commands, vector <int>* prev)
 {
+	commands->clear();
 	INSTRUCTION inst;
 	for (int i=num_commands->size()-1;i!=-1;i=(*prev)[i])
 	{
@@ -272,8 +261,12 @@ void Finder::get_commands(vector <INSTRUCTION>* commands, vector <int>* num_comm
 		commands->push_back(inst);
 	}
 }
-
-void Finder::check_inst(INSTRUCTION inst)
+void Finder::check(vector <INSTRUCTION>* instructions)
+{
+	for (int k=instructions->size()-1;k>=0;k--)
+		check((*instructions)[k]);
+}
+void Finder::check(INSTRUCTION inst)
 {
 	string str = instruction_string(&inst);
 	string::size_type preg, pcomma;
@@ -361,7 +354,8 @@ void Finder::check_inst(INSTRUCTION inst)
 				break;
 			}
 			break;
-//		case INSTRUCTION_TYPE_FPU:	/// TODO: add more filters for this one
+		case INSTRUCTION_TYPE_FPU:	/// TODO: add more filters for this one
+			if (strcmp(inst.ptr->mnemonic,"fldz")==0) break;
 		case INSTRUCTION_TYPE_FCMOVC:
 			regs_target[ESP] = false;
 			regs_known[ESP] = true;
@@ -391,38 +385,30 @@ int Finder::backwards_traversal(int pos)
 	memcpy(regs_target_bak,regs_target,RegistersCount);
 	memcpy(regs_known_bak,regs_known,RegistersCount);
 	vector <int> queue, prev;
+	vector <INSTRUCTION> commands;
 	queue.push_back(pos);
 	prev.push_back(-1);
-	for (int cur=0; cur<length;cur++)
+	for (int cur=0; cur<length; cur++)
 	{
-		for (int i=1;i<=MaxCommandSize;i++)
+		for (int i=1; i<=MaxCommandSize; i++)
 		{
-			if (get_instruction(&inst,&data[queue[cur]-i],mode)==i)
+			if (get_instruction(&inst,&data[queue[cur]-i],mode)!=i) continue;
+			queue.push_back(queue[cur]-i);
+			prev.push_back(cur);
+			length++;
+			get_commands(&commands,&queue,&prev); 
+			check(&commands);
+			if (regs_closed())
 			{
-				queue.push_back(queue[cur]-i);
-				prev.push_back(cur);
-				length++;
-				if (check2(&queue,&prev))
-				{
-					length = 0;
-					break;
-				}
-				else
-				{
-					memcpy(regs_target,regs_target_bak,RegistersCount);
-					memcpy(regs_known,regs_known_bak,RegistersCount);
-				}
+				length = 0;
+				break;
 			}
+			memcpy(regs_target,regs_target_bak,RegistersCount);
+			memcpy(regs_known,regs_known_bak,RegistersCount);
 		}
 		/// TODO: We should also check all static jumps to this point.
 	}
-	vector <INSTRUCTION> commands;
-	get_commands(&commands,&queue,&prev);
-	for (int i=0;i<RegistersCount;i++)
-	{
-		if (regs_target[i]) return -1;
-	}
-	return queue[queue.size()-1];
+	return regs_closed() ? queue[queue.size()-1] : -1;
 }
 
 int Finder::verify(Command cycle[256],int size)

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <vector>
 #include <cstring>
+#include <algorithm>
 #include <set>
 
 #include "libdasm.h" 
@@ -87,24 +88,17 @@ private:
 	/**
 	Checks every instruction in vector instructions.
 	@param instruction Vector of instructions to be checked.
-	@sa check_inst
 	*/
-	void check1(vector <INSTRUCTION>* instructions);
-	/**
-	Check before ending backwards traversal.
-	@param queue - vector containing the starting positions of instructions (reference to first byte of instruction).
-	@param prev - vector containing the positions of previous instructions corresponding to num_commands (reference to first byte of instruction).
-	@return Returs true if all of the operands in target instruction are defined within the found chain and false if not.
-	*/
-	bool check2(vector <int>* queue, vector <int>* prev);
+	void check(vector <INSTRUCTION>* instructions);
 	/**
 	Checks whether instruction defines one of the registers that need to be defined before the emulation and changes regs_target in corresponding way.
 	@param inst Instruction to check.
 	*/
-	void check_inst(INSTRUCTION inst);
+	void check(INSTRUCTION inst);
 	/**
 	Initializes variables for further use.
 	*/
+	bool regs_closed();
 	void init();
 	void launch(int start, int pos=0);
 	int verify(Command cycle[256],int size);
