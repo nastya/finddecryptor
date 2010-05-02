@@ -18,10 +18,10 @@ public:
 	void jump(int pos);
 	void step();
 	bool get_command(char *buff, int size=10);
-	int get_register(Register reg);
+	unsigned int get_register(Register reg);
 private:
 	bool get_clean();
-	int str_to_int(string str);
+	unsigned int str_to_int(string str);
 	
 	void stream_gdb(int fd[3][2], char* filename);
 	void stream_ctl(int fd[3][2]);

@@ -107,7 +107,7 @@ bool Emulator::get_command(char *buff, int size)
 	}
 	return true;
 }
-int Emulator::get_register(Register reg)
+unsigned int Emulator::get_register(Register reg)
 {
 	if (!get_clean()) return -1;
 	(*out) << "i r " << Registers[reg] << endl;
@@ -115,9 +115,9 @@ int Emulator::get_register(Register reg)
 	getline(cin,str);
 	return str_to_int(str);
 }
-int Emulator::str_to_int(string str)
+unsigned int Emulator::str_to_int(string str)
 {
-	int num;
+	unsigned int num;
 	str.replace(0,str.find("0x"),"");
 	sscanf(str.c_str(),"%x",&num);
 	return num;

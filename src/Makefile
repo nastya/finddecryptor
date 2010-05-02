@@ -1,8 +1,7 @@
 ####### Compiler, tools and options
-CXX		= g++
-CC		= gcc
+CXX		= g++ -Wall
+CC		= gcc -Wall
 DEL_FILE	= rm -f
-
 ####### Files
 OBJECTS       = myprogram.o \
 		data.o \

@@ -13,13 +13,14 @@
 #include "emulator.h"
 #include "PEReader.h"
 
+#define FINDER_LOG
+
 using namespace std;
 
 struct Command {
-	Command(int a = 0, INSTRUCTION inst = INSTRUCTION(), string s = "");
+	Command(int a = 0, INSTRUCTION inst = INSTRUCTION());
 	int addr;
 	INSTRUCTION inst;
-	string str;
 };
 
 /**
@@ -75,9 +76,9 @@ private:
 	/**
 	Gets operands of target instruction (registers used in it).
 	Saves this information in regs_target.
-	@param pos Position of target instruction in binary file.
+	@param
 	*/
-	void get_operands(int pos);
+	void get_operands(INSTRUCTION *inst);
 	/**
 	Forms a chain of commands from the information containing in num_commands and prev vectors (they are formed in backwards_traversal).
 	@param num_commands - vector containing the starting positions of instructions (reference to first byte of instruction).
@@ -94,19 +95,20 @@ private:
 	Checks whether instruction defines one of the registers that need to be defined before the emulation and changes regs_target in corresponding way.
 	@param inst Instruction to check.
 	*/
-	void check(INSTRUCTION inst);
+	void check(INSTRUCTION *inst);
 	/**
 	Initializes variables for further use.
 	*/
+	void add_target(OPERAND *op);
+	int int_to_reg(int code);
 	bool regs_closed();
 	void init();
 	void launch(int start, int pos=0);
 	int verify(Command *cycle, int size);
 	bool verify_changing_reg(Command *cycle, int size, int reg);
 	bool is_write(INSTRUCTION *inst);
-	bool is_indirect_write(Command *command, int *reg);
-	void get_operands(string str);
-	void smaller_to_greater_regs();
+	bool is_write_indirect(INSTRUCTION *inst);
+	bool get_write_indirect(INSTRUCTION *inst, int *reg);
 	
 	vector <INSTRUCTION> instructions_after_getpc;
 	int starting_point;
@@ -126,7 +128,6 @@ private:
 	static const Format format; ///<format of commands (here it is Intel)
 
 	string instruction_string(INSTRUCTION *inst, int pos=0);
-	string instruction_string(BYTE *data, int pos=0);
 	string instruction_string(int pos);
 
 	/** Debug **/
