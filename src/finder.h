@@ -101,9 +101,10 @@ private:
 	bool regs_closed();
 	void init();
 	void launch(int start, int pos=0);
-	int verify(Command cycle[256],int size);
-	bool verify_changing_reg(Command cycle[256], int size, int reg);
-	bool is_indirect_write(string str, int * reg);
+	int verify(Command *cycle, int size);
+	bool verify_changing_reg(Command *cycle, int size, int reg);
+	bool is_write(INSTRUCTION *inst);
+	bool is_indirect_write(Command *command, int *reg);
 	void get_operands(string str);
 	void smaller_to_greater_regs();
 	

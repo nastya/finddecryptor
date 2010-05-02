@@ -180,14 +180,14 @@ string Finder::instruction_string(int pos) {
 void Finder::find() 
 {
 	INSTRUCTION inst;
-	for (int i = 0; i < dataSize; i++)
+	for (int i=0; i<dataSize; i++)
 	{
 		int len = get_instruction(&inst, &data[i], mode);		
 		if (!len || (len + i > dataSize)) continue;
 		if (strcmp(inst.ptr->mnemonic,"call")==0||strcmp(inst.ptr->mnemonic,"fstenv")==0||strcmp(inst.ptr->mnemonic,"fnstenv")==0)
 		{
+			pos_getpc = i;
 			(*log) << "Instruction \"" << instruction_string(i) << "\" on position " << dec << i << "." << endl;
-			pos_getpc=i;
 			find_memory(i);
 			find_jump(i);
 			(*log) << "*********************************************************" << endl;
@@ -209,40 +209,37 @@ void Finder::find_memory(int pos)
 			continue;
 		}
 		instructions_after_getpc.push_back(inst);
+		if (!is_write(&inst)) continue;
 		if (inst.op1.type != OPERAND_TYPE_MEMORY) continue;
 		/// TODO: add some int-based logic here instead of string-based.
 		string str = instruction_string(&inst,p);
 		string::size_type popen = str.find('['), pclose = str.find(']'), pcomma = str.find(',');
 		if ((popen==string::npos) || (pclose<popen) || (pcomma<pclose)) continue;
-		for (int i=0; i<CommandsChangingCount; i++)
-			if (strcmp(inst.ptr->mnemonic,CommandsChanging[i])==0)
+		for (int i=0;i<RegistersCount;i++)
+		{
+			string::size_type preg = str.find(Registers[i]);
+			if ((preg==string::npos) || (preg<popen) || (pclose<preg)) continue;
+			(*log) << "Write to memory detected: " << str << " on position " << p << endl;
+			if (start_positions.count(p))
 			{
-				for (int j=0;j<RegistersCount;j++)
-				{
-					string::size_type preg = str.find(Registers[j]);
-					if ((preg==string::npos) || (preg<popen) || (pclose<preg)) continue;
-					(*log) << "Write to memory detected: " << str << " on position " << p << endl;
-					if (start_positions.count(p))
-					{
-						(*log) << "Not running, already checked." << endl;
-						return;
-					}
-					start_positions.insert(p);
-					memset(regs_known,false,RegistersCount);
-					memset(regs_target,false,RegistersCount);
-					get_operands(p);
-					check(&instructions_after_getpc);
-					int em_start = backwards_traversal(pos);
-					if (em_start<0)
-					{
-						(*log) <<  " Backwards traversal failed (nothing suitable found)." << endl;
-						return;
-					}
-					print_commands(&instructions_after_getpc,1);
-					launch(reader.get_starting_point(),reader.calculate_virt_addr(em_start));
-					return;
-				}
+				(*log) << "Not running, already checked." << endl;
+				return;
 			}
+			start_positions.insert(p);
+			memset(regs_known,false,RegistersCount);
+			memset(regs_target,false,RegistersCount);
+			get_operands(p);
+			check(&instructions_after_getpc);
+			int em_start = backwards_traversal(pos);
+			if (em_start<0)
+			{
+				(*log) <<  " Backwards traversal failed (nothing suitable found)." << endl;
+				return;
+			}
+			print_commands(&instructions_after_getpc,1);
+			launch(reader.get_starting_point(),reader.calculate_virt_addr(em_start));
+			return;
+		}
 	}
 }
 
@@ -411,50 +408,61 @@ int Finder::backwards_traversal(int pos)
 	return regs_closed() ? queue[queue.size()-1] : -1;
 }
 
-int Finder::verify(Command cycle[256],int size)
+int Finder::verify(Command *cycle, int size)
 {
 	int i,reg;
 	for (i=0;i<size;i++)
-	{
-		if (is_indirect_write(cycle[i].str, &reg))
-		{
+		if (is_indirect_write(&cycle[i], &reg))
 			if (verify_changing_reg(cycle, size, reg))
 				return i+1;
-		}
-	}
 	return -1;
 }
 
-bool Finder::verify_changing_reg(Command cycle[256], int size, int reg)
+bool Finder::verify_changing_reg(Command *cycle, int size, int reg)
 {
-	if (!reader.is_within_one_block(emulator.get_register((Register)reg),cycle[0].addr))
-		return false;
+	if (!reader.is_within_one_block(emulator.get_register((Register)reg),cycle[0].addr)) return false;
 	for (int i=0;i<size;i++)
 	{
-		for (int j=0;j<CommandsChangingCount;j++)
-		{
-			if (cycle[i].str.find(CommandsChanging[j])==string::npos) continue; 
-			int p = cycle[i].str.find(Registers[reg]);
-			if ((p!=string::npos)&&(cycle[i].str[p-1]==' ')) /// op reg...
-				return true;
-		}
+		if (!is_write(&(cycle[i].inst))) continue;
+		int p = cycle[i].str.find(Registers[reg]);
+		if ((p!=string::npos)&&(cycle[i].str[p-1]==' ')) /// op reg...
+			return true;
 	}
 	return false;
 }
-bool Finder::is_indirect_write(string str, int *reg)
+bool Finder::is_indirect_write(Command *command, int *reg)
 {
-	for (int i=0;i<CommandsChangingCount;i++)
+	if (!is_write(&(command->inst))) return false;
+	for (int j=0;j<RegistersCount;j++)
 	{
-		if (str.find(CommandsChanging[i])==string::npos) continue; 
-		for (int j=0;j<RegistersCount;j++)
-		{
-			(*reg) = j;
-			int p = str.rfind(Registers[j]);
-			if ((p!=string::npos)&&(str[p-1]=='[')&&(str[p-2]==' ')) /// op [reg...],
-				return true;
-		}
+		(*reg) = j;
+		int p = command->str.rfind(Registers[j]);
+		if ((p!=string::npos)&&(command->str[p-1]=='[')&&(command->str[p-2]==' ')) /// op [reg...],
+			return true;
 	}
 	return false;
+}
+bool Finder::is_write(INSTRUCTION *inst)
+{
+	switch (inst->type) {
+		case INSTRUCTION_TYPE_XOR:
+		case INSTRUCTION_TYPE_SUB:
+		case INSTRUCTION_TYPE_SBB:
+		case INSTRUCTION_TYPE_DIV:
+		case INSTRUCTION_TYPE_IDIV:
+			
+		case INSTRUCTION_TYPE_ADD:
+		case INSTRUCTION_TYPE_AND:
+		case INSTRUCTION_TYPE_OR:
+		case INSTRUCTION_TYPE_MUL:
+		case INSTRUCTION_TYPE_IMUL:
+			
+		case INSTRUCTION_TYPE_MOV:
+		case INSTRUCTION_TYPE_POP:
+			return true;
+		default:
+			return false;
+	}
 }
 
 void Finder::get_operands(int pos)

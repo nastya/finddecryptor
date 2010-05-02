@@ -9,6 +9,4 @@ const char* Data::Registers [] = {
 	"ah","bh","ch","dh",
 	"al","bl","cl","dl"
 }; 
-const char* Data::CommandsChanging [] = {"xor","add","and","or","sub","mul","imul","div","mov","pop"};
 const int Data::RegistersCount = sizeof(Registers)/sizeof(Registers[0]);
-const int Data::CommandsChangingCount = sizeof(CommandsChanging)/sizeof(CommandsChanging[0]); 
