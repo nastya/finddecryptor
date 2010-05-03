@@ -17,27 +17,22 @@
 
 using namespace std;
 
-struct Command {
-	Command(int a = 0, INSTRUCTION inst = INSTRUCTION());
-	int addr;
-	INSTRUCTION inst;
-};
-
 /**
   @brief
     Class finding instructions to emulate.
  */
 class Finder : private Data {
 public:
+	struct Command {
+		Command(int a = 0, INSTRUCTION inst = INSTRUCTION());
+		int addr;
+		INSTRUCTION inst;
+	};
+
 	/**
-	Constructor of class Finder. Calls initialization function.
-	*/
-	Finder();
-	/**
-	Constructor of class Finder. Calls initialization and reading fucntions.
 	@param name Name of input file.
 	*/
-	Finder(char * name);
+	Finder(string name);
 	/**
 	Destructor of class Finder.
 	*/
@@ -102,8 +97,7 @@ private:
 	void add_target(OPERAND *op);
 	int int_to_reg(int code);
 	bool regs_closed();
-	void init();
-	void launch(int start, int pos=0);
+	void launch(int pos=0);
 	int verify(Command *cycle, int size);
 	bool verify_changing_reg(Command *cycle, int size, int reg);
 	bool is_write(INSTRUCTION *inst);
@@ -114,19 +108,17 @@ private:
 	int starting_point;
 	int start_emul;
 	int pos_getpc;
-	PEReader reader;
 	
 	bool *regs_target; ///<registers to be defined (array which size is number of registers, regs_target[i]=true if register is to be defined and regs_target[i]=false vice versa)
 	bool *regs_known;
 	
-	char* filename; ///<input file name
-	unsigned char *data; ///<buffer containing binary file
-	int dataSize; ///<size of buffer data
-	Emulator emulator;
+	PEReader reader;
+	Emulator *emulator;
 	set<int> start_positions;
 	static const Mode mode; ///<mode of disassembling (here it is MODE_32)
 	static const Format format; ///<format of commands (here it is Intel)
 
+	int instruction(INSTRUCTION *inst, int pos=0);
 	string instruction_string(INSTRUCTION *inst, int pos=0);
 	string instruction_string(int pos);
 

@@ -1,36 +1,33 @@
-#include "emulator.h"
-#include <unistd.h>
-#include <signal.h> 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>  
-#include <fcntl.h> 
+#include <csignal> 
+#include <cstdlib>
 #include <fstream>
+#include "emulator_gdbwine.h"
 #include "fdostream.h"
 
-Emulator::Emulator()
+Emulator_GdbWine::Emulator_GdbWine()
 {
 	pid[0] = pid[1] = 0;
 	out = NULL;
 	dirty = false;
 }
-Emulator::~Emulator()
+Emulator_GdbWine::~Emulator_GdbWine()
 {
 	stop();
 }
 
-void Emulator::start(char* filename) 
+void Emulator_GdbWine::start(PEReader* r) 
 {
 	int fd[3][2];
 	pipe(fd[0]);
 	pipe(fd[1]);
 	pipe(fd[2]);
 	
-	stream_gdb(fd,filename);
+	stream_gdb(fd,r->name());
 	stream_ctl(fd);
 	stream_main(fd);
+	reader = r;
 }
-void Emulator::stop()
+void Emulator_GdbWine::stop()
 {
 	if (dirty) {
 		(*out) << "kill" << endl;
@@ -45,7 +42,7 @@ void Emulator::stop()
 	out = NULL;
 }
 
-void Emulator::begin(int start, int pos)
+void Emulator_GdbWine::begin(int pos)
 {
 	if (dirty) {
 		(*out) << "kill" << endl;
@@ -66,18 +63,24 @@ void Emulator::begin(int start, int pos)
 	(*out) << "c" << endl;
 	(*out) << "c 29" << endl;
 	(*out) << "d" << endl;
-	(*out) << "tb * 0x" << hex << start << endl;
+	(*out) << "tb * 0x" << hex << reader->entrance() << endl;
 	(*out) << "c" << endl;
 
+	if (!get_clean()) {
+		cerr << "Something is wrong with GdbWine emulator." << endl << "Make sure you have winecfg (or any other wine application) running." << endl;
+		exit(0);
+	}
+	
 	if (pos!=0) jump(pos);
 }
-void Emulator::jump(int pos)
+void Emulator_GdbWine::jump(int pos)
 {
+	pos = reader->map(pos);
 	(*out) << "tb * 0x" << hex << pos << endl;
 	(*out) << "j * 0x" << hex << pos << endl;
 }
 
-bool Emulator::get_clean() {
+bool Emulator_GdbWine::get_clean() {
 	string str = " ";
 	bool ok = true;
 	/// TODO: rework this? We need to scan until input stops and buffer ends.
@@ -89,7 +92,7 @@ bool Emulator::get_clean() {
 	}
 	return ok;
 }
-bool Emulator::get_command(char *buff, int size)
+bool Emulator_GdbWine::get_command(char *buff, int size)
 {
 	if (!get_clean()) return false;
 	string str;
@@ -107,7 +110,7 @@ bool Emulator::get_command(char *buff, int size)
 	}
 	return true;
 }
-unsigned int Emulator::get_register(Register reg)
+unsigned int Emulator_GdbWine::get_register(Register reg)
 {
 	if (!get_clean()) return -1;
 	(*out) << "i r " << Registers[reg] << endl;
@@ -115,27 +118,27 @@ unsigned int Emulator::get_register(Register reg)
 	getline(cin,str);
 	return str_to_int(str);
 }
-unsigned int Emulator::str_to_int(string str)
+unsigned int Emulator_GdbWine::str_to_int(string str)
 {
 	unsigned int num;
 	str.replace(0,str.find("0x"),"");
 	sscanf(str.c_str(),"%x",&num);
 	return num;
 }
-void Emulator::step()
+void Emulator_GdbWine::step()
 {
 	get_clean();
 	(*out) << "si" << endl;
 	string str;
 	getline(cin,str);
 }
-void Emulator::fd_dup(int fd[3][2], int s0, int s1)
+void Emulator_GdbWine::fd_dup(int fd[3][2], int s0, int s1)
 {
 	dup2(fd[s0][0], 0);
 	dup2(fd[s1][1], 1);
 	fd_close(fd);
 }
-void Emulator::fd_close(int fd[3][2])
+void Emulator_GdbWine::fd_close(int fd[3][2])
 {
 	close(fd[0][0]);
 	close(fd[0][1]);
@@ -144,13 +147,17 @@ void Emulator::fd_close(int fd[3][2])
 	close(fd[2][0]);
 	close(fd[2][1]);
 }
-void Emulator::stream_main(int fd[3][2]) 
+void Emulator_GdbWine::stream_main(int fd[3][2]) 
 {
 	dup2(fd[2][0], 0);
-	out = new fdostream(fcntl(fd[0][1],F_DUPFD,0));
-	fd_close(fd);
+	out = new fdostream(fd[0][1]);
+	close(fd[0][0]);
+	close(fd[1][0]);
+	close(fd[1][1]);
+	close(fd[2][0]);
+	close(fd[2][1]);
 }
-void Emulator::stream_gdb(int fd[3][2], char* filename) 
+void Emulator_GdbWine::stream_gdb(int fd[3][2], string name) 
 {
 	pid[0] = fork();
 	if (pid[0]) return;
@@ -158,11 +165,11 @@ void Emulator::stream_gdb(int fd[3][2], char* filename)
 	fd_dup(fd,0,1);
 	dup2(1,2); /// We want to get cerr in cout.
 	
-	execlp("gdb","gdb","--quiet","--args","wine",filename,NULL);
+	execlp("gdb","gdb","--quiet","--args","wine",name.c_str(),NULL);
 }
 
 /// Reading from gdb output with some post-processing
-void Emulator::stream_ctl(int fd[3][2]) 
+void Emulator_GdbWine::stream_ctl(int fd[3][2]) 
 {
 	pid[1] = fork();
 	if (pid[1]) return;

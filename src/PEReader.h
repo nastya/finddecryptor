@@ -1,6 +1,10 @@
 #ifndef PEREADER_H
 #define PEREADER_H
 
+#include <string>
+
+using namespace std;
+
 class PEReader
 {
 	struct entry
@@ -13,17 +17,27 @@ class PEReader
 public:
 	PEReader();
 	~PEReader();
-	void init(unsigned char *data);
-	int get_starting_point();
-	int calculate_virt_addr(int addr);
-	void print_table();
+	void init(string name);
+	unsigned char *pointer();
+	string name();
+	int size();
+	int start();
+	int entrance();
+	int map(int addr);
 	bool is_within_one_block(int a, int b);
+	void print_table();
 private:
-	int get(unsigned char *data, int pos, int size=4);
+	void read();
+	void parse();
 	void sort();
+	int get(int pos, int size=4);
+
 	int number_of_sections;
 	int base;
 	int entry_point;
 	entry* table;
+	string filename; ///<input file name
+	unsigned char *data; ///<buffer containing binary file
+	int dataSize; ///<size of buffer data
 };
 #endif

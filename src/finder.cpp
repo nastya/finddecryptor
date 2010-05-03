@@ -1,32 +1,31 @@
 #include "finder.h"
+#include "emulator_gdbwine.h"
 
 using namespace std;
 
 const Mode Finder::mode = MODE_32;
 const Format Finder::format = FORMAT_INTEL;
 
-Command::Command(int a, INSTRUCTION i) {
+Finder::Command::Command(int a, INSTRUCTION i) {
 	addr = a;
 	inst = i;
 }
 
-Finder::Finder()
+Finder::Finder(string name)
 {
-	init();
-}
-
-Finder::Finder(char* name)
-{
-	init();
-	filename=name;
-	emulator.start(filename);
-	read_file(filename);
-	reader.init(data);
+	reader.init(name);
 	//reader.print_table();
+	emulator = new Emulator_GdbWine();
+	emulator->start(&reader);
+	regs_known = new bool[RegistersCount];
+	regs_target = new bool[RegistersCount];
+	log = NULL;
+#ifdef FINDER_LOG
+	log = new ofstream("../log.txt");
+#endif
 }
 Finder::~Finder()
 {
-	clear();
 	delete[] regs_known;
 	delete[] regs_target;
 	if (log)
@@ -34,42 +33,26 @@ Finder::~Finder()
 		log->close();
 		delete log;
 	}
+	delete emulator;
 }
-void Finder::init()
+void Finder::launch(int pos)
 {
-	regs_known = new bool[RegistersCount];
-	regs_target = new bool[RegistersCount];
-	data = NULL;
-	dataSize = 0;
-	log = NULL;
-#ifdef FINDER_LOG
-	log = new ofstream("../log.txt");
-#endif
-}
-void Finder::clear()
-{
-	delete[] data;
-	data = NULL;
-	dataSize = 0;
-}
-void Finder::launch(int start, int pos)
-{
-	if (log) (*log) << "launch (0x" << hex << start << ", 0x" << hex << pos << ")" << endl;
+	if (log) (*log) << "Launching from position " << dec << pos << endl;
 	int a[1000]={0}, i,k,num,amount=0, barrier;
 	bool flag = false;
 	Command cycle[256];
 	INSTRUCTION inst;
-	emulator.begin(start,pos);
+	emulator->begin(pos);
 	char buff[10] = {0};
 	for (int strnum=0;;strnum++)
 	{
-		if (!emulator.get_command(buff)) { /// Die on error, it will get SIGSEGV anyway.
+		if (!emulator->get_command(buff)) { /// Die on error, it will get SIGSEGV anyway.
 			if (log) (*log) << " Execution error, stopping instance." << endl;
 			return;
 		}
-		num = emulator.get_register(EIP);
+		num = emulator->get_register(EIP);
 		get_instruction(&inst, (BYTE *) buff, mode);
-		emulator.step();
+		emulator->step();
 		if (log) (*log) << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 		get_operands(&inst);
 		for (i=0;i<RegistersCount;i++)
@@ -96,9 +79,8 @@ void Finder::launch(int start, int pos)
 					if (log) (*log) <<  " Backwards traversal failed (nothing suitable found)." << endl;
 					return;
 				}
-				int startn = reader.get_starting_point(), posn = reader.calculate_virt_addr(em_start);
-				if (log) (*log) <<  " relaunch (because of " << Registers[i] << ") 0x" << hex << startn << " 0x" << hex << posn << endl;
-				return launch(startn,posn);
+				if (log) (*log) <<  " relaunch (because of " << Registers[i] << "). New position: " << dec << em_start << endl;
+				return launch(em_start);
 			}
 		}
 		memset(regs_target,false,RegistersCount);
@@ -116,13 +98,13 @@ void Finder::launch(int start, int pos)
 			for (barrier=0;barrier<strnum+10;barrier++)
 			{
 				cycle[barrier] = Command(num,inst);
-				if (!emulator.get_command(buff)) { /// Die on error, it will get SIGSEGV anyway.
+				if (!emulator->get_command(buff)) { /// Die on error, it will get SIGSEGV anyway.
 					if (log) (*log) << " Execution error, stopping instance." << endl;
 					return;
 				}
-				num = emulator.get_register(EIP);
+				num = emulator->get_register(EIP);
 				get_instruction(&inst, (BYTE *) buff, mode);
-				emulator.step();
+				emulator->step();
 				if (log) (*log) << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 				if (num==neednum)
 				{
@@ -144,7 +126,7 @@ void Finder::launch(int start, int pos)
 				(*log) << " 0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
 			if (k!=-1)
 			{
-				(*log) << " Indirect write in line #" << k << ", launched: (0x" << hex << start << ", 0x" << hex << pos << ")" << endl;
+				(*log) << " Indirect write in line #" << k << ", launched from position " << dec << pos << endl;
 			} else {
 				(*log) << " No indirect writes." << endl;
 			}
@@ -156,12 +138,15 @@ void Finder::launch(int start, int pos)
 			cout << "Cycle found: " << endl;
 			for (i=0; i<=barrier; i++)
 				cout << " 0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
-			cout << "Indirect write in line #" << k << ", launched: (0x" << hex << start << ", 0x" << hex << pos << ")" << endl;
+			cout << " Indirect write in line #" << k << ", launched from position " << dec << pos << endl;
 			exit(0);
 		}
 	}
 }
 
+int Finder::instruction(INSTRUCTION *inst, int pos) {
+	return get_instruction(inst, reader.pointer() + pos, mode);
+}
 string Finder::instruction_string(INSTRUCTION *inst, int pos) {
 	char str[256];
 	get_instruction_string(inst, format, (DWORD)pos, str, sizeof(str));
@@ -169,16 +154,16 @@ string Finder::instruction_string(INSTRUCTION *inst, int pos) {
 }
 string Finder::instruction_string(int pos) {
 	INSTRUCTION inst;
-	get_instruction(&inst, &data[pos], mode);
+	instruction(&inst, pos);
 	return instruction_string(&inst,pos);
 }
 void Finder::find() 
 {
 	INSTRUCTION inst;
-	for (int i=0; i<dataSize; i++)
+	for (int i=reader.start(); i<reader.size(); i++)
 	{
-		int len = get_instruction(&inst, &data[i], mode);		
-		if (!len || (len + i > dataSize)) continue;
+		int len = instruction(&inst, i);
+		if (!len || (len + i > reader.size())) continue;
 		if (strcmp(inst.ptr->mnemonic,"call")==0||strcmp(inst.ptr->mnemonic,"fstenv")==0||strcmp(inst.ptr->mnemonic,"fnstenv")==0)
 		{
 			pos_getpc = i;
@@ -193,12 +178,12 @@ void Finder::find()
 
 void Finder::find_memory(int pos)
 {
+	INSTRUCTION inst;
 	int len;
-	for (int p=pos; p<dataSize; p+=len)
+	for (int p=pos; p<reader.size(); p+=len)
 	{
-		INSTRUCTION inst;
-		len = get_instruction(&inst,&data[p],mode);
-		if (!len || (len + p > dataSize))
+		len = instruction(&inst,p);
+		if (!len || (len + p > reader.size()))
 		{
 			p++;
 			continue;
@@ -223,7 +208,7 @@ void Finder::find_memory(int pos)
 			return;
 		}
 		print_commands(&instructions_after_getpc,1);
-		launch(reader.get_starting_point(),reader.calculate_virt_addr(em_start));
+		launch(em_start);
 		return;
 	}
 }
@@ -239,7 +224,7 @@ void Finder::get_commands(vector <INSTRUCTION>* commands, vector <int>* num_comm
 	INSTRUCTION inst;
 	for (int i=num_commands->size()-1;i!=-1;i=(*prev)[i])
 	{
-		get_instruction(&inst,&data[(*num_commands)[i]],mode);
+		instruction(&inst,(*num_commands)[i]);
 		commands->push_back(inst);
 	}
 }
@@ -359,7 +344,7 @@ int Finder::backwards_traversal(int pos)
 	{
 		for (int i=1; i<=MaxCommandSize; i++)
 		{
-			if (get_instruction(&inst,&data[queue[cur]-i],mode)!=i) continue;
+			if (instruction(&inst,queue[cur]-i)!=i) continue;
 			queue.push_back(queue[cur]-i);
 			prev.push_back(cur);
 			length++;
@@ -390,7 +375,7 @@ int Finder::verify(Command *cycle, int size)
 
 bool Finder::verify_changing_reg(Command *cycle, int size, int reg)
 {
-	if (!reader.is_within_one_block(emulator.get_register((Register)reg),cycle[0].addr)) return false;
+	if (!reader.is_within_one_block(emulator->get_register((Register)reg),cycle[0].addr)) return false;
 	for (int i=0;i<size;i++)
 		if (	is_write(&(cycle[i].inst)) && 
 			(cycle[i].inst.op1.type==OPERAND_TYPE_REGISTER) && 
@@ -456,11 +441,11 @@ bool Finder::is_write(INSTRUCTION *inst)
 int Finder::find_jump(int pos)
 {
 	int len;
-	for (; pos<dataSize; pos+=len)
+	for (; pos<reader.size(); pos+=len)
 	{
 		INSTRUCTION inst;
-		len = get_instruction(&inst,&data[pos],mode);
-		if (!len || (len + pos > dataSize))
+		len = instruction(&inst,pos);
+		if (!len || (len + pos > reader.size()))
 		{
 			pos++;
 			continue;
@@ -478,23 +463,4 @@ int Finder::find_jump(int pos)
 		}
 	}
 	return -1;
-}
-
-void Finder::read_file(char *name)
-{
-	clear();
-	ifstream s(name);
-	if (!s.good() || s.eof() || !s.is_open()) 
-	{
-		if (log) (*log) << "Error opening file!\n";
-		return;
-	}
-	s.seekg(0, ios_base::beg);
-	ifstream::pos_type begin_pos = s.tellg();
-	s.seekg(0, ios_base::end);
-	dataSize = static_cast<int>(s.tellg() - begin_pos);
-	s.seekg(0, ios_base::beg);
-	data = new unsigned char[dataSize];
-	s.read((char *) data,dataSize);
-	s.close();
 }
