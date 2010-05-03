@@ -13,7 +13,25 @@ They describe a method for detecting self-decrypting exploit codes. This method 
  */
 int main(int argc, char** argv)
 {
-	Finder finder(argv[1]);
+	int type = 0;
+	switch (argc)
+	{
+		case 2:
+			break;
+		case 3:
+			if (strcmp(argv[2],"LibEmu")==0)
+				type = 1;
+			else if (strcmp(argv[2],"GdbWine")!=0)
+			{
+				cerr << "Unknown emulator type." << endl;
+				return 0;
+			}
+			break;
+		default:
+			cerr << "Wrong usage." << endl;
+			return 0;
+	}
+	Finder finder(argv[1],type);
 	finder.find();
 	return 0;
 }

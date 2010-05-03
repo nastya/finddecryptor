@@ -1,5 +1,6 @@
 #include "finder.h"
 #include "emulator_gdbwine.h"
+#include "emulator_libemu.h"
 
 using namespace std;
 
@@ -11,11 +12,17 @@ Finder::Command::Command(int a, INSTRUCTION i) {
 	inst = i;
 }
 
-Finder::Finder(string name)
+Finder::Finder(string name, int type)
 {
 	reader.init(name);
-	//reader.print_table();
-	emulator = new Emulator_GdbWine();
+	switch (type) {
+		case 1:
+			emulator = new Emulator_LibEmu();
+			break;
+		case 0:
+		default:
+			emulator = new Emulator_GdbWine();
+	}
 	emulator->start(&reader);
 	regs_known = new bool[RegistersCount];
 	regs_target = new bool[RegistersCount];
@@ -23,6 +30,14 @@ Finder::Finder(string name)
 #ifdef FINDER_LOG
 	log = new ofstream("../log.txt");
 #endif
+	if (log) switch (type) {
+		case 1:
+			(*log) << "Using LibEmu emulator." << endl << endl;
+		case 0:
+		default:
+			(*log) << "Using GdbWine emulator." << endl << endl;
+	}
+
 }
 Finder::~Finder()
 {
@@ -46,13 +61,16 @@ void Finder::launch(int pos)
 	char buff[10] = {0};
 	for (int strnum=0;;strnum++)
 	{
-		if (!emulator->get_command(buff)) { /// Die on error, it will get SIGSEGV anyway.
+		if (!emulator->get_command(buff)) {
 			if (log) (*log) << " Execution error, stopping instance." << endl;
 			return;
 		}
 		num = emulator->get_register(EIP);
 		get_instruction(&inst, (BYTE *) buff, mode);
-		emulator->step();
+		if (!emulator->step()) {
+			if (log) (*log) << " Execution error, stopping instance." << endl;
+			return;			
+		}
 		if (log) (*log) << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 		get_operands(&inst);
 		for (i=0;i<RegistersCount;i++)
@@ -98,13 +116,16 @@ void Finder::launch(int pos)
 			for (barrier=0;barrier<strnum+10;barrier++)
 			{
 				cycle[barrier] = Command(num,inst);
-				if (!emulator->get_command(buff)) { /// Die on error, it will get SIGSEGV anyway.
+				if (!emulator->get_command(buff)) {
 					if (log) (*log) << " Execution error, stopping instance." << endl;
 					return;
 				}
 				num = emulator->get_register(EIP);
 				get_instruction(&inst, (BYTE *) buff, mode);
-				emulator->step();
+				if (!emulator->step()) {
+					if (log) (*log) << " Execution error, stopping instance." << endl;
+					return;			
+				}
 				if (log) (*log) << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 				if (num==neednum)
 				{

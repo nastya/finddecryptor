@@ -114,10 +114,7 @@ bool PEReader::is_within_one_block(int a,int b)
 }
 void PEReader::print_table()
 {
+	cerr << "Base: 0x" << hex << base << endl;
 	for (int i=0;i<number_of_sections;i++)
-	{
-		cerr<<table[i].name<<" ";
-		cerr<<hex<<table[i].virt_addr<<" ";
-		cerr<<hex<<table[i].raw_offset<<endl;
-	}
+		cerr << table[i].name << " 0x" << hex << table[i].virt_addr << " 0x" << hex << table[i].raw_offset << endl;
 }

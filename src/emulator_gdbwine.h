@@ -5,7 +5,7 @@
 
 using namespace std;
 
-class Emulator_GdbWine: public Emulator {
+class Emulator_GdbWine : public Emulator {
 public:	
 	Emulator_GdbWine();
 	~Emulator_GdbWine();
@@ -14,7 +14,7 @@ public:
 	void begin(int pos=0);
 	
 	void jump(int pos);
-	void step();
+	bool step();
 	bool get_command(char *buff, int size=10);
 	unsigned int get_register(Register reg);
 private:

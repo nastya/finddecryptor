@@ -32,7 +32,7 @@ public:
 	/**
 	@param name Name of input file.
 	*/
-	Finder(string name);
+	Finder(string name, int type=0);
 	/**
 	Destructor of class Finder.
 	*/

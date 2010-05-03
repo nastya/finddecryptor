@@ -45,6 +45,7 @@ void Emulator_GdbWine::stop()
 void Emulator_GdbWine::begin(int pos)
 {
 	if (dirty) {
+		get_clean();
 		(*out) << "kill" << endl;
 		(*out) << "exec-file wine" << endl;
 	}
@@ -52,7 +53,7 @@ void Emulator_GdbWine::begin(int pos)
 	
 	/// Ok, with this method wine should be launched before starting the program.
 	/// You can, for example, lauch winecfg, and keep it open while running the program.
-	
+		
 	(*out) << "tc syscall set_tid_address" << endl;
 	(*out) << "run" << endl;
 	(*out) << "tc syscall set_thread_area" << endl;
@@ -114,7 +115,7 @@ bool Emulator_GdbWine::get_command(char *buff, int size)
 }
 unsigned int Emulator_GdbWine::get_register(Register reg)
 {
-	if (!get_clean()) return -1;
+	get_clean();
 	(*out) << "i r " << Registers[reg] << endl;
 	string str;
 	getline(cin,str);
@@ -127,12 +128,13 @@ unsigned int Emulator_GdbWine::str_to_int(string str)
 	sscanf(str.c_str(),"%x",&num);
 	return num;
 }
-void Emulator_GdbWine::step()
+bool Emulator_GdbWine::step()
 {
 	get_clean();
 	(*out) << "si" << endl;
 	string str;
 	getline(cin,str);
+	return true;
 }
 void Emulator_GdbWine::fd_dup(int fd[3][2], int s0, int s1)
 {
