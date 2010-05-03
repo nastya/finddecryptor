@@ -33,6 +33,7 @@ Finder::Finder(string name, int type)
 	if (log) switch (type) {
 		case 1:
 			(*log) << "Using LibEmu emulator." << endl << endl;
+			break;
 		case 0:
 		default:
 			(*log) << "Using GdbWine emulator." << endl << endl;
