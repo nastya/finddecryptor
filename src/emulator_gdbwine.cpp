@@ -179,8 +179,8 @@ void Emulator_GdbWine::stream_ctl(int fd[3][2])
 	fd_dup(fd,1,2);
 	
 	string str;
-	ofstream log("../dbg.txt");
-	log.close();
+//	ofstream log("../dbg.txt");
+//	log.close();
 	for(;;)
 	{
 		getline(cin,str);
@@ -189,9 +189,9 @@ void Emulator_GdbWine::stream_ctl(int fd[3][2])
 			str.replace(0,6,"");
 		}
 		if (str.length() == 0) continue;
-		log.open("../dbg.txt",ios_base::out|ios_base::app);
-		log << str << endl;
-		log.close();
+//		log.open("../dbg.txt",ios_base::out|ios_base::app);
+//		log << str << endl;
+//		log.close();
 		if (str.find("Cannot")!=string::npos)
 		{
 			str = "!Warning!";
