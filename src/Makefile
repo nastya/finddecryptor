@@ -17,7 +17,7 @@ TARGET        = ../bin/myprogram
 ####### Build rules
 
 $(TARGET): $(OBJECTS)
-	$(CXX) -o $(TARGET) $(OBJECTS) emu/libemu.so -Wl,-rpath -Wl,emu
+	$(CXX) -o $(TARGET) $(OBJECTS)
 
 all: $(TARGET) test
 
