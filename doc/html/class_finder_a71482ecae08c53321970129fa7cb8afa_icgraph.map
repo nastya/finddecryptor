@@ -1,8 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" id="node3" href="$class_finder.html#a421b9d0cd12fde5d11fcf525c19557b6" title="Finder::check1" alt="" coords="191,32,303,61"/>
-<area shape="rect" id="node5" href="$class_finder.html#aed15260fdcb68b7525fdf5f728540337" title="Finder::check2" alt="" coords="353,5,465,35"/>
-<area shape="rect" id="node9" href="$class_finder.html#ac5ee4ffa9c5df98268bd47937761293c" title="Finder::find_memory" alt="" coords="763,32,915,61"/>
-<area shape="rect" id="node7" href="$class_finder.html#a3bc1ffb038048544ee70b35c0283267c" title="Finder::backwards_traversal" alt="" coords="516,5,713,35"/>
-<area shape="rect" id="node11" href="$class_finder.html#ad22c1d1209a2cda6cc7353302b1a5875" title="Finder::find" alt="" coords="963,32,1053,61"/>
-<area shape="rect" id="node13" href="$myprogram_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627" title="main" alt="" coords="1103,32,1156,61"/>
-</map>

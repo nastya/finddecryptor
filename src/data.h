@@ -1,6 +1,11 @@
 #ifndef DATA_H
 #define DATA_H
 
+/**
+@brief
+Some necessary data (about registers and commands).
+*/
+
 class Data {
 public:
 	///Enum type - observed registers

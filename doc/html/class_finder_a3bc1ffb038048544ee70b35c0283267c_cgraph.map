@@ -1,9 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" id="node3" href="$class_finder.html#aed15260fdcb68b7525fdf5f728540337" title="Finder::check2" alt="" coords="285,8,397,37"/>
-<area shape="rect" id="node11" href="$class_finder.html#ac78928e42a7b251061913a461a874624" title="Finder::get_commands" alt="" coords="477,59,645,88"/>
-<area shape="rect" id="node13" href="$libdasm_8h.html#a2f59f203986bd0803fcefec8dfad0648" title="get_instruction" alt="" coords="703,84,820,113"/>
-<area shape="rect" id="node17" href="$class_finder.html#a3c6a7f9636c6f42658fe65ef8c894b01" title="Finder::print_commands" alt="" coords="253,163,429,192"/>
-<area shape="rect" id="node5" href="$class_finder.html#a421b9d0cd12fde5d11fcf525c19557b6" title="Finder::check1" alt="" coords="505,5,617,35"/>
-<area shape="rect" id="node7" href="$class_finder.html#a71482ecae08c53321970129fa7cb8afa" title="Finder::check_inst" alt="" coords="695,19,828,48"/>
-<area shape="rect" id="node9" href="$libdasm_8h.html#a59bea58c0399283723ab9ec218ed3e38" title="get_instruction_string" alt="" coords="877,91,1037,120"/>
-</map>
