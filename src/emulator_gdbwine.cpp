@@ -181,7 +181,7 @@ void Emulator_GdbWine::stream_ctl(int fd[3][2])
 	fd_dup(fd,1,2);
 	
 	string str;
-//	ofstream log("../dbg.txt");
+//	ofstream log("../log/gdbwine.txt");
 //	log.close();
 	for(;;)
 	{

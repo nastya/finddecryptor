@@ -28,7 +28,7 @@ Finder::Finder(string name, int type)
 	regs_target = new bool[RegistersCount];
 	log = NULL;
 #ifdef FINDER_LOG
-	log = new ofstream("../log.txt");
+        log = new ofstream("../log/finder.txt");
 #endif
 	if (log) switch (type) {
 		case 1:

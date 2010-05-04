@@ -68,7 +68,6 @@ public:
 private:
 	/**
 	Reads input binary file into buffer.
-	@param name Name of input file.
 	*/
 	void read();
 	/**
