@@ -26,9 +26,7 @@ void Emulator_LibEmu::begin(int pos) {
 	cpu->reg[esp] = 0x1000000;	
 
 	emu_memory_clear(mem);
-	for (int i = 0; i < reader->size(); i++)
-		emu_memory_write_byte(mem, offset+i, reader->pointer()[i]);
-	emu_memory_write_byte(mem, offset+reader->size(), '\xcc');
+	emu_memory_write_block(mem, offset, reader->pointer(), reader->size());
 
 	jump(pos);
 }
@@ -44,7 +42,7 @@ void Emulator_LibEmu::jump(int pos) {
 	if (emu_cpu_step(cpu) != 0)
 		ok = false;
 	if (!ok)
-		log << "ERROR: " << emu_strerror(cpu->emu) << endl;
+		log << "ERROR: " << cpu->emu->errorstr << endl;
 	log.close();
 	return ok;
 }*/

@@ -45,7 +45,7 @@ myprogram.o: myprogram.cpp finder.h
 	$(CXX) -c myprogram.cpp
 
 finder.o: finder.cpp finder.h libdasm.h emulator.h PEReader.h
-	$(CXX) -c finder.cpp -I ../libemu
+	$(CXX) -c finder.cpp
 
 data.o: data.cpp data.h
 	$(CXX) -c data.cpp
@@ -63,7 +63,7 @@ emulator_gdbwine.o: emulator_gdbwine.cpp emulator_gdbwine.h emulator.h
 	$(CXX) -c emulator_gdbwine.cpp
 
 emulator_libemu.o: emulator_libemu.cpp emulator_libemu.h emulator.h
-	$(CXX) -c emulator_libemu.cpp -I ../libemu
+	$(CXX) -c emulator_libemu.cpp
 
 ../lib/libdasm.so: libdasm.o
 	mkdir -p ../lib
