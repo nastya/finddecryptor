@@ -12,9 +12,8 @@ Finder::Command::Command(int a, INSTRUCTION i) {
 	inst = i;
 }
 
-Finder::Finder(string name, int type)
+Finder::Finder(int type)
 {
-	reader.init(name);
 	switch (type) {
 		case 1:
 			emulator = new Emulator_LibEmu();
@@ -23,7 +22,6 @@ Finder::Finder(string name, int type)
 		default:
 			emulator = new Emulator_GdbWine();
 	}
-	emulator->start(&reader);
 	regs_known = new bool[RegistersCount];
 	regs_target = new bool[RegistersCount];
 	log = NULL;
@@ -32,11 +30,11 @@ Finder::Finder(string name, int type)
 #endif
 	if (log) switch (type) {
 		case 1:
-			(*log) << "Using LibEmu emulator." << endl << endl;
+			(*log) << "### Using LibEmu emulator. ###" << endl;
 			break;
 		case 0:
 		default:
-			(*log) << "Using GdbWine emulator." << endl << endl;
+			(*log) << "### Using GdbWine emulator. ###" << endl;
 	}
 }
 
@@ -50,6 +48,12 @@ Finder::~Finder()
 		delete log;
 	}
 	delete emulator;
+}
+void Finder::load(string name)
+{
+	reader.load(name);
+	emulator->bind(&reader);
+	if (log) (*log) << endl << "# Loaded file \'" << name << "\". #" << endl << endl;
 }
 void Finder::launch(int pos)
 {

@@ -31,7 +31,8 @@ int main(int argc, char** argv)
 			cerr << "Wrong usage." << endl;
 			return 0;
 	}
-	Finder finder(argv[1],type);
+	Finder finder(type);
+	finder.load(argv[1]);
 	finder.find();
 	return 0;
 }

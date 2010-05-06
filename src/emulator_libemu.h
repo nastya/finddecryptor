@@ -18,7 +18,7 @@ class Emulator_LibEmu : public Emulator {
 public:
 	Emulator_LibEmu();
 	~Emulator_LibEmu();
-	void start(PEReader *r);
+	void bind(PEReader *r);
 	void begin(int pos=0);
 	void jump(int pos);
 	bool step();

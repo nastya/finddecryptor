@@ -9,6 +9,7 @@ OBJECTS		= myprogram.o \
 		  PEReader.o \
 		  fdostream.o \
 		  libdasm.o \
+		  emulator.o \
 		  emulator_gdbwine.o \
 		  emulator_libemu.o
 
@@ -59,6 +60,9 @@ fdostream.o: fdostream.cpp fdostream.h
 libdasm.o: libdasm.c
 	$(CC) -c libdasm.c
 
+emulator.o: emulator.cpp
+	$(CXX) -c emulator.cpp
+
 emulator_gdbwine.o: emulator_gdbwine.cpp emulator_gdbwine.h emulator.h
 	$(CXX) -c emulator_gdbwine.cpp
 
@@ -69,13 +73,13 @@ emulator_libemu.o: emulator_libemu.cpp emulator_libemu.h emulator.h
 	mkdir -p ../lib
 	$(CC) -shared -o $@ libdasm.o
 
-../lib/emulator_gdbwine.so: emulator_gdbwine.o fdostream.o
+../lib/emulator_gdbwine.so: emulator_gdbwine.o emulator.o fdostream.o
 	mkdir -p ../lib
-	$(CXX) -shared -o $@ emulator_gdbwine.o fdostream.o
+	$(CXX) -shared -o $@ emulator_gdbwine.o emulator.o fdostream.o
 
-../lib/emulator_libemu.so: emulator_libemu.o ../libemu/libemu.so
+../lib/emulator_libemu.so: emulator_libemu.o emulator.o ../libemu/libemu.so
 	mkdir -p ../lib
-	$(CXX) -shared -o $@ emulator_libemu.o ../libemu/libemu.so -Wl,-rpath -Wl,$(CURDIR)/../libemu
+	$(CXX) -shared -o $@ emulator_libemu.o emulator.o ../libemu/libemu.so -Wl,-rpath -Wl,$(CURDIR)/../libemu
 
 test: test_libemu
 

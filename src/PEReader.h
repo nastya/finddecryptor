@@ -29,19 +29,19 @@ public:
 	  A wrap on read and parse functions
 	  @param name Name of input file
 	*/
-	void init(string name);
-	/**
-	@return Pointer to a buffer helding an input file
-	*/
-	unsigned char *pointer();
+	void load(string name);
 	/**
 	@return Name of the input file.
 	*/
 	string name();
 	/**
+	@return Pointer to a buffer helding an input file
+	*/
+	unsigned char *pointer(bool nohead=false);
+	/**
 	@return Size of input file.
 	*/
-	int size();
+	int size(bool nohead=false);
 	/**
 	  @return The position of the first instruction in file.
 	*/

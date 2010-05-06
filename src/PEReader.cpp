@@ -19,7 +19,7 @@ PEReader::~PEReader()
 	delete [] table;
 	delete [] data;
 }
-void PEReader::init(string name)
+void PEReader::load(string name)
 {
 	filename = name;
 	read();
@@ -79,14 +79,14 @@ int PEReader::get(int pos, int size) {
 		x = x*16*16 + data[pos+i];
 	return x;
 }
-unsigned char* PEReader::pointer() {
-	return data;
-}
 string PEReader::name() {
 	return filename;
 }
-int PEReader::size() {
-	return dataSize;
+unsigned char* PEReader::pointer(bool nohead) {
+	return data + (nohead ? table[0].raw_offset : 0);
+}
+int PEReader::size(bool nohead) {
+	return dataSize - (nohead ? table[0].raw_offset : 0);
 }
 int PEReader::start()
 {

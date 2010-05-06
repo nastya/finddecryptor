@@ -14,10 +14,10 @@ using namespace std;
 class Emulator : protected Data {
 public:	
 	/**
-	  Runs emulator (initializes processes for interaction with emulator).
+	  Binds reader to emulator.
 	  @param r Pointer to an examplar of class PEReader which is used for taking special information out of PE-header.
 	*/
-	virtual void start(PEReader *r) = 0;
+	void bind(PEReader *r);
 	/**
 	  Runs emulation from the instruction situated on specified position in input file.
 	  @param pos Position to run emulation from.

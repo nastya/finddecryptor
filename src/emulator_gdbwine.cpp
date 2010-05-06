@@ -9,23 +9,19 @@ Emulator_GdbWine::Emulator_GdbWine()
 	pid[0] = pid[1] = 0;
 	out = NULL;
 	dirty = false;
-}
-Emulator_GdbWine::~Emulator_GdbWine()
-{
-	stop();
-}
 
-void Emulator_GdbWine::start(PEReader* r) 
-{
 	int fd[3][2];
 	pipe(fd[0]);
 	pipe(fd[1]);
 	pipe(fd[2]);
 	
-	stream_gdb(fd,r->name());
+	stream_gdb(fd);
 	stream_ctl(fd);
 	stream_main(fd);
-	reader = r;
+}
+Emulator_GdbWine::~Emulator_GdbWine()
+{
+	stop();
 }
 void Emulator_GdbWine::stop()
 {
@@ -41,15 +37,16 @@ void Emulator_GdbWine::stop()
 	if (out) delete out;
 	out = NULL;
 }
-
 void Emulator_GdbWine::begin(int pos)
 {
 	if (dirty) {
 		get_clean();
 		(*out) << "kill" << endl;
-		(*out) << "exec-file wine" << endl;
 	}
 	dirty = true;
+	
+	(*out) << "exec-file wine" << endl;
+	(*out) << "set args " << reader->name() << endl;
 	
 	/// Ok, with this method wine should be launched before starting the program.
 	/// You can, for example, lauch winecfg, and keep it open while running the program.
@@ -82,7 +79,6 @@ void Emulator_GdbWine::jump(int pos)
 	(*out) << "tb * 0x" << hex << pos << endl;
 	(*out) << "j * 0x" << hex << pos << endl;
 }
-
 bool Emulator_GdbWine::get_clean() {
 	string str = " ";
 	bool ok = true;
@@ -161,7 +157,7 @@ void Emulator_GdbWine::stream_main(int fd[3][2])
 	close(fd[2][0]);
 	close(fd[2][1]);
 }
-void Emulator_GdbWine::stream_gdb(int fd[3][2], string name) 
+void Emulator_GdbWine::stream_gdb(int fd[3][2]) 
 {
 	pid[0] = fork();
 	if (pid[0]) return;
@@ -169,9 +165,8 @@ void Emulator_GdbWine::stream_gdb(int fd[3][2], string name)
 	fd_dup(fd,0,1);
 	dup2(1,2); /// We want to get cerr in cout.
 	
-	execlp("gdb","gdb","--quiet","--args","wine",name.c_str(),NULL);
+	execlp("gdb","gdb","--quiet",NULL);
 }
-
 /// Reading from gdb output with some post-processing
 void Emulator_GdbWine::stream_ctl(int fd[3][2]) 
 {

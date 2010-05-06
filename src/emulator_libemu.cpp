@@ -14,9 +14,6 @@ Emulator_LibEmu::Emulator_LibEmu() {
 Emulator_LibEmu::~Emulator_LibEmu() {
 	emu_free(e);
 }
-void Emulator_LibEmu::start(PEReader *r) {
-	reader = r;
-}
 void Emulator_LibEmu::begin(int pos) {
 	if (pos==0) pos = reader->start();
 	offset = reader->map(pos) - pos;
@@ -26,7 +23,7 @@ void Emulator_LibEmu::begin(int pos) {
 	cpu->reg[esp] = 0x1000000;	
 
 	emu_memory_clear(mem);
-	emu_memory_write_block(mem, offset, reader->pointer(), reader->size());
+	emu_memory_write_block(mem, offset + reader->start(), reader->pointer(true), reader->size(true));
 
 	jump(pos);
 }

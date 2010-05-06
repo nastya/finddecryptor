@@ -14,7 +14,7 @@ class Emulator_GdbWine : public Emulator {
 public:	
 	Emulator_GdbWine();
 	~Emulator_GdbWine();
-	void start(PEReader *r);
+	void bind(PEReader *r);
 	void stop();
 	void begin(int pos=0);
 	
@@ -37,11 +37,10 @@ private:
 	  Runs process gbd.
 	  @param fd file descriptors used to transfer information between processes.
 	*/
-	void stream_gdb(int fd[3][2], string name);
+	void stream_gdb(int fd[3][2]);
 	/**
 	  Runs control process reading information from gdb and writing to main process. 
 	  @param fd file descriptors used to transfer information between processes.
-	  @param name Name of input file - file to trace.
 	*/
 	void stream_ctl(int fd[3][2]);
 	/**

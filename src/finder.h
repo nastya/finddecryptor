@@ -33,14 +33,18 @@ public:
 	};
 
 	/**
-	@param name Name of input file.
 	@param type Type of the emulator. Possible values: 0(GdbWine), 1(LibEmu).
 	*/
-	Finder(string name, int type=0);
+	Finder(int type=0);
 	/**
 	Destructor of class Finder.
 	*/
 	~Finder();
+	/**
+	Loads a file.
+	@param name Name of input file.
+	*/
+	void load(string name);
 	/**
 	Wrap on functions finding writes to memory and indirect jumps.
 	*/
