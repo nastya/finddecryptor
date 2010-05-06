@@ -68,11 +68,11 @@ void Finder::launch(int pos)
 		}
 		num = emulator->get_register(EIP);
 		get_instruction(&inst, (BYTE *) buff, mode);
+		if (log) (*log) << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 		if (!emulator->step()) {
 			if (log) (*log) << " Execution error, stopping instance." << endl;
 			return;			
 		}
-		if (log) (*log) << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 		get_operands(&inst);
 		for (i=0;i<RegistersCount;i++)
 		{
@@ -123,11 +123,11 @@ void Finder::launch(int pos)
 				}
 				num = emulator->get_register(EIP);
 				get_instruction(&inst, (BYTE *) buff, mode);
+				if (log) (*log) << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 				if (!emulator->step()) {
 					if (log) (*log) << " Execution error, stopping instance." << endl;
 					return;			
 				}
-				if (log) (*log) << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 				if (num==neednum)
 				{
 					flag = true;
@@ -310,6 +310,7 @@ void Finder::check(INSTRUCTION *inst)
 			if (regs_target[r]) add_target(&(inst->op2));
 			break;
 		case INSTRUCTION_TYPE_MOV:
+		case INSTRUCTION_TYPE_LEA:
 			if (inst->op1.type != OPERAND_TYPE_REGISTER) break;
 			r = int_to_reg(inst->op1.reg);
 			regs_known[r] = true;
@@ -328,6 +329,10 @@ void Finder::check(INSTRUCTION *inst)
 				regs_target[r] = false;
 				regs_target[ESP] = true;
 			}
+			break;
+		case INSTRUCTION_TYPE_CALL:
+			regs_known[ESP]=true;
+			regs_target[ESP]=false;
 			break;
 		case INSTRUCTION_TYPE_FPU:
 			if (strcmp(inst->ptr->mnemonic,"fptan")!=0) break; /// TODO: check this command.
@@ -353,6 +358,7 @@ void Finder::print_commands(vector <INSTRUCTION>* v, int start)
 
 int Finder::backwards_traversal(int pos)
 {
+	if (regs_closed()) return pos;
 	INSTRUCTION inst;
 	int length=1;
 	bool regs_target_bak[RegistersCount], regs_known_bak[RegistersCount];

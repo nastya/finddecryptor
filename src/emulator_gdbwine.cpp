@@ -191,7 +191,7 @@ void Emulator_GdbWine::stream_ctl(int fd[3][2])
 			str.replace(0,6,"");
 		}
 		if (str.length() == 0) continue;
-//		log.open("../dbg.txt",ios_base::out|ios_base::app);
+//		log.open("../log/gdbwine.txt",ios_base::out|ios_base::app);
 //		log << str << endl;
 //		log.close();
 		if (str.find("Cannot")!=string::npos)

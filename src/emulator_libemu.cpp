@@ -1,8 +1,12 @@
 #include "emulator_libemu.h"
 
+#include <fstream>
+
 using namespace std;
 
 Emulator_LibEmu::Emulator_LibEmu() {
+	//ofstream log("../log/libemu.txt");
+	//log.close();
 	e = emu_new();
 	cpu = emu_cpu_get(e);
 	mem = emu_memory_get(e);
@@ -31,6 +35,19 @@ void Emulator_LibEmu::begin(int pos) {
 void Emulator_LibEmu::jump(int pos) {
 	emu_cpu_eip_set(cpu, offset + pos);
 }
+/*bool Emulator_LibEmu::step() {
+	ofstream log("../log/libemu.txt",ios_base::out|ios_base::app);
+	bool ok = true;
+	if (emu_cpu_parse(cpu) != 0)
+		ok = false;
+	log << "Command: " << cpu->instr_string << endl;
+	if (emu_cpu_step(cpu) != 0)
+		ok = false;
+	if (!ok)
+		log << "ERROR: " << emu_strerror(cpu->emu) << endl;
+	log.close();
+	return ok;
+}*/
 bool Emulator_LibEmu::step() {
 	if (emu_cpu_parse(cpu) != 0)
 		return false;

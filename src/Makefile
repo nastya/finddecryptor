@@ -17,13 +17,13 @@ LIBS		= ../lib/libdasm.so \
 		  ../lib/emulator_libemu.so
 
 TARGET		= ../bin/myprogram
-INPUT		= ../input/cmd_exec_notepad
+INPUT		= ../input/
 OUTPUT		= ../log/output
 
 ####### Build rules
 
 $(TARGET): $(OBJECTS) $(LIBS)
-	mkdir -p ../bin
+	mkdir -p ../bin ../log
 	$(CXX) -o $(TARGET) myprogram.o data.o finder.o PEReader.o ../lib/libdasm.so ../lib/emulator_gdbwine.so ../lib/emulator_libemu.so -Wl,-rpath -Wl,$(CURDIR)/../lib
 
 all: $(TARGET) doc test
@@ -81,20 +81,22 @@ test: test_libemu
 
 test_gdbwine: $(TARGET)
 	mkdir -p ../log
-	./$(TARGET) $(INPUT).avoid_utf8_tolower.exe GdbWine > $(OUTPUT).avoid_utf8_tolower.gdbwine.txt
-	./$(TARGET) $(INPUT).call4_dword_xor.exe GdbWine > $(OUTPUT).call4_dword_xor.gdbwine.txt
-	./$(TARGET) $(INPUT).countdown.exe GdbWine > $(OUTPUT).countdown.gdbwine.txt
-	./$(TARGET) $(INPUT).fnstenv_mov.exe GdbWine > $(OUTPUT).fnstenv_mov.gdbwine.txt
-	./$(TARGET) $(INPUT).jmp_call_additive.exe GdbWine > $(OUTPUT).jmp_call_additive.gdbwine.txt
-	./$(TARGET) $(INPUT).nonalpha.exe GdbWine > $(OUTPUT).nonalpha.gdbwine.txt
-	./$(TARGET) $(INPUT).shikata_ga_nai.exe GdbWine > $(OUTPUT).shikata_ga_nai.gdbwine.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.avoid_utf8_tolower.exe GdbWine > $(OUTPUT).avoid_utf8_tolower.gdbwine.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.call4_dword_xor.exe GdbWine > $(OUTPUT).call4_dword_xor.gdbwine.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.countdown.exe GdbWine > $(OUTPUT).countdown.gdbwine.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.fnstenv_mov.exe GdbWine > $(OUTPUT).fnstenv_mov.gdbwine.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.jmp_call_additive.exe GdbWine > $(OUTPUT).jmp_call_additive.gdbwine.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.nonalpha.exe GdbWine > $(OUTPUT).nonalpha.gdbwine.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.shikata_ga_nai.exe GdbWine > $(OUTPUT).shikata_ga_nai.gdbwine.txt
+	./$(TARGET) $(INPUT)W32Nea_fast_encr.exe GdbWine > $(OUTPUT).W32Nea_fast_encr.gdbwine.txt
 
 test_libemu: $(TARGET)
 	mkdir -p ../log
-	./$(TARGET) $(INPUT).avoid_utf8_tolower.exe LibEmu > $(OUTPUT).avoid_utf8_tolower.libemu.txt
-	./$(TARGET) $(INPUT).call4_dword_xor.exe LibEmu > $(OUTPUT).call4_dword_xor.libemu.txt
-	./$(TARGET) $(INPUT).countdown.exe LibEmu > $(OUTPUT).countdown.libemu.txt
-	./$(TARGET) $(INPUT).fnstenv_mov.exe LibEmu > $(OUTPUT).fnstenv_mov.libemu.txt
-	./$(TARGET) $(INPUT).jmp_call_additive.exe LibEmu > $(OUTPUT).jmp_call_additive.libemu.txt
-	./$(TARGET) $(INPUT).nonalpha.exe LibEmu > $(OUTPUT).nonalpha.libemu.txt
-	./$(TARGET) $(INPUT).shikata_ga_nai.exe LibEmu > $(OUTPUT).shikata_ga_nai.libemu.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.avoid_utf8_tolower.exe LibEmu > $(OUTPUT).avoid_utf8_tolower.libemu.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.call4_dword_xor.exe LibEmu > $(OUTPUT).call4_dword_xor.libemu.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.countdown.exe LibEmu > $(OUTPUT).countdown.libemu.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.fnstenv_mov.exe LibEmu > $(OUTPUT).fnstenv_mov.libemu.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.jmp_call_additive.exe LibEmu > $(OUTPUT).jmp_call_additive.libemu.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.nonalpha.exe LibEmu > $(OUTPUT).nonalpha.libemu.txt
+	./$(TARGET) $(INPUT)cmd_exec_notepad.shikata_ga_nai.exe LibEmu > $(OUTPUT).shikata_ga_nai.libemu.txt
+	./$(TARGET) $(INPUT)W32Nea_fast_encr.exe LibEmu > $(OUTPUT).W32Nea_fast_encr.libemu.txt

@@ -70,40 +70,4 @@ uint32_t emu_memory_get_usage(struct emu_memory *m);
 void emu_memory_mode_ro(struct emu_memory *m);
 void emu_memory_mode_rw(struct emu_memory *m);
 
-
-#define MEM_BYTE_READ(cpu_p, addr, data_p) \
- { int32_t ret = emu_memory_read_byte((cpu_p)->mem, addr, data_p); \
- if( ret != 0 ) \
-  return ret; }
-
-#define MEM_BYTE_WRITE(cpu_p, addr, data) \
- { int32_t ret = emu_memory_write_byte((cpu_p)->mem, addr, data); \
- if( ret != 0 ) \
-  return ret; }
-
-#define MEM_WORD_READ(cpu_p, addr, data_p) \
- { int32_t ret = emu_memory_read_word((cpu_p)->mem, addr, data_p); \
- if( ret != 0 ) \
-  return ret; }
-
-#define MEM_WORD_WRITE(cpu_p, addr, data) \
- { uint16_t val; \
- bcopy(&(data), &val, 2); \
- int32_t ret = emu_memory_write_word((cpu_p)->mem, addr, val); \
- if( ret != 0 ) \
-  return ret; }
-
-#define MEM_DWORD_READ(cpu_p, addr, data_p) \
- { int32_t ret = emu_memory_read_dword((cpu_p)->mem, addr, data_p); \
- if( ret != 0 ) \
-  return ret; }
-
-#define MEM_DWORD_WRITE(cpu_p, addr, data) \
- { uint32_t val; \
- bcopy(&(data), &val, 4); \
- int32_t ret = emu_memory_write_dword((cpu_p)->mem, addr, val); \
- if( ret != 0 ) \
-  return ret; }
-
-
 #endif // HAVE_EMU_MEMORY_H

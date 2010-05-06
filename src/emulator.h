@@ -40,6 +40,9 @@ public:
 	  Returns current state of register @ref reg.
 	*/
 	virtual unsigned int get_register(Register reg) = 0;
+	
+protected:
+	PEReader *reader; ///<Pointer to an examplar of class PEReader which is used for taking special information out of PE-header.
 };
 
 #endif 

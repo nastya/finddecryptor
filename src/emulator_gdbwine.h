@@ -62,7 +62,6 @@ private:
 	*/
 	void fd_close(int fd[3][2]);	
 
-	PEReader *reader;///<Pointer to an examplar of class PEReader which is used for taking special information out of PE-header.
 	int pid[2]; ///<Process identificators of main, control and gdb processes
 	ostream *out; ///< Stream copy of fd[0][1] - fd used to write information to gdb
 	bool dirty;///< a flag meaning that emulation has already started 

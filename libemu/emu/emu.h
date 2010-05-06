@@ -31,15 +31,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#ifndef MIN
-	#define        MIN(a,b) (((a)<(b))?(a):(b))
-#endif
-
-#ifndef MAX
-	#define        MAX(a,b) (((a)>(b))?(a):(b))
-#endif
-
-
 struct emu;
 struct emu_logging;
 struct emu_cpu;
@@ -122,7 +113,4 @@ void emu_strerror_set(struct emu *e, const char *format, ...);
  */
 const char *emu_strerror(struct emu *e);
 
-
-/*int32_t emu_parse(struct emu *e);
-int32_t emu_step(struct emu *e);*/
 #endif // HAVE_EMU_H
