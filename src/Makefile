@@ -77,7 +77,7 @@ emulator_libemu.o: emulator_libemu.cpp emulator_libemu.h emulator.h
 	mkdir -p ../lib
 	$(CXX) -shared -o $@ emulator_libemu.o ../libemu/libemu.so -Wl,-rpath -Wl,$(CURDIR)/../libemu
 
-test: test_gdbwine
+test: test_libemu
 
 test_gdbwine: $(TARGET)
 	mkdir -p ../log
