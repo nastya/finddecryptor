@@ -334,13 +334,10 @@ void Finder::check(INSTRUCTION *inst)
 				regs_target[ESP] = true;
 			}
 			break;
-		case INSTRUCTION_TYPE_CALL:
-			regs_known[ESP]=true;
-			regs_target[ESP]=false;
-			break;
 		case INSTRUCTION_TYPE_FPU:
 			if (strcmp(inst->ptr->mnemonic,"fptan")!=0) break; /// TODO: check this command.
 		case INSTRUCTION_TYPE_FCMOVC:
+		case INSTRUCTION_TYPE_CALL:
 			regs_target[ESP] = false;
 			regs_known[ESP] = true;
 			break;
