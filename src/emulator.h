@@ -1,7 +1,7 @@
 #ifndef EMULATOR_H
 #define EMULATOR_H
 
-#include "PEReader.h"
+#include "reader.h"
 #include "data.h"
 
 using namespace std;
@@ -17,7 +17,7 @@ public:
 	  Binds reader to emulator.
 	  @param r Pointer to an examplar of class PEReader which is used for taking special information out of PE-header.
 	*/
-	void bind(PEReader *r);
+	void bind(Reader *r);
 	/**
 	  Runs emulation from the instruction situated on specified position in input file.
 	  @param pos Position to run emulation from.
@@ -42,7 +42,7 @@ public:
 	virtual unsigned int get_register(Register reg) = 0;
 	
 protected:
-	PEReader *reader; ///<Pointer to an examplar of class PEReader which is used for taking special information out of PE-header.
+	Reader *reader; ///<Pointer to an examplar of class PEReader which is used for taking special information out of PE-header.
 };
 
 #endif 

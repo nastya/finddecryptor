@@ -1,6 +1,6 @@
 #include "emulator.h"
 
-void Emulator::bind(PEReader* r) 
+void Emulator::bind(Reader* r) 
 {
 	reader = r;
 }

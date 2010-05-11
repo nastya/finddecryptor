@@ -14,7 +14,6 @@ class Emulator_GdbWine : public Emulator {
 public:	
 	Emulator_GdbWine();
 	~Emulator_GdbWine();
-	void bind(PEReader *r);
 	void stop();
 	void begin(int pos=0);
 	

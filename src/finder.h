@@ -13,7 +13,8 @@
 #include "emulator.h"
 #include "PEReader.h"
 
-#define FINDER_LOG
+#define FINDER_LOG /// Write to logfile.
+//#define FINDER_ONCE /// Stop after first found decryption routine.
 
 using namespace std;
 
@@ -153,7 +154,7 @@ private:
 	bool *regs_target; ///<registers to be defined (array which size is number of registers, regs_target[i]=true if register is to be defined and regs_target[i]=false vice versa)
 	bool *regs_known; ///registers which are already defined (array which size is number of registers, regs_known[i]=true if register was defined and regs_target[i]=false vice versa)
 	
-	PEReader reader; ///<saves neccessary information about structure of input from its header 
+	Reader *reader; ///<saves neccessary information about structure of input from its header 
 	Emulator *emulator; ///<emulator used
 	set<int> start_positions;///<positions where target instructions are alredy found
 	static const Mode mode; ///<mode of disassembling (here it is MODE_32)

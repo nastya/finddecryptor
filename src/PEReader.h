@@ -2,6 +2,7 @@
 #define PEREADER_H
 
 #include <string>
+#include "reader.h"
 
 using namespace std;
 
@@ -10,7 +11,7 @@ using namespace std;
 Class working with PE-header.
 */
 
-class PEReader
+class PEReader : public Reader
 {
 	/**
 	  Struct held in a tableof sections.
@@ -24,52 +25,14 @@ class PEReader
 	};
 public:
 	PEReader();
+	PEReader(const Reader *reader);
 	~PEReader();
-	/**
-	  A wrap on read and parse functions
-	  @param name Name of input file
-	*/
 	void load(string name);
-	/**
-	@return Name of the input file.
-	*/
-	string name();
-	/**
-	@return Pointer to a buffer helding an input file
-	*/
-	unsigned char *pointer(bool nohead=false);
-	/**
-	@return Size of input file.
-	*/
-	int size(bool nohead=false);
-	/**
-	  @return The position of the first instruction in file.
-	*/
-	int start();
-	/**
-	  @return Entry point of the program.
-	*/
 	int entrance();
-	/**
-	  Translates address of instruction in input file into its address when program is loaded into memory.
-	  @param addr Address of instruction in input file.
-	*/
 	int map(int addr);
-	/**
-	@param a First address.
-	@param b Second address.
-	@return Returns true if these adresses are within one section
-	*/
 	bool is_within_one_block(int a, int b);
-	/**
-	  Prints table of sections
-	*/
-	void print_table();
+	static bool is_of_type(const Reader *reader);
 private:
-	/**
-	Reads input binary file into buffer.
-	*/
-	void read();
 	/**
 	 Gets necessary information from header.
 	*/
@@ -78,6 +41,10 @@ private:
 	  Sorts table of sections by raw_offset
 	*/
 	void sort();
+	/**
+	  Prints table of sections
+	*/
+	void print_table();
 	
 	/**
 	@return Return integer formed of @ref size bytes from the position pos.
@@ -89,8 +56,5 @@ private:
 	int base;///< Base of addresses in memory
 	int entry_point;///< Entry point of input file
 	entry* table;///< Table of sections
-	string filename; ///<input file name
-	unsigned char *data; ///<buffer containing binary file
-	int dataSize; ///<size of buffer data
 };
 #endif

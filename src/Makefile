@@ -6,6 +6,7 @@ DEL_FILE	= rm -f
 OBJECTS		= myprogram.o \
 		  finder.o \
 		  data.o \
+		  reader.o \
 		  PEReader.o \
 		  fdostream.o \
 		  libdasm.o \
@@ -25,7 +26,7 @@ OUTPUT		= ../log/output
 
 $(TARGET): $(OBJECTS) $(LIBS)
 	mkdir -p ../bin ../log
-	$(CXX) -o $(TARGET) myprogram.o data.o finder.o PEReader.o ../lib/libdasm.so ../lib/emulator_gdbwine.so ../lib/emulator_libemu.so -Wl,-rpath -Wl,$(CURDIR)/../lib
+	$(CXX) -o $(TARGET) myprogram.o data.o finder.o reader.o PEReader.o ../lib/libdasm.so ../lib/emulator_gdbwine.so ../lib/emulator_libemu.so -Wl,-rpath -Wl,$(CURDIR)/../lib
 
 all: $(TARGET) doc test
 
@@ -50,6 +51,9 @@ finder.o: finder.cpp finder.h libdasm.h emulator.h PEReader.h
 
 data.o: data.cpp data.h
 	$(CXX) -c data.cpp
+
+reader.o: reader.cpp reader.h
+	$(CXX) -c reader.cpp
 
 PEReader.o: PEReader.cpp PEReader.h
 	$(CXX) -c PEReader.cpp
@@ -93,6 +97,7 @@ test_gdbwine: $(TARGET)
 	./$(TARGET) $(INPUT)cmd_exec_notepad.nonalpha.exe GdbWine > $(OUTPUT).nonalpha.gdbwine.txt
 	./$(TARGET) $(INPUT)cmd_exec_notepad.shikata_ga_nai.exe GdbWine > $(OUTPUT).shikata_ga_nai.gdbwine.txt
 	./$(TARGET) $(INPUT)W32Nea_fast_encr.exe GdbWine > $(OUTPUT).W32Nea_fast_encr.gdbwine.txt
+	./$(TARGET) $(INPUT)blob.seven_routines.blob GdbWine > $(OUTPUT).blob.seven_routines.txt
 
 test_libemu: $(TARGET)
 	mkdir -p ../log
@@ -104,3 +109,4 @@ test_libemu: $(TARGET)
 	./$(TARGET) $(INPUT)cmd_exec_notepad.nonalpha.exe LibEmu > $(OUTPUT).nonalpha.libemu.txt
 	./$(TARGET) $(INPUT)cmd_exec_notepad.shikata_ga_nai.exe LibEmu > $(OUTPUT).shikata_ga_nai.libemu.txt
 	./$(TARGET) $(INPUT)W32Nea_fast_encr.exe LibEmu > $(OUTPUT).W32Nea_fast_encr.libemu.txt
+	./$(TARGET) $(INPUT)blob.seven_routines.blob LibEmu > $(OUTPUT).blob.seven_routines.txt

@@ -7,43 +7,29 @@
 
 using namespace std;
 
-PEReader::PEReader()
+PEReader::PEReader() : Reader()
 {
-	filename = "";
 	table = NULL;
-	data = NULL;
-	dataSize = 0;
+}
+PEReader::PEReader(const Reader *reader) : Reader(reader)
+{
+	table = NULL;
+	/// We know that we have a loaded file here.
+	parse();
 }
 PEReader::~PEReader()
 {
 	delete [] table;
-	delete [] data;
+}
+bool PEReader::is_of_type(const Reader *reader)
+{
+	/// TODO: write some logic here
+	return false;
 }
 void PEReader::load(string name)
 {
-	filename = name;
-	read();
+	Reader::load(name);
 	parse();
-}
-void PEReader::read()
-{
-	delete [] data;
-	data = NULL;
-	dataSize = 0;
-	ifstream s(filename.c_str());
-	if (!s.good() || s.eof() || !s.is_open()) 
-	{
-		cerr << "Error opening file." << endl;
-		exit(0);
-	}
-	s.seekg(0, ios_base::beg);
-	ifstream::pos_type begin_pos = s.tellg();
-	s.seekg(0, ios_base::end);
-	dataSize = static_cast<int>(s.tellg() - begin_pos);
-	s.seekg(0, ios_base::beg);
-	data = new unsigned char[dataSize];
-	s.read((char *) data,dataSize);
-	s.close();
 }
 void PEReader::parse()
 {	
@@ -61,6 +47,7 @@ void PEReader::parse()
 		table[k].raw_offset = get(i+20);
 	}
 	sort();
+	dataStart = table[0].raw_offset;
 }
 void PEReader::sort()
 {
@@ -79,18 +66,11 @@ int PEReader::get(int pos, int size) {
 		x = x*16*16 + data[pos+i];
 	return x;
 }
-string PEReader::name() {
-	return filename;
-}
-unsigned char* PEReader::pointer(bool nohead) {
-	return data + (nohead ? table[0].raw_offset : 0);
-}
-int PEReader::size(bool nohead) {
-	return dataSize - (nohead ? table[0].raw_offset : 0);
-}
-int PEReader::start()
+void PEReader::print_table()
 {
-	return table[0].raw_offset;
+	cerr << "Base: 0x" << hex << base << endl;
+	for (int i=0;i<number_of_sections;i++)
+		cerr << table[i].name << " 0x" << hex << table[i].virt_addr << " 0x" << hex << table[i].raw_offset << endl;
 }
 int PEReader::entrance()
 {
@@ -111,10 +91,4 @@ bool PEReader::is_within_one_block(int a,int b)
 			(b>=table[i].virt_addr+base)&&(b<table[i].virt_addr+base+table[i].virt_size))
 			return true;
 	return false;
-}
-void PEReader::print_table()
-{
-	cerr << "Base: 0x" << hex << base << endl;
-	for (int i=0;i<number_of_sections;i++)
-		cerr << table[i].name << " 0x" << hex << table[i].virt_addr << " 0x" << hex << table[i].raw_offset << endl;
 }

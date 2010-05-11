@@ -22,6 +22,7 @@ Finder::Finder(int type)
 		default:
 			emulator = new Emulator_GdbWine();
 	}
+	reader = NULL;
 	regs_known = new bool[RegistersCount];
 	regs_target = new bool[RegistersCount];
 	log = NULL;
@@ -48,16 +49,23 @@ Finder::~Finder()
 		delete log;
 	}
 	delete emulator;
+	delete reader;
 }
 void Finder::load(string name)
 {
-	reader.load(name);
-	emulator->bind(&reader);
+	delete reader;
+	reader = new Reader();
+	reader->load(name);
+	if (PEReader::is_of_type(reader))
+	{
+		reader = new PEReader(reader);
+	}
+	emulator->bind(reader);
 	if (log) (*log) << endl << "# Loaded file \'" << name << "\". #" << endl << endl;
 }
 void Finder::launch(int pos)
 {
-	if (log) (*log) << "Launching from position " << dec << pos << endl;
+	if (log) (*log) << "Launching from position 0x" << hex << pos << endl;
 	int a[1000]={0}, i,k,num,amount=0, barrier;
 	bool flag = false;
 	Command cycle[256];
@@ -152,7 +160,7 @@ void Finder::launch(int pos)
 				(*log) << " 0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
 			if (k!=-1)
 			{
-				(*log) << " Indirect write in line #" << k << ", launched from position " << dec << pos << endl;
+				(*log) << " Indirect write in line #" << k << ", launched from position 0x" << hex << pos << endl;
 			} else {
 				(*log) << " No indirect writes." << endl;
 			}
@@ -160,18 +168,20 @@ void Finder::launch(int pos)
 
 		if (k!=-1)
 		{
-			cout << "Instruction \"" << instruction_string(pos_getpc) << "\" on position " << dec << pos_getpc << "." << endl;
+			cout << "Instruction \"" << instruction_string(pos_getpc) << "\" on position 0x" << hex << pos_getpc << "." << endl;
 			cout << "Cycle found: " << endl;
 			for (i=0; i<=barrier; i++)
 				cout << " 0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
-			cout << " Indirect write in line #" << k << ", launched from position " << dec << pos << endl;
+			cout << " Indirect write in line #" << k << ", launched from position 0x" << hex << pos << endl;
+#ifdef FINDER_ONCE
 			exit(0);
+#endif
 		}
 	}
 }
 
 int Finder::instruction(INSTRUCTION *inst, int pos) {
-	return get_instruction(inst, reader.pointer() + pos, mode);
+	return get_instruction(inst, reader->pointer() + pos, mode);
 }
 string Finder::instruction_string(INSTRUCTION *inst, int pos) {
 	char str[256];
@@ -186,14 +196,14 @@ string Finder::instruction_string(int pos) {
 void Finder::find() 
 {
 	INSTRUCTION inst;
-	for (int i=reader.start(); i<reader.size(); i++)
+	for (int i=reader->start(); i<reader->size(); i++)
 	{
 		int len = instruction(&inst, i);
-		if (!len || (len + i > reader.size())) continue;
-		if (strcmp(inst.ptr->mnemonic,"call")==0||strcmp(inst.ptr->mnemonic,"fstenv")==0||strcmp(inst.ptr->mnemonic,"fnstenv")==0)
+		if (!len || (len + i > reader->size())) continue;
+		if (strcmp(inst.ptr->mnemonic,"call")==0&&inst.op1.type!=OPERAND_TYPE_REGISTER&&inst.op1.type!=OPERAND_TYPE_MEMORY||strcmp(inst.ptr->mnemonic,"fstenv")==0||strcmp(inst.ptr->mnemonic,"fnstenv")==0)
 		{
 			pos_getpc = i;
-			if (log) (*log) << "Instruction \"" << instruction_string(i) << "\" on position " << dec << i << "." << endl;
+			if (log) (*log) << "Instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
 			find_memory(i);
 			find_jump(i);
 			if (log) (*log) << "*********************************************************" << endl;
@@ -206,17 +216,17 @@ void Finder::find_memory(int pos)
 {
 	INSTRUCTION inst;
 	int len;
-	for (int p=pos; p<reader.size(); p+=len)
+	for (int p=pos; p<reader->size(); p+=len)
 	{
 		len = instruction(&inst,p);
-		if (!len || (len + p > reader.size()))
+		if (!len || (len + p > reader->size()))
 		{
 			p++;
 			continue;
 		}
 		instructions_after_getpc.push_back(inst);
 		if (!is_write_indirect(&inst)) continue;
-		if (log) (*log) << "Write to memory detected: " << instruction_string(&inst,p) << " on position " << p << endl;
+		if (log) (*log) << "Write to memory detected: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
 		if (start_positions.count(p))
 		{
 			if (log) (*log) << "Not running, already checked." << endl;
@@ -340,6 +350,17 @@ void Finder::check(INSTRUCTION *inst)
 		case INSTRUCTION_TYPE_CALL:
 			regs_target[ESP] = false;
 			regs_known[ESP] = true;
+			if (get_write_indirect(inst,&r))
+			{
+				regs_target[r]=true;
+				regs_known[r]=false;
+			}
+			if (inst->op1.type==OPERAND_TYPE_REGISTER)
+			{
+				r = int_to_reg(inst->op1.reg);
+				regs_target[r]=true;
+				regs_known[r]=false;
+			}
 			break;
 		default:;
 	}
@@ -404,7 +425,7 @@ int Finder::verify(Command *cycle, int size)
 
 bool Finder::verify_changing_reg(Command *cycle, int size, int reg)
 {
-	if (!reader.is_within_one_block(emulator->get_register((Register)reg),cycle[0].addr)) return false;
+	if (!reader->is_within_one_block(emulator->get_register((Register)reg),cycle[0].addr)) return false;
 	for (int i=0;i<size;i++)
 		if (	is_write(&(cycle[i].inst)) && 
 			(cycle[i].inst.op1.type==OPERAND_TYPE_REGISTER) && 
@@ -470,11 +491,11 @@ bool Finder::is_write(INSTRUCTION *inst)
 int Finder::find_jump(int pos)
 {
 	int len;
-	for (; pos<reader.size(); pos+=len)
+	for (; pos<reader->size(); pos+=len)
 	{
 		INSTRUCTION inst;
 		len = instruction(&inst,pos);
-		if (!len || (len + pos > reader.size()))
+		if (!len || (len + pos > reader->size()))
 		{
 			pos++;
 			continue;
@@ -485,7 +506,7 @@ int Finder::find_jump(int pos)
 			case INSTRUCTION_TYPE_JMP:
 			case INSTRUCTION_TYPE_JMPC:
 				if ((inst.op1.type!=OPERAND_TYPE_MEMORY) || (inst.op1.basereg==REG_NOP)) continue;
-				if (log) (*log) << " Indirect jump detected: " << instruction_string(&inst) << " on position " << dec << pos << endl;
+				if (log) (*log) << " Indirect jump detected: " << instruction_string(&inst) << " on position 0x" << hex << pos << endl;
 				get_operands(&inst);
 				return pos;
 			default:;
