@@ -200,7 +200,7 @@ void Finder::find()
 	{
 		int len = instruction(&inst, i);
 		if (!len || (len + i > reader->size())) continue;
-		if (strcmp(inst.ptr->mnemonic,"call")==0&&inst.op1.type!=OPERAND_TYPE_REGISTER&&inst.op1.type!=OPERAND_TYPE_MEMORY||strcmp(inst.ptr->mnemonic,"fstenv")==0||strcmp(inst.ptr->mnemonic,"fnstenv")==0)
+		if (strcmp(inst.ptr->mnemonic,"call")==0/*&&inst.op1.type!=OPERAND_TYPE_REGISTER&&inst.op1.type!=OPERAND_TYPE_MEMORY*/||strcmp(inst.ptr->mnemonic,"fstenv")==0||strcmp(inst.ptr->mnemonic,"fnstenv")==0)
 		{
 			pos_getpc = i;
 			if (log) (*log) << "Instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
@@ -350,17 +350,17 @@ void Finder::check(INSTRUCTION *inst)
 		case INSTRUCTION_TYPE_CALL:
 			regs_target[ESP] = false;
 			regs_known[ESP] = true;
-			if (get_write_indirect(inst,&r))
-			{
-				regs_target[r]=true;
-				regs_known[r]=false;
-			}
-			if (inst->op1.type==OPERAND_TYPE_REGISTER)
-			{
-				r = int_to_reg(inst->op1.reg);
-				regs_target[r]=true;
-				regs_known[r]=false;
-			}
+			//if (get_write_indirect(inst,&r))
+			//{
+			//	regs_target[r]=true;
+			//	regs_known[r]=false;
+			//}
+			//if (inst->op1.type==OPERAND_TYPE_REGISTER)
+			//{
+			//	r = int_to_reg(inst->op1.reg);
+			//	regs_target[r]=true;
+			//	regs_known[r]=false;
+			//}
 			break;
 		default:;
 	}

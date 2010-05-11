@@ -110,3 +110,4 @@ test_libemu: $(TARGET)
 	./$(TARGET) $(INPUT)cmd_exec_notepad.shikata_ga_nai.exe LibEmu > $(OUTPUT).shikata_ga_nai.libemu.txt
 	./$(TARGET) $(INPUT)W32Nea_fast_encr.exe LibEmu > $(OUTPUT).W32Nea_fast_encr.libemu.txt
 	./$(TARGET) $(INPUT)blob.seven_routines.blob LibEmu > $(OUTPUT).blob.seven_routines.txt
+
