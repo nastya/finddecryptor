@@ -101,7 +101,7 @@ test_gdbwine: $(TARGET)
 	./$(TARGET) $(INPUT)cmd_exec_notepad.nonalpha.exe GdbWine > $(OUTPUT).nonalpha.gdbwine.txt
 	./$(TARGET) $(INPUT)cmd_exec_notepad.shikata_ga_nai.exe GdbWine > $(OUTPUT).shikata_ga_nai.gdbwine.txt
 	./$(TARGET) $(INPUT)W32Nea_fast_encr.exe GdbWine > $(OUTPUT).W32Nea_fast_encr.gdbwine.txt
-	./$(TARGET) $(INPUT)blob.seven_routines.blob GdbWine > $(OUTPUT).blob.seven_routines.txt
+	./$(TARGET) $(INPUT)blob.seven_routines.blob GdbWine > $(OUTPUT).blob.seven_routines.gdbwine.txt
 
 test_libemu: $(TARGET)
 	mkdir -p ../log
@@ -113,5 +113,5 @@ test_libemu: $(TARGET)
 	./$(TARGET) $(INPUT)cmd_exec_notepad.nonalpha.exe LibEmu > $(OUTPUT).nonalpha.libemu.txt
 	./$(TARGET) $(INPUT)cmd_exec_notepad.shikata_ga_nai.exe LibEmu > $(OUTPUT).shikata_ga_nai.libemu.txt
 	./$(TARGET) $(INPUT)W32Nea_fast_encr.exe LibEmu > $(OUTPUT).W32Nea_fast_encr.libemu.txt
-	./$(TARGET) $(INPUT)blob.seven_routines.blob LibEmu > $(OUTPUT).blob.seven_routines.txt
+	./$(TARGET) $(INPUT)blob.seven_routines.blob LibEmu > $(OUTPUT).blob.seven_routines.libemu.txt
 
