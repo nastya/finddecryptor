@@ -55,6 +55,7 @@ uint32_t emu_cpu_eip_get(struct emu_cpu *c);
 int32_t emu_cpu_parse(struct emu_cpu *c);
 int32_t emu_cpu_step(struct emu_cpu *c);
 
+const char *emu_strerror(struct emu *e);
 
 struct emu_tracking_info
 {

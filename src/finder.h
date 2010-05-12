@@ -10,6 +10,7 @@
 
 #include "libdasm.h" 
 #include "data.h"
+#include "timer.h"
 #include "emulator.h"
 #include "PEReader.h"
 
@@ -159,6 +160,7 @@ private:
 	set<int> start_positions;///<positions where target instructions are alredy found
 	static const Mode mode; ///<mode of disassembling (here it is MODE_32)
 	static const Format format; ///<format of commands (here it is Intel)
+	static const int maxBackward; ///<limit for backwards traversal
 
 	/**
 	  @param pos Position in input file from which we get instruction.

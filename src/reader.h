@@ -29,11 +29,11 @@ public:
 	/**
 	@return Pointer to a buffer helding an input file
 	*/
-	unsigned char *pointer(bool nohead=false);
+	unsigned char *pointer(bool nohead=false) const;
 	/**
 	@return Size of input file.
 	*/
-	int size(bool nohead=false);
+	int size(bool nohead=false) const;
 	/**
 	  @return The position of the first instruction in file.
 	*/

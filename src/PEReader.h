@@ -47,6 +47,10 @@ private:
 	void print_table();
 	
 	/**
+	@return Return integer formed of @ref size bytes from the position pos from buffer @ref buff.
+	*/
+	static int get(unsigned char *buff, int pos, int size=4);
+	/**
 	@return Return integer formed of @ref size bytes from the position pos.
 	*/
 	int get(int pos, int size=4);

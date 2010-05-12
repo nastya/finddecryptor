@@ -23,8 +23,12 @@ PEReader::~PEReader()
 }
 bool PEReader::is_of_type(const Reader *reader)
 {
-	/// TODO: write some logic here
-	return false;
+	int m = reader->size();
+	if (m < 0x40) return false;
+	unsigned char *data = reader->pointer();
+	int s = data[0x3c];
+	/// TODO: check length here.
+	return ((m > s+1) && (data[s]=='P') && (data[s+1]=='E'));
 }
 void PEReader::load(string name)
 {
@@ -33,13 +37,14 @@ void PEReader::load(string name)
 }
 void PEReader::parse()
 {	
-	entry_point = get(data[60]+40);
-	base = get(data[60]+52);
-	number_of_sections = get(data[60]+6,2);
-	int size = get(data[60]+20,2);
+	int s = data[0x3c];
+	entry_point = get(s+40);
+	base = get(s+52);
+	number_of_sections = get(s+6,2);
+	int size = get(s+20,2);
 	delete [] table;
 	table = new entry [number_of_sections];
-	for(int i=data[60]+24+size,k=0;k<number_of_sections;k++,i+=40)
+	for(int i=s+24+size,k=0;k<number_of_sections;k++,i+=40)
 	{
 		memcpy(table[k].name,&(data[i]),8);
 		table[k].virt_size = get(i+8);
@@ -60,11 +65,16 @@ void PEReader::sort()
 				table[j+1] = w;
 			}
 }
-int PEReader::get(int pos, int size) {
-	int x = data[pos+size-1];
+int PEReader::get(unsigned char *buff, int pos, int size)
+{
+	int x = buff[pos+size-1];
 	for (int i=size-2; i>=0; i--)
-		x = x*16*16 + data[pos+i];
+		x = x*16*16 + buff[pos+i];
 	return x;
+}
+int PEReader::get(int pos, int size)
+{
+	return get(data, pos, size);
 }
 void PEReader::print_table()
 {

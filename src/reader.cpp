@@ -53,10 +53,10 @@ void Reader::read()
 	s.read((char *) data,dataSize);
 	s.close();
 }
-unsigned char* Reader::pointer(bool nohead) {
+unsigned char* Reader::pointer(bool nohead) const {
 	return data + (nohead ? dataStart : 0);
 }
-int Reader::size(bool nohead) {
+int Reader::size(bool nohead) const {
 	return dataSize - (nohead ? dataStart : 0);
 }
 int Reader::start()

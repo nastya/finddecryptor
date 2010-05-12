@@ -36,10 +36,10 @@ void Emulator_LibEmu::jump(int pos) {
 	if (emu_cpu_parse(cpu) != 0)
 		ok = false;
 	log << "Command: " << cpu->instr_string << endl;
-	if (emu_cpu_step(cpu) != 0)
+	if (ok && (emu_cpu_step(cpu) != 0))
 		ok = false;
 	if (!ok)
-		log << "ERROR: " << cpu->emu->errorstr << endl;
+		log << "ERROR: " << emu_strerror(cpu->emu) << endl;
 	log.close();
 	return ok;
 }*/

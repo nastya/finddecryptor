@@ -6,6 +6,7 @@ using namespace std;
 
 const Mode Finder::mode = MODE_32;
 const Format Finder::format = FORMAT_INTEL;
+const int Finder::maxBackward = 20;
 
 Finder::Command::Command(int a, INSTRUCTION i) {
 	addr = a;
@@ -37,10 +38,25 @@ Finder::Finder(int type)
 		default:
 			(*log) << "### Using GdbWine emulator. ###" << endl;
 	}
+	Timer::start();
 }
 
 Finder::~Finder()
 {
+	Timer::stop();
+	if (*log) 
+	{
+		(*log) << endl << endl;
+		(*log) << "Time total: " << dec << Timer::secs() << " seconds." << endl;
+		(*log) << "Time spent on load: " << dec << Timer::secs(TimeLoad) << " seconds." << endl;
+		(*log) << "Time spent on find: " << dec << Timer::secs(TimeFind) << " seconds." << endl;
+		(*log) << "Time spent on find_memory: " << dec << Timer::secs(TimeFindMemory) << " seconds." << endl;
+		//(*log) << "Time spent on find_jump: " << dec << Timer::secs(TimeFindJump) << " seconds." << endl;
+		(*log) << "Time spent on launches: " << dec << Timer::secs(TimeLaunches) << " seconds." << endl;
+		(*log) << "Time spent on backwards traversal: " << dec << Timer::secs(TimeBackwardsTraversal) << " seconds." << endl;
+		(*log) << "Time spent on emulator launches (total): " << dec << Timer::secs(TimeEmulatorStart) << " seconds." << endl;
+	}
+	
 	delete[] regs_known;
 	delete[] regs_target;
 	if (log)
@@ -53,29 +69,39 @@ Finder::~Finder()
 }
 void Finder::load(string name)
 {
+	Timer::start(TimeLoad);
 	delete reader;
 	reader = new Reader();
 	reader->load(name);
+	if (log) {
+		(*log) << endl << "Loaded file \'" << name << "\"." << endl;
+		(*log) << "File size: 0x" << hex << reader->size() << "." << endl << endl;
+	}
 	if (PEReader::is_of_type(reader))
 	{
 		reader = new PEReader(reader);
+		(*log) << "Looks like a PE file." << endl << endl;
 	}
 	emulator->bind(reader);
-	if (log) (*log) << endl << "# Loaded file \'" << name << "\". #" << endl << endl;
+	Timer::stop(TimeLoad);
 }
 void Finder::launch(int pos)
 {
+	Timer::start(TimeLaunches);
 	if (log) (*log) << "Launching from position 0x" << hex << pos << endl;
 	int a[1000]={0}, i,k,num,amount=0, barrier;
 	bool flag = false;
 	Command cycle[256];
 	INSTRUCTION inst;
+	Timer::start(TimeEmulatorStart);
 	emulator->begin(pos);
+	Timer::stop(TimeEmulatorStart);
 	char buff[10] = {0};
 	for (int strnum=0;;strnum++)
 	{
 		if (!emulator->get_command(buff)) {
 			if (log) (*log) << " Execution error, stopping instance." << endl;
+			Timer::stop(TimeLaunches);
 			return;
 		}
 		num = emulator->get_register(EIP);
@@ -83,6 +109,7 @@ void Finder::launch(int pos)
 		if (log) (*log) << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 		if (!emulator->step()) {
 			if (log) (*log) << " Execution error, stopping instance." << endl;
+			Timer::stop(TimeLaunches);
 			return;			
 		}
 		get_operands(&inst);
@@ -108,9 +135,11 @@ void Finder::launch(int pos)
 				if (em_start<0)
 				{
 					if (log) (*log) <<  " Backwards traversal failed (nothing suitable found)." << endl;
+					Timer::stop(TimeLaunches);
 					return;
 				}
-				if (log) (*log) <<  " relaunch (because of " << Registers[i] << "). New position: " << dec << em_start << endl;
+				if (log) (*log) <<  " relaunch (because of " << Registers[i] << "). New position: 0x" << hex << em_start << endl;
+				Timer::stop(TimeLaunches);
 				return launch(em_start);
 			}
 		}
@@ -131,6 +160,7 @@ void Finder::launch(int pos)
 				cycle[barrier] = Command(num,inst);
 				if (!emulator->get_command(buff)) {
 					if (log) (*log) << " Execution error, stopping instance." << endl;
+					Timer::stop(TimeLaunches);
 					return;
 				}
 				num = emulator->get_register(EIP);
@@ -138,6 +168,7 @@ void Finder::launch(int pos)
 				if (log) (*log) << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 				if (!emulator->step()) {
 					if (log) (*log) << " Execution error, stopping instance." << endl;
+					Timer::stop(TimeLaunches);
 					return;			
 				}
 				if (num==neednum)
@@ -174,16 +205,19 @@ void Finder::launch(int pos)
 				cout << " 0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
 			cout << " Indirect write in line #" << k << ", launched from position 0x" << hex << pos << endl;
 #ifdef FINDER_ONCE
+			Timer::stop(TimeLaunches);
 			exit(0);
 #endif
 		}
 	}
+	Timer::stop(TimeLaunches);
 }
 
 int Finder::instruction(INSTRUCTION *inst, int pos) {
 	return get_instruction(inst, reader->pointer() + pos, mode);
 }
 string Finder::instruction_string(INSTRUCTION *inst, int pos) {
+	if (!inst->ptr) return "UNKNOWN";
 	char str[256];
 	get_instruction_string(inst, format, (DWORD)pos, str, sizeof(str));
 	return (string) str;
@@ -195,25 +229,53 @@ string Finder::instruction_string(int pos) {
 }
 void Finder::find() 
 {
+	Timer::start(TimeFind);
 	INSTRUCTION inst;
 	for (int i=reader->start(); i<reader->size(); i++)
 	{
+		/// TODO: check opcodes
+		switch (reader->pointer()[i])
+		{
+			/// fstenv: 0xf2d9, 0xd9
+			case 0xf2:
+				if ((reader->pointer()[i+1]) != 0xd9) continue; /// TODO: check if i+1 is present
+			case 0xd9:
+				break;
+			/// call: 0xe8, 0xff, 0x9a
+			case 0xe8:
+			case 0xff:
+			case 0x9a:
+				break;
+			default:
+				continue;
+		}
 		int len = instruction(&inst, i);
 		if (!len || (len + i > reader->size())) continue;
-		if (strcmp(inst.ptr->mnemonic,"call")==0/*&&inst.op1.type!=OPERAND_TYPE_REGISTER&&inst.op1.type!=OPERAND_TYPE_MEMORY*/||strcmp(inst.ptr->mnemonic,"fstenv")==0||strcmp(inst.ptr->mnemonic,"fnstenv")==0)
+		switch (inst.type)
 		{
-			pos_getpc = i;
-			if (log) (*log) << "Instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
-			find_memory(i);
-			find_jump(i);
-			if (log) (*log) << "*********************************************************" << endl;
+			case INSTRUCTION_TYPE_FPU_CTRL:
+				if (strcmp(inst.ptr->mnemonic,"fstenv")==0) break;
+				continue;
+			case INSTRUCTION_TYPE_CALL:
+				if ((strcmp(inst.ptr->mnemonic,"call")==0) && (inst.op1.type==OPERAND_TYPE_IMMEDIATE)) break;
+				continue;
+			default:
+				continue;
 		}
-		instructions_after_getpc.clear();	
+		//cerr << "0x" << hex << i << ": 0x" << hex << (int) reader->pointer()[i] << " | 0x" << hex << (int) inst.opcode << " " << inst.ptr->mnemonic << endl;
+		pos_getpc = i;
+		if (log) (*log) << "Instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
+		find_memory(i);
+		//find_jump(i);
+		if (log) (*log) << "*********************************************************" << endl;
+		instructions_after_getpc.clear();
 	}
+	Timer::stop(TimeFind);
 }
 
 void Finder::find_memory(int pos)
 {
+	Timer::start(TimeFindMemory);
 	INSTRUCTION inst;
 	int len;
 	for (int p=pos; p<reader->size(); p+=len)
@@ -230,6 +292,7 @@ void Finder::find_memory(int pos)
 		if (start_positions.count(p))
 		{
 			if (log) (*log) << "Not running, already checked." << endl;
+			Timer::stop(TimeFindMemory);
 			return;
 		}
 		start_positions.insert(p);
@@ -241,12 +304,15 @@ void Finder::find_memory(int pos)
 		if (em_start<0)
 		{
 			if (log) (*log) <<  " Backwards traversal failed (nothing suitable found)." << endl;
+			Timer::stop(TimeFindMemory);
 			return;
 		}
 		print_commands(&instructions_after_getpc,1);
 		launch(em_start);
+		Timer::stop(TimeFindMemory);
 		return;
 	}
+	Timer::stop(TimeFindMemory);
 }
 
 bool Finder::regs_closed() {
@@ -381,6 +447,7 @@ void Finder::print_commands(vector <INSTRUCTION>* v, int start)
 int Finder::backwards_traversal(int pos)
 {
 	if (regs_closed()) return pos;
+	Timer::start(TimeBackwardsTraversal);
 	INSTRUCTION inst;
 	int length=1;
 	bool regs_target_bak[RegistersCount], regs_known_bak[RegistersCount];
@@ -390,9 +457,9 @@ int Finder::backwards_traversal(int pos)
 	vector <INSTRUCTION> commands;
 	queue.push_back(pos);
 	prev.push_back(-1);
-	for (int cur=0; cur<length; cur++)
+	for (int cur=0; (cur<length) && (cur<maxBackward); cur++)
 	{
-		for (int i=1; i<=MaxCommandSize; i++)
+		for (int i=1; (i<=MaxCommandSize) && (i<=queue[cur]); i++)
 		{
 			if (instruction(&inst,queue[cur]-i)!=i) continue;
 			queue.push_back(queue[cur]-i);
@@ -410,6 +477,7 @@ int Finder::backwards_traversal(int pos)
 		}
 		/// TODO: We should also check all static jumps to this point.
 	}
+	Timer::stop(TimeBackwardsTraversal);
 	return regs_closed() ? queue[queue.size()-1] : -1;
 }
 
@@ -490,6 +558,7 @@ bool Finder::is_write(INSTRUCTION *inst)
 
 int Finder::find_jump(int pos)
 {
+	Timer::start(TimeFindJump);
 	int len;
 	for (; pos<reader->size(); pos+=len)
 	{
@@ -508,9 +577,11 @@ int Finder::find_jump(int pos)
 				if ((inst.op1.type!=OPERAND_TYPE_MEMORY) || (inst.op1.basereg==REG_NOP)) continue;
 				if (log) (*log) << " Indirect jump detected: " << instruction_string(&inst) << " on position 0x" << hex << pos << endl;
 				get_operands(&inst);
+				Timer::stop(TimeFindJump);
 				return pos;
 			default:;
 		}
 	}
+	Timer::stop(TimeFindJump);
 	return -1;
 }
