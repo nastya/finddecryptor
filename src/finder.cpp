@@ -265,7 +265,7 @@ void Finder::find()
 		//cerr << "0x" << hex << i << ": 0x" << hex << (int) reader->pointer()[i] << " | 0x" << hex << (int) inst.opcode << " " << inst.ptr->mnemonic << endl;
 		pos_getpc = i;
 		if (log) (*log) << "Instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
-		find_memory(i);
+		find_memory_and_jump(i);
 		//find_jump(i);
 		if (log) (*log) << "*********************************************************" << endl;
 		instructions_after_getpc.clear();
@@ -273,7 +273,7 @@ void Finder::find()
 	Timer::stop(TimeFind);
 }
 
-void Finder::find_memory(int pos)
+void Finder::find_memory_and_jump(int pos)
 {
 	Timer::start(TimeFindMemory);
 	INSTRUCTION inst;
@@ -287,7 +287,21 @@ void Finder::find_memory(int pos)
 			continue;
 		}
 		instructions_after_getpc.push_back(inst);
+		switch (inst.type)
+		{
+			/// TODO: check
+			case INSTRUCTION_TYPE_JMP:
+			case INSTRUCTION_TYPE_JMPC:
+				if ((inst.op1.type!=OPERAND_TYPE_MEMORY) || (inst.op1.basereg==REG_NOP)) continue;
+				if (log) (*log) << " Indirect jump detected: " << instruction_string(&inst) << " on position 0x" << hex << pos << endl;
+				get_operands(&inst);
+				//Timer::stop(TimeFindJump);
+				//return;
+			default:;
+		}
 		if (!is_write_indirect(&inst)) continue;
+		if (is_write_indirect(&inst))
+		{
 		if (log) (*log) << "Write to memory detected: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
 		if (start_positions.count(p))
 		{
@@ -299,6 +313,7 @@ void Finder::find_memory(int pos)
 		memset(regs_known,false,RegistersCount);
 		memset(regs_target,false,RegistersCount);
 		get_operands(&inst);
+		}
 		check(&instructions_after_getpc);
 		int em_start = backwards_traversal(pos);
 		if (em_start<0)

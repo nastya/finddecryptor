@@ -60,7 +60,7 @@ private:
 	Finds instructions that write to memory (via disassembling sequence of bytes starting from pos).
 	@param pos Position in binary file from which to start finding (number of byte).
 	*/
-	void find_memory(int pos);
+	void find_memory_and_jump(int pos);
 	/**
 	Finds indirect jumps (via disassembling sequence of bytes starting from pos).
 	@param pos Position in binary file from which to start finding (number of byte).
