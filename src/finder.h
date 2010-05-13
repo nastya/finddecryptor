@@ -57,16 +57,10 @@ public:
 	void clear();
 private:
 	/**
-	Finds instructions that write to memory (via disassembling sequence of bytes starting from pos).
+	Finds instructions writing to memory and indirect jumps (via disassembling sequence of bytes starting from pos).
 	@param pos Position in binary file from which to start finding (number of byte).
 	*/
 	void find_memory_and_jump(int pos);
-	/**
-	Finds indirect jumps (via disassembling sequence of bytes starting from pos).
-	@param pos Position in binary file from which to start finding (number of byte).
-	@return Returns the position of indirect or -1 if nothing found.
-	*/
-	int find_jump(int pos);
 	/**
 	Implements techniques of backwards traversal.
 	Disassembles bytes in reverse order from pos. Founds the most appropriate chain using special rules (all the variables of target instruction should be defined within that chain) and prints it. 

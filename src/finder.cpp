@@ -50,8 +50,7 @@ Finder::~Finder()
 		(*log) << "Time total: " << dec << Timer::secs() << " seconds." << endl;
 		(*log) << "Time spent on load: " << dec << Timer::secs(TimeLoad) << " seconds." << endl;
 		(*log) << "Time spent on find: " << dec << Timer::secs(TimeFind) << " seconds." << endl;
-		(*log) << "Time spent on find_memory: " << dec << Timer::secs(TimeFindMemory) << " seconds." << endl;
-		//(*log) << "Time spent on find_jump: " << dec << Timer::secs(TimeFindJump) << " seconds." << endl;
+		(*log) << "Time spent on find_memory_and_jump: " << dec << Timer::secs(TimeFindMemoryAndJump) << " seconds." << endl;
 		(*log) << "Time spent on launches: " << dec << Timer::secs(TimeLaunches) << " seconds." << endl;
 		(*log) << "Time spent on backwards traversal: " << dec << Timer::secs(TimeBackwardsTraversal) << " seconds." << endl;
 		(*log) << "Time spent on emulator launches (total): " << dec << Timer::secs(TimeEmulatorStart) << " seconds." << endl;
@@ -275,7 +274,7 @@ void Finder::find()
 
 void Finder::find_memory_and_jump(int pos)
 {
-	Timer::start(TimeFindMemory);
+	Timer::start(TimeFindMemoryAndJump);
 	INSTRUCTION inst;
 	int len;
 	for (int p=pos; p<reader->size(); p+=len)
@@ -295,8 +294,6 @@ void Finder::find_memory_and_jump(int pos)
 				if ((inst.op1.type!=OPERAND_TYPE_MEMORY) || (inst.op1.basereg==REG_NOP)) continue;
 				if (log) (*log) << " Indirect jump detected: " << instruction_string(&inst) << " on position 0x" << hex << pos << endl;
 				get_operands(&inst);
-				//Timer::stop(TimeFindJump);
-				//return;
 			default:;
 		}
 		if (!is_write_indirect(&inst)) continue;
@@ -306,7 +303,7 @@ void Finder::find_memory_and_jump(int pos)
 		if (start_positions.count(p))
 		{
 			if (log) (*log) << "Not running, already checked." << endl;
-			Timer::stop(TimeFindMemory);
+			Timer::stop(TimeFindMemoryAndJump);
 			return;
 		}
 		start_positions.insert(p);
@@ -319,15 +316,15 @@ void Finder::find_memory_and_jump(int pos)
 		if (em_start<0)
 		{
 			if (log) (*log) <<  " Backwards traversal failed (nothing suitable found)." << endl;
-			Timer::stop(TimeFindMemory);
+			Timer::stop(TimeFindMemoryAndJump);
 			return;
 		}
 		print_commands(&instructions_after_getpc,1);
 		launch(em_start);
-		Timer::stop(TimeFindMemory);
+		Timer::stop(TimeFindMemoryAndJump);
 		return;
 	}
-	Timer::stop(TimeFindMemory);
+	Timer::stop(TimeFindMemoryAndJump);
 }
 
 bool Finder::regs_closed() {
@@ -569,34 +566,4 @@ bool Finder::is_write(INSTRUCTION *inst)
 		default:
 			return false;
 	}
-}
-
-int Finder::find_jump(int pos)
-{
-	Timer::start(TimeFindJump);
-	int len;
-	for (; pos<reader->size(); pos+=len)
-	{
-		INSTRUCTION inst;
-		len = instruction(&inst,pos);
-		if (!len || (len + pos > reader->size()))
-		{
-			pos++;
-			continue;
-		}
-		switch (inst.type)
-		{
-			/// TODO: check
-			case INSTRUCTION_TYPE_JMP:
-			case INSTRUCTION_TYPE_JMPC:
-				if ((inst.op1.type!=OPERAND_TYPE_MEMORY) || (inst.op1.basereg==REG_NOP)) continue;
-				if (log) (*log) << " Indirect jump detected: " << instruction_string(&inst) << " on position 0x" << hex << pos << endl;
-				get_operands(&inst);
-				Timer::stop(TimeFindJump);
-				return pos;
-			default:;
-		}
-	}
-	Timer::stop(TimeFindJump);
-	return -1;
 }

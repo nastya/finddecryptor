@@ -67,6 +67,7 @@ void Emulator_GdbWine::begin(int pos)
 	if (!get_clean()) {
 		cerr	<< "Something is wrong with GdbWine emulator." << endl\
 			<< "Make sure you have winecfg (or any other wine application) running." << endl
+			<< "Notion: GdbWine works only with PE files." << endl
 			<< "Also, 64-bit gdb is not supported (it can't debug 32-bit applications)." << endl;
 		exit(0);
 	}
