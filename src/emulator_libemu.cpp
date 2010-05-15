@@ -1,8 +1,12 @@
 #include "emulator_libemu.h"
 
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
+
+const int Emulator_LibEmu::mem_before = 10*1024; // 10 KiB, min 1k instuctions
+const int Emulator_LibEmu::mem_after = 80*1024; //80 KiB, min 8k instructions
 
 Emulator_LibEmu::Emulator_LibEmu() {
 	//ofstream log("../log/libemu.txt");
@@ -17,13 +21,15 @@ Emulator_LibEmu::~Emulator_LibEmu() {
 void Emulator_LibEmu::begin(int pos) {
 	if (pos==0) pos = reader->start();
 	offset = reader->map(pos) - pos;
+	int start = max(reader->start(), pos - mem_before), end = min(reader->size(), pos + mem_after);
 
 	for (int i=0; i<8; i++)
 		cpu->reg[i] = 0;
 	cpu->reg[esp] = 0x1000000;	
 
 	emu_memory_clear(mem);
-	emu_memory_write_block(mem, offset + reader->start(), reader->pointer(true), reader->size(true));
+	//emu_memory_write_block(mem, offset + reader->start(), reader->pointer(true), reader->size(true));
+	emu_memory_write_block(mem, offset + start, reader->pointer() + start, end - start);
 
 	jump(pos);
 }
