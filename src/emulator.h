@@ -24,7 +24,7 @@ public:
 	*/
 	virtual void begin(int pos=0) = 0;
 	/**
-	  Сontinues emulation from the spesified position.
+	  Continues emulation from the spesified position.
 	  @param pos Spesified position.
 	*/
 	virtual void jump(int pos) = 0;
