@@ -1,4 +1,4 @@
-#include "PEReader.h"
+#include "reader_pe.h"
 
 #include <fstream>
 #include <iostream>
@@ -7,21 +7,21 @@
 
 using namespace std;
 
-PEReader::PEReader() : Reader()
+Reader_PE::Reader_PE() : Reader()
 {
 	table = NULL;
 }
-PEReader::PEReader(const Reader *reader) : Reader(reader)
+Reader_PE::Reader_PE(const Reader *reader) : Reader(reader)
 {
 	table = NULL;
 	/// We know that we have a loaded file here.
 	parse();
 }
-PEReader::~PEReader()
+Reader_PE::~Reader_PE()
 {
 	delete [] table;
 }
-bool PEReader::is_of_type(const Reader *reader)
+bool Reader_PE::is_of_type(const Reader *reader)
 {
 	int m = reader->size();
 	if (m < 0x40) return false;
@@ -30,12 +30,12 @@ bool PEReader::is_of_type(const Reader *reader)
 	/// TODO: check length here.
 	return ((m > s+1) && (data[s]=='P') && (data[s+1]=='E'));
 }
-void PEReader::load(string name)
+void Reader_PE::load(string name)
 {
 	Reader::load(name);
 	parse();
 }
-void PEReader::parse()
+void Reader_PE::parse()
 {	
 	int s = data[0x3c];
 	entry_point = get(s+40);
@@ -54,7 +54,7 @@ void PEReader::parse()
 	sort();
 	dataStart = table[0].raw_offset;
 }
-void PEReader::sort()
+void Reader_PE::sort()
 {
 	for (int i=number_of_sections-2;i>=0;i--)
 		for (int j=0;j<=i;j++)
@@ -65,28 +65,28 @@ void PEReader::sort()
 				table[j+1] = w;
 			}
 }
-int PEReader::get(unsigned char *buff, int pos, int size)
+int Reader_PE::get(unsigned char *buff, int pos, int size)
 {
 	int x = buff[pos+size-1];
 	for (int i=size-2; i>=0; i--)
 		x = x*16*16 + buff[pos+i];
 	return x;
 }
-int PEReader::get(int pos, int size)
+int Reader_PE::get(int pos, int size)
 {
 	return get(data, pos, size);
 }
-void PEReader::print_table()
+void Reader_PE::print_table()
 {
 	cerr << "Base: 0x" << hex << base << endl;
 	for (int i=0;i<number_of_sections;i++)
 		cerr << table[i].name << " 0x" << hex << table[i].virt_addr << " 0x" << hex << table[i].raw_offset << endl;
 }
-int PEReader::entrance()
+int Reader_PE::entrance()
 {
 	return entry_point + base;
 }
-int PEReader::map(int addr)
+int Reader_PE::map(int addr)
 {
 	int k=0;
 	while ((k < number_of_sections) && (addr >= table[k].raw_offset))
@@ -94,7 +94,7 @@ int PEReader::map(int addr)
 	k--;		
 	return addr-table[k].raw_offset+table[k].virt_addr+base;
 }
-bool PEReader::is_within_one_block(int a,int b)
+bool Reader_PE::is_within_one_block(int a,int b)
 {
 	for (int i=0;i<number_of_sections;i++)
 		if ((a>=table[i].virt_addr+base)&&(a<table[i].virt_addr+base+table[i].virt_size)&&

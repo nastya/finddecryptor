@@ -1,5 +1,5 @@
-#ifndef PEREADER_H
-#define PEREADER_H
+#ifndef READER_PE_H
+#define READER_PE_H
 
 #include <string>
 #include "reader.h"
@@ -11,7 +11,7 @@ using namespace std;
 Class working with PE-header.
 */
 
-class PEReader : public Reader
+class Reader_PE : public Reader
 {
 	/**
 	  Struct held in a tableof sections.
@@ -24,9 +24,9 @@ class PEReader : public Reader
 		int raw_offset;///<raw offset of section
 	};
 public:
-	PEReader();
-	PEReader(const Reader *reader);
-	~PEReader();
+	Reader_PE();
+	Reader_PE(const Reader *reader);
+	~Reader_PE();
 	void load(string name);
 	int entrance();
 	int map(int addr);

@@ -7,7 +7,7 @@ OBJECTS		= myprogram.o \
 		  finder.o \
 		  data.o \
 		  reader.o \
-		  PEReader.o \
+		  reader_pe.o \
 		  fdostream.o \
 		  timer.o \
 		  libdasm.o \
@@ -27,7 +27,7 @@ OUTPUT		= ../log/output
 
 $(TARGET): $(OBJECTS) $(LIBS)
 	mkdir -p ../bin ../log
-	$(CXX) -o $(TARGET) myprogram.o data.o finder.o reader.o PEReader.o timer.o ../lib/libdasm.so ../lib/emulator_gdbwine.so ../lib/emulator_libemu.so -Wl,-rpath -Wl,$(CURDIR)/../lib
+	$(CXX) -o $(TARGET) myprogram.o data.o finder.o reader.o reader_pe.o timer.o ../lib/libdasm.so ../lib/emulator_gdbwine.so ../lib/emulator_libemu.so -Wl,-rpath -Wl,$(CURDIR)/../lib
 
 all: $(TARGET) doc test
 
@@ -47,7 +47,7 @@ doc:
 myprogram.o: myprogram.cpp finder.h
 	$(CXX) -c myprogram.cpp
 
-finder.o: finder.cpp finder.h libdasm.h emulator.h PEReader.h timer.h
+finder.o: finder.cpp finder.h libdasm.h emulator.h reader_pe.h timer.h
 	$(CXX) -c finder.cpp
 
 data.o: data.cpp data.h
@@ -56,8 +56,8 @@ data.o: data.cpp data.h
 reader.o: reader.cpp reader.h
 	$(CXX) -c reader.cpp
 
-PEReader.o: PEReader.cpp PEReader.h
-	$(CXX) -c PEReader.cpp
+reader_pe.o: reader_pe.cpp reader_pe.h
+	$(CXX) -c reader_pe.cpp
 
 fdostream.o: fdostream.cpp fdostream.h
 	$(CXX) -c fdostream.cpp

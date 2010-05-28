@@ -12,7 +12,7 @@
 #include "data.h"
 #include "timer.h"
 #include "emulator.h"
-#include "PEReader.h"
+#include "reader_pe.h"
 
 #define FINDER_LOG /// Write to logfile.
 //#define FINDER_ONCE /// Stop after first found decryption routine.

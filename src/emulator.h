@@ -15,7 +15,7 @@ class Emulator : protected Data {
 public:	
 	/**
 	  Binds reader to emulator.
-	  @param r Pointer to an examplar of class PEReader which is used for taking special information out of PE-header.
+	  @param r Pointer to an examplar of Reader class which is used for reading the file and taking interesting information out of the file header (if present).
 	*/
 	void bind(Reader *r);
 	/**
@@ -42,7 +42,7 @@ public:
 	virtual unsigned int get_register(Register reg) = 0;
 	
 protected:
-	Reader *reader; ///<Pointer to an examplar of class PEReader which is used for taking special information out of PE-header.
+	Reader *reader; ///<Pointer to an examplar of Reader class which is used for reading the file and taking interesting information out of the file header (if present).
 };
 
 #endif 

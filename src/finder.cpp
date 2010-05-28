@@ -76,9 +76,9 @@ void Finder::load(string name)
 		(*log) << endl << "Loaded file \'" << name << "\"." << endl;
 		(*log) << "File size: 0x" << hex << reader->size() << "." << endl << endl;
 	}
-	if (PEReader::is_of_type(reader))
+	if (Reader_PE::is_of_type(reader))
 	{
-		reader = new PEReader(reader);
+		reader = new Reader_PE(reader);
 		(*log) << "Looks like a PE file." << endl << endl;
 	}
 	emulator->bind(reader);
