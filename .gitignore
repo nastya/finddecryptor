@@ -1,0 +1,7 @@
+*~
+bin
+lib
+log
+*\.o
+input/blob\.*
+!input/*seven_routines*
