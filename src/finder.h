@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <map>
 #include <cstring>
 #include <algorithm>
 #include <set>
@@ -73,13 +74,6 @@ private:
 	@param inst Given instruction
 	*/
 	void get_operands(INSTRUCTION *inst);
-	/**
-	Forms a chain of commands from the information containing in num_commands and prev vectors (they are formed in backwards_traversal).
-	@param num_commands - vector containing the starting positions of instructions (reference to first byte of instruction).
-	@param prev - vector containing the positions of previous instructions corresponding to num_commands (reference to first byte of instruction).
-	@returns commands - Vector containing chain of commands. 
-	*/
-	void get_commands(vector <INSTRUCTION>* commands, vector <int>* num_commands, vector <int>* prev);
 	/**
 	Checks every instruction in vector instructions. Changes regs_target and regs_known respectively.
 	@param instructions Vector of instructions to be checked.

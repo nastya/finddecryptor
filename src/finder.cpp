@@ -332,16 +332,6 @@ bool Finder::regs_closed() {
 		if (regs_target[i]) return false;
 	return true;
 }
-void Finder::get_commands(vector <INSTRUCTION>* commands, vector <int>* num_commands, vector <int>* prev)
-{
-	commands->clear();
-	INSTRUCTION inst;
-	for (int i=num_commands->size()-1;i!=-1;i=(*prev)[i])
-	{
-		instruction(&inst,(*num_commands)[i]);
-		commands->push_back(inst);
-	}
-}
 void Finder::check(vector <INSTRUCTION>* instructions)
 {
 	for (int k=instructions->size()-1;k>=0;k--)
@@ -455,44 +445,54 @@ void Finder::print_commands(vector <INSTRUCTION>* v, int start)
 		if (log) (*log) << "  " << instruction_string(&(*p)) << endl;
 	}
 }
-
 int Finder::backwards_traversal(int pos)
 {
 	if (regs_closed()) return pos;
 	Timer::start(TimeBackwardsTraversal);
-	INSTRUCTION inst;
-	int length=1;
 	bool regs_target_bak[RegistersCount], regs_known_bak[RegistersCount];
 	memcpy(regs_target_bak,regs_target,RegistersCount);
 	memcpy(regs_known_bak,regs_known,RegistersCount);
-	vector <int> queue, prev;
+	vector <int> queue[2];
+	map<int,INSTRUCTION> instructions;
+	INSTRUCTION inst;
+	queue[0].push_back(pos);
+	int m = 0;
 	vector <INSTRUCTION> commands;
-	queue.push_back(pos);
-	prev.push_back(-1);
-	for (int cur=0; (cur<length) && (cur<maxBackward); cur++)
+	for (int n=0; n<maxBackward; n++)
 	{
-		for (int i=1; (i<=MaxCommandSize) && (i<=queue[cur]); i++)
+		queue[m^1].clear();
+		for (vector<int>::iterator p=queue[m].begin(); p!=queue[m].end(); p++)
 		{
-			if (instruction(&inst,queue[cur]-i)!=i) continue;
-			queue.push_back(queue[cur]-i);
-			prev.push_back(cur);
-			length++;
-			get_commands(&commands,&queue,&prev);
-			check(&commands);
-			if (regs_closed())
+			for (int i=1; (i<=MaxCommandSize) && (i<=(*p)); i++)
 			{
-				length = 0;
-				break;
+				int curr = (*p) - i;
+				if (instruction(&inst,curr)!=i) continue;
+				instructions[curr] = inst;
+				queue[m^1].push_back((*p)-i);
+				commands.clear();
+				for (int j=curr,k=0; k<=n; k++)
+				{
+					commands.push_back(instructions[j]);
+					j += instructions[j].length;
+				}
+				check(&commands);
+				if (regs_closed())
+				{
+					memcpy(regs_target,regs_target_bak,RegistersCount);
+					memcpy(regs_known,regs_known_bak,RegistersCount);
+					Timer::stop(TimeBackwardsTraversal);
+					return curr;
+				}
+				memcpy(regs_target,regs_target_bak,RegistersCount);
+				memcpy(regs_known,regs_known_bak,RegistersCount);
 			}
-			memcpy(regs_target,regs_target_bak,RegistersCount);
-			memcpy(regs_known,regs_known_bak,RegistersCount);
 		}
+		m ^= 1;
 		/// TODO: We should also check all static jumps to this point.
 	}
 	Timer::stop(TimeBackwardsTraversal);
-	return regs_closed() ? queue[queue.size()-1] : -1;
+	return -1;
 }
-
 int Finder::verify(Command *cycle, int size)
 {
 	int reg;
