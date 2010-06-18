@@ -297,8 +297,6 @@ void Finder::find_memory_and_jump(int pos)
 			default:;
 		}
 		if (!is_write_indirect(&inst)) continue;
-		if (is_write_indirect(&inst))
-		{
 		if (log) (*log) << "Write to memory detected: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
 		if (start_positions.count(p))
 		{
@@ -310,7 +308,6 @@ void Finder::find_memory_and_jump(int pos)
 		memset(regs_known,false,RegistersCount);
 		memset(regs_target,false,RegistersCount);
 		get_operands(&inst);
-		}
 		check(&instructions_after_getpc);
 		int em_start = backwards_traversal(pos);
 		if (em_start<0)
@@ -476,15 +473,13 @@ int Finder::backwards_traversal(int pos)
 					j += instructions[j].length;
 				}
 				check(&commands);
-				if (regs_closed())
-				{
-					memcpy(regs_target,regs_target_bak,RegistersCount);
-					memcpy(regs_known,regs_known_bak,RegistersCount);
+				bool ret = regs_closed();
+				memcpy(regs_target,regs_target_bak,RegistersCount);
+				memcpy(regs_known,regs_known_bak,RegistersCount);
+				if (ret) {
 					Timer::stop(TimeBackwardsTraversal);
 					return curr;
 				}
-				memcpy(regs_target,regs_target_bak,RegistersCount);
-				memcpy(regs_known,regs_known_bak,RegistersCount);
 			}
 		}
 		m ^= 1;
