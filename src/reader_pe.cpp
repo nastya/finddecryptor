@@ -26,7 +26,7 @@ bool Reader_PE::is_of_type(const Reader *reader)
 	int m = reader->size();
 	if (m < 0x40) return false;
 	unsigned char *data = reader->pointer();
-	int s = data[0x3c];
+	int s = get(data,0x3c,2);
 	/// TODO: check length here.
 	return ((m > s+1) && (data[s]=='P') && (data[s+1]=='E'));
 }
@@ -37,7 +37,7 @@ void Reader_PE::load(string name)
 }
 void Reader_PE::parse()
 {	
-	int s = data[0x3c];
+	int s = get(0x3c,2);
 	entry_point = get(s+40);
 	base = get(s+52);
 	number_of_sections = get(s+6,2);
@@ -91,7 +91,7 @@ int Reader_PE::map(int addr)
 	int k=0;
 	while ((k < number_of_sections) && (addr >= table[k].raw_offset))
 		k++;
-	k--;		
+	k--;
 	return addr-table[k].raw_offset+table[k].virt_addr+base;
 }
 bool Reader_PE::is_within_one_block(int a,int b)
