@@ -37,7 +37,7 @@ void Emulator_GdbWine::stop()
 	if (out) delete out;
 	out = NULL;
 }
-void Emulator_GdbWine::begin(int pos)
+void Emulator_GdbWine::begin(uint pos)
 {
 	if (dirty) {
 		get_clean();
@@ -74,7 +74,7 @@ void Emulator_GdbWine::begin(int pos)
 	
 	if (pos!=0) jump(pos);
 }
-void Emulator_GdbWine::jump(int pos)
+void Emulator_GdbWine::jump(uint pos)
 {
 	pos = reader->map(pos);
 	(*out) << "tb * 0x" << hex << pos << endl;
@@ -92,14 +92,14 @@ bool Emulator_GdbWine::get_clean() {
 	}
 	return ok;
 }
-bool Emulator_GdbWine::get_command(char *buff, int size)
+bool Emulator_GdbWine::get_command(char *buff, uint size)
 {
 	if (!get_clean()) return false;
 	string str;
 	int x;
 	char *y = (char *) &x;
 
-	for (int i=0; i<size; i+=2) {
+	for (uint i=0; i<size; i+=2) {
 		(*out) << "x/x $eip+" << i << endl;
 		getline(cin,str);
 		if (str[0]=='!') return false;

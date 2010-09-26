@@ -230,7 +230,7 @@ void Finder::find()
 {
 	Timer::start(TimeFind);
 	INSTRUCTION inst;
-	for (int i=reader->start(); i<reader->size(); i++)
+	for (uint i=reader->start(); i<reader->size(); i++)
 	{
 		/// TODO: check opcodes
 		switch (reader->pointer()[i])
@@ -248,7 +248,7 @@ void Finder::find()
 			default:
 				continue;
 		}
-		int len = instruction(&inst, i);
+		uint len = instruction(&inst, i);
 		if (!len || (len + i > reader->size())) continue;
 		switch (inst.type)
 		{
@@ -276,8 +276,8 @@ void Finder::find_memory_and_jump(int pos)
 {
 	Timer::start(TimeFindMemoryAndJump);
 	INSTRUCTION inst;
-	int len;
-	for (int p=pos; p<reader->size(); p+=len)
+	uint len;
+	for (uint p=pos; p<reader->size(); p+=len)
 	{
 		len = instruction(&inst,p);
 		if (!len || (len + p > reader->size()))

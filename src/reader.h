@@ -5,6 +5,8 @@
 
 using namespace std;
 
+typedef unsigned int uint;
+
 /**
 @brief
 Class for reading input.
@@ -33,26 +35,26 @@ public:
 	/**
 	@return Size of input file.
 	*/
-	int size(bool nohead=false) const;
+	uint size(bool nohead=false) const;
 	/**
 	  @return The position of the first instruction in file.
 	*/
-	int start();
+	uint start();
 	/**
 	  @return Entry point of the program.
 	*/
-	virtual int entrance();
+	virtual uint entrance();
 	/**
 	  Translates address of instruction in input file into its address when program is loaded into memory.
 	  @param addr Address of instruction in input file.
 	*/
-	virtual int map(int addr);
+	virtual uint map(uint addr);
 	/**
 	@param a First address.
 	@param b Second address.
 	@return Returns true if these adresses are within one section
 	*/
-	virtual bool is_within_one_block(int a, int b);
+	virtual bool is_within_one_block(uint a, uint b);
 protected:
 	/**
 	Reads input binary file into buffer.
@@ -61,7 +63,7 @@ protected:
 	
 	string filename; ///<input file name
 	unsigned char *data; ///<buffer containing binary file
-	int dataSize; ///<size of buffer data
-	int dataStart; ///<start of the actual data in buffer
+	uint dataSize; ///<size of buffer data
+	uint dataStart; ///<start of the actual data in buffer
 };
 #endif

@@ -22,12 +22,12 @@ public:
 	  Runs emulation from the instruction situated on specified position in input file.
 	  @param pos Position to run emulation from.
 	*/
-	virtual void begin(int pos=0) = 0;
+	virtual void begin(uint pos=0) = 0;
 	/**
 	  Continues emulation from the spesified position.
 	  @param pos Spesified position.
 	*/
-	virtual void jump(int pos) = 0;
+	virtual void jump(uint pos) = 0;
 	/**
 	  Passes emulation to the next instruction.
 	*/
@@ -35,7 +35,7 @@ public:
 	/**
 	  Copies @ref size bytes of current emulated instruction into buffer @ref buff.
 	*/
-	virtual bool get_command(char *buff, int size=10) = 0;
+	virtual bool get_command(char *buff, uint size=10) = 0;
 	/**
 	  Returns current state of register @ref reg.
 	*/

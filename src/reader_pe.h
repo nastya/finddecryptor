@@ -19,18 +19,18 @@ class Reader_PE : public Reader
 	struct entry
 	{
 		char name[8];///<name of section
-		int virt_addr;///<virtual address of section
-		int virt_size;///<virtual size of section
-		int raw_offset;///<raw offset of section
+		uint virt_addr;///<virtual address of section
+		uint virt_size;///<virtual size of section
+		uint raw_offset;///<raw offset of section
 	};
 public:
 	Reader_PE();
 	Reader_PE(const Reader *reader);
 	~Reader_PE();
 	void load(string name);
-	int entrance();
-	int map(int addr);
-	bool is_within_one_block(int a, int b);
+	uint entrance();
+	uint map(uint addr);
+	bool is_within_one_block(uint a, uint b);
 	static bool is_of_type(const Reader *reader);
 private:
 	/**
@@ -49,16 +49,16 @@ private:
 	/**
 	@return Return integer formed of @ref size bytes from the position pos from buffer @ref buff.
 	*/
-	static int get(unsigned char *buff, int pos, int size=4);
+	static uint get(unsigned char *buff, int pos, int size=4);
 	/**
 	@return Return integer formed of @ref size bytes from the position pos.
 	*/
-	int get(int pos, int size=4);
+	uint get(int pos, int size=4);
 
 	
-	int number_of_sections;///<Number of sections in input file
-	int base;///< Base of addresses in memory
-	int entry_point;///< Entry point of input file
+	uint number_of_sections;///<Number of sections in input file
+	uint base;///< Base of addresses in memory
+	uint entry_point;///< Entry point of input file
 	entry* table;///< Table of sections
 };
 #endif

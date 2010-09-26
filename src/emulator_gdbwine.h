@@ -15,11 +15,11 @@ public:
 	Emulator_GdbWine();
 	~Emulator_GdbWine();
 	void stop();
-	void begin(int pos=0);
+	void begin(uint pos=0);
 	
-	void jump(int pos);
+	void jump(uint pos);
 	bool step();
-	bool get_command(char *buff, int size=10);
+	bool get_command(char *buff, uint size=10);
 	unsigned int get_register(Register reg);
 private:
 	/**

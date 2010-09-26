@@ -18,10 +18,10 @@ Emulator_LibEmu::Emulator_LibEmu() {
 Emulator_LibEmu::~Emulator_LibEmu() {
 	emu_free(e);
 }
-void Emulator_LibEmu::begin(int pos) {
+void Emulator_LibEmu::begin(uint pos) {
 	if (pos==0) pos = reader->start();
 	offset = reader->map(pos) - pos;
-	int start = max(reader->start(), pos - mem_before), end = min(reader->size(), pos + mem_after);
+	uint start = max(reader->start(), pos - mem_before), end = min(reader->size(), pos + mem_after);
 
 	for (int i=0; i<8; i++)
 		cpu->reg[i] = 0;
@@ -33,7 +33,7 @@ void Emulator_LibEmu::begin(int pos) {
 
 	jump(pos);
 }
-void Emulator_LibEmu::jump(int pos) {
+void Emulator_LibEmu::jump(uint pos) {
 	emu_cpu_eip_set(cpu, offset + pos);
 }
 /*bool Emulator_LibEmu::step() {
@@ -56,7 +56,7 @@ bool Emulator_LibEmu::step() {
 		return false;
 	return true;
 }
-bool Emulator_LibEmu::get_command(char *buff, int size) {
+bool Emulator_LibEmu::get_command(char *buff, uint size) {
 	emu_memory_read_block(mem, cpu->eip, buff, size);
 	return true;
 }

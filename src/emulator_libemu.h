@@ -18,10 +18,10 @@ class Emulator_LibEmu : public Emulator {
 public:
 	Emulator_LibEmu();
 	~Emulator_LibEmu();
-	void begin(int pos=0);
-	void jump(int pos);
+	void begin(uint pos=0);
+	void jump(uint pos);
 	bool step();
-	bool get_command(char *buff, int size=10);
+	bool get_command(char *buff, uint size=10);
 	unsigned int get_register(Register reg);
 private:
 	int offset; ///<Offset for emulated instructions (the memory/file adrress difference of the beginning of the block where they are situated).
