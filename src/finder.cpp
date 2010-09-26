@@ -79,7 +79,7 @@ void Finder::load(string name)
 	if (Reader_PE::is_of_type(reader))
 	{
 		reader = new Reader_PE(reader);
-		(*log) << "Looks like a PE file." << endl << endl;
+		if (log) (*log) << "Looks like a PE file." << endl << endl;
 	}
 	emulator->bind(reader);
 	Timer::stop(TimeLoad);
@@ -282,8 +282,9 @@ void Finder::find_memory_and_jump(int pos)
 		len = instruction(&inst,p);
 		if (!len || (len + p > reader->size()))
 		{
-			p++;
-			continue;
+			if (log) (*log) <<  " Dissasembling failed." << endl;
+			Timer::stop(TimeFindMemoryAndJump);
+			return;
 		}
 		instructions_after_getpc.push_back(inst);
 		switch (inst.type)
@@ -309,7 +310,7 @@ void Finder::find_memory_and_jump(int pos)
 		memset(regs_target,false,RegistersCount);
 		get_operands(&inst);
 		check(&instructions_after_getpc);
-		int em_start = backwards_traversal(pos);
+		int em_start = backwards_traversal(pos_getpc);
 		if (em_start<0)
 		{
 			if (log) (*log) <<  " Backwards traversal failed (nothing suitable found)." << endl;
