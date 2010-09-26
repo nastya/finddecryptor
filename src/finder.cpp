@@ -292,11 +292,20 @@ void Finder::find_memory_and_jump(int pos)
 			/// TODO: check
 			case INSTRUCTION_TYPE_JMP:
 			case INSTRUCTION_TYPE_JMPC:
-				if ((inst.op1.type!=OPERAND_TYPE_MEMORY) || (inst.op1.basereg==REG_NOP)) continue;
-				if (log) (*log) << " Indirect jump detected: " << instruction_string(&inst) << " on position 0x" << hex << pos << endl;
-				get_operands(&inst);
+				if ((inst.op1.type==OPERAND_TYPE_MEMORY) && (inst.op1.basereg!=REG_NOP)) {
+					if (log) (*log) << " Indirect jump detected: " << instruction_string(&inst) << " on position 0x" << hex << p << endl;
+					get_operands(&inst);
+				}
+				break;
+			case INSTRUCTION_TYPE_CALL:
+				if ((strcmp(inst.ptr->mnemonic,"call")==0) && (inst.op1.type==OPERAND_TYPE_IMMEDIATE)) {
+					p += inst.op1.immediate;
+					continue;
+				}
+				break;
 			default:;
 		}
+//		if (log) (*log) << "Instruction: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
 		if (!is_write_indirect(&inst)) continue;
 		if (log) (*log) << "Write to memory detected: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
 		if (start_positions.count(p))
@@ -491,22 +500,36 @@ int Finder::backwards_traversal(int pos)
 }
 int Finder::verify(Command *cycle, int size)
 {
-	int reg;
 	for (int i=0;i<size;i++)
-		if (get_write_indirect(&(cycle[i].inst), &reg))
-			if (verify_changing_reg(cycle, size, reg))
+		if (is_write_indirect(&(cycle[i].inst)))
+			if (verify_changing_reg(cycle, size, cycle[i].inst.op1.basereg, cycle[i].inst.op1.reg, cycle[i].inst.op1.indexreg))
 				return i+1;
 	return -1;
 }
 
-bool Finder::verify_changing_reg(Command *cycle, int size, int reg)
+bool Finder::verify_changing_reg(Command *cycle, int size, int reg0, int reg1, int reg2)
 {
-	if (!reader->is_within_one_block(emulator->get_register((Register)reg),cycle[0].addr)) return false;
-	for (int i=0;i<size;i++)
+	int mem = 0;
+	if (reg0 != REG_NOP) mem += emulator->get_register((Register) int_to_reg(reg0));
+	if (reg1 != REG_NOP) mem += emulator->get_register((Register) int_to_reg(reg1));
+	if (reg2 != REG_NOP) mem += emulator->get_register((Register) int_to_reg(reg2));
+	if ((mem==0) || !reader->is_within_one_block(mem,cycle[0].addr)) return false;
+	for (int i=0;i<size;i++) {
 		if (	is_write(&(cycle[i].inst)) && 
 			(cycle[i].inst.op1.type==OPERAND_TYPE_REGISTER) && 
-			(reg==int_to_reg(cycle[i].inst.op1.reg))
-			) return true;
+			(
+				((reg0!=REG_NOP) && (reg0==cycle[i].inst.op1.reg)) ||
+				((reg1!=REG_NOP) && (reg1==cycle[i].inst.op1.reg)) ||
+				((reg2!=REG_NOP) && (reg2==cycle[i].inst.op1.reg))
+			)) return true;
+		switch (cycle[i].inst.type)
+		{
+			case INSTRUCTION_TYPE_LOOP:
+				if ((reg0==REG_ECX) || (reg1==REG_ECX) || (reg2==REG_ECX)) return true; 
+				break;
+			default:;
+		}
+	}
 	return false;
 }
 int Finder::int_to_reg(int code)
