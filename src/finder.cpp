@@ -286,6 +286,7 @@ void Finder::find_memory_and_jump(int pos)
 			Timer::stop(TimeFindMemoryAndJump);
 			return;
 		}
+		if (log) (*log) << "Instruction: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
 		instructions_after_getpc.push_back(inst);
 		switch (inst.type)
 		{
@@ -296,6 +297,13 @@ void Finder::find_memory_and_jump(int pos)
 					if (log) (*log) << " Indirect jump detected: " << instruction_string(&inst) << " on position 0x" << hex << p << endl;
 					get_operands(&inst);
 				}
+				/// Jump following may result in infinite loop.
+				/// TODO: fix.
+/*				if ((strcmp(inst.ptr->mnemonic,"jmp")==0) && (inst.op1.type==OPERAND_TYPE_IMMEDIATE)) {
+					p += inst.op1.immediate;
+					continue;
+				}
+*/
 				break;
 			case INSTRUCTION_TYPE_CALL:
 				if ((strcmp(inst.ptr->mnemonic,"call")==0) && (inst.op1.type==OPERAND_TYPE_IMMEDIATE)) {
@@ -305,7 +313,6 @@ void Finder::find_memory_and_jump(int pos)
 				break;
 			default:;
 		}
-//		if (log) (*log) << "Instruction: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
 		if (!is_write_indirect(&inst)) continue;
 		if (log) (*log) << "Write to memory detected: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
 		if (start_positions.count(p))
@@ -419,9 +426,13 @@ void Finder::check(INSTRUCTION *inst)
 				regs_target[ESP] = true;
 			}
 			break;
+		case INSTRUCTION_TYPE_PUSH: /// TODO: check operands
+			regs_target[ESP] = false;
+			break;
 		case INSTRUCTION_TYPE_FPU:
 			if (strcmp(inst->ptr->mnemonic,"fptan")!=0) break; /// TODO: check this command.
 		case INSTRUCTION_TYPE_FCMOVC:
+		case INSTRUCTION_TYPE_FFREE: /// TODO: check this command
 		case INSTRUCTION_TYPE_CALL:
 			regs_target[ESP] = false;
 			regs_known[ESP] = true;
