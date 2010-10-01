@@ -24,8 +24,8 @@ void Emulator_LibEmu::begin(uint pos) {
 	uint start = max(reader->start(), pos - mem_before), end = min(reader->size(), pos + mem_after);
 
 	for (int i=0; i<8; i++)
-		cpu->reg[i] = 0;
-	cpu->reg[esp] = 0x1000000;	
+		emu_cpu_reg32_set(cpu, (emu_reg32) i, 0);
+	emu_cpu_reg32_set(cpu, esp, 0x1000000);
 
 	emu_memory_clear(mem);
 	//emu_memory_write_block(mem, offset + reader->start(), reader->pointer(true), reader->size(true));
@@ -57,30 +57,30 @@ bool Emulator_LibEmu::step() {
 	return true;
 }
 bool Emulator_LibEmu::get_command(char *buff, uint size) {
-	emu_memory_read_block(mem, cpu->eip, buff, size);
+	emu_memory_read_block(mem, emu_cpu_eip_get(cpu), buff, size);
 	return true;
 }
 unsigned int Emulator_LibEmu::get_register(Register reg) {
 	switch (reg)
 	{
 		case EAX:
-			return cpu->reg[eax];
+			return emu_cpu_reg32_get(cpu, eax);
 		case EBX:
-			return cpu->reg[ebx];
+			return emu_cpu_reg32_get(cpu, ebx);
 		case ECX:
-			return cpu->reg[ecx];
+			return emu_cpu_reg32_get(cpu, ecx);
 		case EDX:
-			return cpu->reg[edx];
+			return emu_cpu_reg32_get(cpu, edx);
 		case ESI:
-			return cpu->reg[esi];
+			return emu_cpu_reg32_get(cpu, esi);
 		case EDI:
-			return cpu->reg[edi];
+			return emu_cpu_reg32_get(cpu, edi);
 		case ESP:
-			return cpu->reg[esp];
+			return emu_cpu_reg32_get(cpu, esp);
 		case EBP:
-			return cpu->reg[ebp];
+			return emu_cpu_reg32_get(cpu, ebp);
 		case EIP:
-			return cpu->eip;
+			return emu_cpu_eip_get(cpu);
 		default:;
 	}
 	return 0;
