@@ -277,6 +277,7 @@ void Finder::find_memory_and_jump(int pos)
 	Timer::start(TimeFindMemoryAndJump);
 	INSTRUCTION inst;
 	uint len;
+	set<uint> nofollow;
 	for (uint p=pos; p<reader->size(); p+=len)
 	{
 		len = instruction(&inst,p);
@@ -297,16 +298,15 @@ void Finder::find_memory_and_jump(int pos)
 					if (log) (*log) << " Indirect jump detected: " << instruction_string(&inst) << " on position 0x" << hex << p << endl;
 					get_operands(&inst);
 				}
-				/// Jump following may result in infinite loop.
-				/// TODO: fix.
-/*				if ((strcmp(inst.ptr->mnemonic,"jmp")==0) && (inst.op1.type==OPERAND_TYPE_IMMEDIATE)) {
+				if ((!nofollow.count(p)) && (strcmp(inst.ptr->mnemonic,"jmp")==0) && (inst.op1.type==OPERAND_TYPE_IMMEDIATE)) {
+					nofollow.insert(p);
 					p += inst.op1.immediate;
 					continue;
 				}
-*/
 				break;
 			case INSTRUCTION_TYPE_CALL:
-				if ((strcmp(inst.ptr->mnemonic,"call")==0) && (inst.op1.type==OPERAND_TYPE_IMMEDIATE)) {
+				if ((!nofollow.count(p)) && (strcmp(inst.ptr->mnemonic,"call")==0) && (inst.op1.type==OPERAND_TYPE_IMMEDIATE)) {
+					nofollow.insert(p);
 					p += inst.op1.immediate;
 					continue;
 				}
