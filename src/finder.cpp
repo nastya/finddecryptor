@@ -429,18 +429,6 @@ void Finder::check(INSTRUCTION *inst)
 		case INSTRUCTION_TYPE_PUSH: /// TODO: check operands
 			regs_target[ESP] = false;
 			break;
-		case INSTRUCTION_TYPE_FPU_CTRL:
-			if (strcmp(inst->ptr->mnemonic,"fstenv")!=0) break;
-			regs_target[ESP] = false;
-			regs_known[ESP] = true;
-			regs_target[HASFPU] = true;
-			break;
-		case INSTRUCTION_TYPE_FPU:
-		case INSTRUCTION_TYPE_FFREE:
-		case INSTRUCTION_TYPE_FCMOVC:
-			regs_target[HASFPU] = false;
-			regs_known[HASFPU] = true;
-			break;
 		case INSTRUCTION_TYPE_CALL:
 			regs_target[ESP] = false;
 			regs_known[ESP] = true;
@@ -469,7 +457,21 @@ void Finder::check(INSTRUCTION *inst)
 				regs_known[EDX] = true;
 			}
 			break;
-		default:;
+		case INSTRUCTION_TYPE_FPU_CTRL:
+			if (strcmp(inst->ptr->mnemonic,"fstenv")==0) {
+				if (regs_target[ESP]) { // If we need ESP. Else, use general fpu instuction logic.
+					regs_target[ESP] = false;
+					regs_known[ESP] = true;
+					regs_target[HASFPU] = true;
+					break;
+				}
+			} // No break here, going to default processing.
+		default:
+			if (MASK_EXT(inst->flags) == EXT_CP) { // Co-processor: FPU instructions
+				regs_target[HASFPU] = false;
+				regs_known[HASFPU] = true;
+			};
+			break;
 	}
 }
 
