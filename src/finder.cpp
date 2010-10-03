@@ -429,12 +429,18 @@ void Finder::check(INSTRUCTION *inst)
 		case INSTRUCTION_TYPE_PUSH: /// TODO: check operands
 			regs_target[ESP] = false;
 			break;
+		case INSTRUCTION_TYPE_FPU_CTRL:
+			if (strcmp(inst->ptr->mnemonic,"fstenv")!=0) break;
+			regs_target[ESP] = false;
+			regs_known[ESP] = true;
+			regs_target[HASFPU] = true;
+			break;
 		case INSTRUCTION_TYPE_FPU:
-			if (	(strcmp(inst->ptr->mnemonic,"fptan")!=0) &&	/// TODO: check this command
-				(strcmp(inst->ptr->mnemonic,"fnop")!=0)		/// TODO: check this command!
-			) break;
+		case INSTRUCTION_TYPE_FFREE:
 		case INSTRUCTION_TYPE_FCMOVC:
-		case INSTRUCTION_TYPE_FFREE: /// TODO: check this command
+			regs_target[HASFPU] = false;
+			regs_known[HASFPU] = true;
+			break;
 		case INSTRUCTION_TYPE_CALL:
 			regs_target[ESP] = false;
 			regs_known[ESP] = true;

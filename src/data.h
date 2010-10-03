@@ -15,7 +15,8 @@ public:
 		EAX,EBX,ECX,EDX,
 		AX,BX,CX,DX,
 		AH,BH,CH,DH,
-		AL,BL,CL,DL
+		AL,BL,CL,DL,
+		HASFPU
 	};
 
 	static const int RegistersCount; ///<an amount of registers (only observed registers)
