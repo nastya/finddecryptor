@@ -430,7 +430,9 @@ void Finder::check(INSTRUCTION *inst)
 			regs_target[ESP] = false;
 			break;
 		case INSTRUCTION_TYPE_FPU:
-			if (strcmp(inst->ptr->mnemonic,"fptan")!=0) break; /// TODO: check this command.
+			if (	(strcmp(inst->ptr->mnemonic,"fptan")!=0) &&	/// TODO: check this command
+				(strcmp(inst->ptr->mnemonic,"fnop")!=0)		/// TODO: check this command!
+			) break;
 		case INSTRUCTION_TYPE_FCMOVC:
 		case INSTRUCTION_TYPE_FFREE: /// TODO: check this command
 		case INSTRUCTION_TYPE_CALL:
@@ -447,6 +449,19 @@ void Finder::check(INSTRUCTION *inst)
 			//	regs_target[r]=true;
 			//	regs_known[r]=false;
 			//}
+			break;
+		case INSTRUCTION_TYPE_OTHER:
+			if (strcmp(inst->ptr->mnemonic,"cpuid")==0)
+			{
+				regs_target[EAX] = true;
+				regs_target[EBX] = false;
+				regs_target[ECX] = false;
+				regs_target[EDX] = false;
+				regs_known[EAX] = false;
+				regs_known[EBX] = true;
+				regs_known[ECX] = true;
+				regs_known[EDX] = true;
+			}
 			break;
 		default:;
 	}
@@ -495,6 +510,20 @@ int Finder::backwards_traversal(int pos)
 				}
 				check(&commands);
 				bool ret = regs_closed();
+/*				if (log)
+				{
+					(*log) << "   BACKWARDS TRAVERSAL ITERATION" << endl;
+					print_commands(&commands, 0);
+					if (ret)
+						(*log) << "Backwards traversal iteration succeeded." << endl;
+					else
+					{
+						(*log) << "Backwards traversal iteration failed. Unknown registers: ";
+						for (int i=0; i<RegistersCount; i++)
+							if (regs_target[i]) (*log) << " " << dec << i;
+						(*log) << endl;
+					}
+				} */
 				memcpy(regs_target,regs_target_bak,RegistersCount);
 				memcpy(regs_known,regs_known_bak,RegistersCount);
 				if (ret) {
