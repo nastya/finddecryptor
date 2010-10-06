@@ -356,10 +356,11 @@ void Finder::add_target(OPERAND *op) {
 	switch (op->type)
 	{
 		case OPERAND_TYPE_REGISTER:
+			if (op->reg == REG_ESP) break;
 			regs_target[int_to_reg(op->reg)] = true;
 			break;
 		case OPERAND_TYPE_MEMORY:
-			if (op->basereg == REG_NOP) break;
+			if (op->basereg == REG_NOP || op->reg == REG_ESP) break;
 			regs_target[int_to_reg(op->basereg)] = true;
 			break;
 		default:;
@@ -420,11 +421,8 @@ void Finder::check(INSTRUCTION *inst)
 			if (inst->op1.type != OPERAND_TYPE_REGISTER) break;
 			r = int_to_reg(inst->op1.reg);
 			regs_known[r] = true;
-			if (regs_target[r])
-			{
-				regs_target[r] = false;
-				regs_target[ESP] = true;
-			}
+			regs_target[r] = false;
+			regs_target[ESP] = true;
 			break;
 		case INSTRUCTION_TYPE_PUSH: /// TODO: check operands
 			regs_target[ESP] = false;
@@ -459,6 +457,7 @@ void Finder::check(INSTRUCTION *inst)
 			break;
 		case INSTRUCTION_TYPE_FPU_CTRL:
 			if (strcmp(inst->ptr->mnemonic,"fstenv")==0) {
+				add_target(&(inst->op1));
 				if (regs_target[ESP]) { // If we need ESP. Else, use general fpu instuction logic.
 					regs_target[ESP] = false;
 					regs_known[ESP] = true;
@@ -550,14 +549,17 @@ int Finder::verify(Command *cycle, int size)
 {
 	for (int i=0;i<size;i++)
 		if (is_write_indirect(&(cycle[i].inst)))
-			if (verify_changing_reg(cycle, size, cycle[i].inst.op1.basereg, cycle[i].inst.op1.reg, cycle[i].inst.op1.indexreg))
+			if (verify_changing_reg(&(cycle[i].inst), cycle, size))
 				return i+1;
 	return -1;
 }
 
-bool Finder::verify_changing_reg(Command *cycle, int size, int reg0, int reg1, int reg2)
+bool Finder::verify_changing_reg(INSTRUCTION *inst, Command *cycle, int size)
 {
-	int mem = 0;
+	int	mem  = inst->op1.displacement,
+		reg0 = inst->op1.basereg,
+		reg1 = inst->op1.reg,
+		reg2 = inst->op1.indexreg;
 	if (reg0 != REG_NOP) mem += emulator->get_register((Register) int_to_reg(reg0));
 	if (reg1 != REG_NOP) mem += emulator->get_register((Register) int_to_reg(reg1));
 	if (reg2 != REG_NOP) mem += emulator->get_register((Register) int_to_reg(reg2));
@@ -626,6 +628,9 @@ bool Finder::is_write(INSTRUCTION *inst)
 		case INSTRUCTION_TYPE_OR:
 		case INSTRUCTION_TYPE_MUL:
 		case INSTRUCTION_TYPE_IMUL:
+			
+		case INSTRUCTION_TYPE_INC:
+		case INSTRUCTION_TYPE_DEC:
 			
 		case INSTRUCTION_TYPE_MOV:
 		case INSTRUCTION_TYPE_POP:

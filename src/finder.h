@@ -112,14 +112,12 @@ private:
 	int verify(Command *cycle, int size);
 	/**
 	  Checks the cycle found for the presence of instructions changing register in target instruction.
+	  @param inst The target instruction to check.
 	  @param cycle Cycle found (represents sequence of entities named Command).
 	  @param size A number of lines in cycle.
-	  @param reg0 Observed register in target instruction.
-	  @param reg1 Observed register in target instruction.
-	  @param reg2 Observed register in target instruction.
 	  @return true if such instruction is found and false vice versa.
 	  */
-	bool verify_changing_reg(Command *cycle, int size, int reg0, int reg1, int reg2);
+	bool verify_changing_reg(INSTRUCTION *inst, Command *cycle, int size);
 	/**
 	@param inst Given instruction.
 	@return Returns true if given instruction rewrites at least one of its operands. 
