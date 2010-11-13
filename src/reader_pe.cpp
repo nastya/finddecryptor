@@ -94,6 +94,15 @@ uint Reader_PE::map(uint addr)
 	k--;
 	return addr-table[k].raw_offset+table[k].virt_addr+base;
 }
+bool Reader_PE::is_valid(uint addr) {
+	addr -= base;
+	for (uint k=0; k < number_of_sections; k++) {
+		uint unmapped = addr + table[k].raw_offset - table[k].virt_addr;
+		if ((0<=unmapped) && (unmapped<table[k].virt_size))
+			return true;
+	}
+	return false;
+}
 bool Reader_PE::is_within_one_block(uint a,uint b)
 {
 	for (uint i=0;i<number_of_sections;i++)

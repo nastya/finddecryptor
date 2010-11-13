@@ -104,6 +104,11 @@ void Finder::launch(int pos)
 			return;
 		}
 		num = emulator->get_register(EIP);
+		if (!reader->is_valid(num)) {
+			if (log) (*log) << " Reached end of the memory block, stopping instance." << endl;
+			Timer::stop(TimeLaunches);
+			return;
+		}
 		get_instruction(&inst, (BYTE *) buff, mode);
 		if (log) (*log) << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 		if (!emulator->step()) {

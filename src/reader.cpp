@@ -71,6 +71,9 @@ uint Reader::map(uint addr)
 {
 	return addr;
 }
+bool Reader::is_valid(uint addr) {
+	return (0<=addr) && (addr<dataSize);
+}
 bool Reader::is_within_one_block(uint a, uint b)
 {
 	return (a>=dataStart) && (b>=dataStart) && (a<dataSize) && (b<dataSize);

@@ -46,9 +46,14 @@ public:
 	virtual uint entrance();
 	/**
 	  Translates address of instruction in input file into its address when program is loaded into memory.
-	  @param addr Address of instruction in input file.
+	  @param addr Address the of instruction in input file.
 	*/
 	virtual uint map(uint addr);
+	/**
+	  Tells if the memory address if valid.
+	  @param addr Address the of instruction in memory.
+	*/
+	virtual bool is_valid(uint addr);
 	/**
 	@param a First address.
 	@param b Second address.
