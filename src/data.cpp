@@ -1,6 +1,6 @@
 #include "data.h"
 
-const int Data::MaxCommandSize = 10;
+const int Data::MaxCommandSize = 30;
 const char* Data::Registers [] = {
 	"eip","ebp","esp","esi","edi",
 	"ip","bp","sp","si","di",
