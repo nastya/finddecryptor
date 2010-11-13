@@ -21,7 +21,7 @@ Emulator_LibEmu::~Emulator_LibEmu() {
 void Emulator_LibEmu::begin(uint pos) {
 	if (pos==0) pos = reader->start();
 	offset = reader->map(pos) - pos;
-	uint start = max(reader->start(), pos - mem_before), end = min(reader->size(), pos + mem_after);
+	uint start = max((int) reader->start(), (int) pos - mem_before), end = min(reader->size(), pos + mem_after);
 
 	for (int i=0; i<8; i++)
 		emu_cpu_reg32_set(cpu, (emu_reg32) i, 0);
