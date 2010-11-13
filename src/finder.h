@@ -149,6 +149,7 @@ private:
 	static const Mode mode; ///<mode of disassembling (here it is MODE_32)
 	static const Format format; ///<format of commands (here it is Intel)
 	static const int maxBackward; ///<limit for backwards traversal
+	int am_back; ///<amount of commands found by backwards traversal
 
 	/**
 	  @param pos Position in input file from which we get instruction.

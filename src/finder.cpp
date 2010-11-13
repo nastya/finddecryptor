@@ -142,6 +142,8 @@ void Finder::launch(int pos)
 				return launch(em_start);
 			}
 		}
+		if ((uint)strnum >= instructions_after_getpc.size() + am_back)
+			instructions_after_getpc.push_back(inst);
 		memset(regs_target,false,RegistersCount);
 		int kol = 0;
 		for (i=0;i<amount;i++)
@@ -178,7 +180,8 @@ void Finder::launch(int pos)
 			}
 		}
 		if (flag) break;
-		a[amount++]=num;
+		if (is_write_indirect(&inst))
+			a[amount++]=num;
 	}
 	
 	if (flag) {
@@ -368,6 +371,8 @@ void Finder::add_target(OPERAND *op) {
 }
 void Finder::get_operands(INSTRUCTION *inst)
 {
+	if (inst->type == INSTRUCTION_TYPE_LODS)
+		regs_target[ESI] = true;
 	if (inst->type == INSTRUCTION_TYPE_LOOP) 
 		regs_target[ECX] = true;
 	if (inst->op1.type==OPERAND_TYPE_MEMORY)
@@ -382,6 +387,15 @@ void Finder::check(INSTRUCTION *inst)
 	int r;
 	switch (inst->type)
 	{
+		case INSTRUCTION_TYPE_LODS:
+			regs_known[EAX] = true;
+			regs_target[EAX] = false;
+			regs_target[ESI] = true;
+			break;
+		case INSTRUCTION_TYPE_STOS:
+			regs_target[EAX] = true;
+			regs_target[EDI] = true;
+			break;
 		case INSTRUCTION_TYPE_XOR:
 		case INSTRUCTION_TYPE_SUB:
 		case INSTRUCTION_TYPE_SBB:
@@ -506,7 +520,18 @@ int Finder::backwards_traversal(int pos)
 			for (int i=1; (i<=MaxCommandSize) && (i<=(*p)); i++)
 			{
 				int curr = (*p) - i;
-				if (instruction(&inst,curr)!=i) continue;
+				bool ok = false;
+				int len = instruction(&inst,curr);
+				switch (inst.type)
+				{
+					case INSTRUCTION_TYPE_JMP:
+					case INSTRUCTION_TYPE_JMPC:
+					case INSTRUCTION_TYPE_JECXZ:
+						ok = (i == (inst.op1.immediate + len));
+						break;
+					default:;
+				}
+				if (len!=i && !ok) continue;
 				instructions[curr] = inst;
 				queue[m^1].push_back((*p)-i);
 				commands.clear();
@@ -516,6 +541,7 @@ int Finder::backwards_traversal(int pos)
 					j += instructions[j].length;
 				}
 				check(&commands);
+				am_back = commands.size();
 				bool ret = regs_closed();
 /*				if (log)
 				{
@@ -563,6 +589,11 @@ bool Finder::verify_changing_reg(INSTRUCTION *inst, Command *cycle, int size)
 	if (reg0 != REG_NOP) mem += emulator->get_register((Register) int_to_reg(reg0));
 	if (reg1 != REG_NOP) mem += emulator->get_register((Register) int_to_reg(reg1));
 	if (reg2 != REG_NOP) mem += emulator->get_register((Register) int_to_reg(reg2));
+	if (inst->type == INSTRUCTION_TYPE_STOS)
+	{
+		reg0 = REG_EDI;
+		mem = emulator->get_register((Register) int_to_reg(reg0));
+	}
 	if ((mem==0) || !reader->is_within_one_block(mem,cycle[0].addr)) return false;
 	for (int i=0;i<size;i++) {
 		if (	is_write(&(cycle[i].inst)) && 
@@ -575,7 +606,13 @@ bool Finder::verify_changing_reg(INSTRUCTION *inst, Command *cycle, int size)
 		switch (cycle[i].inst.type)
 		{
 			case INSTRUCTION_TYPE_LOOP:
-				if ((reg0==REG_ECX) || (reg1==REG_ECX) || (reg2==REG_ECX)) return true; 
+				if ((reg0==REG_ECX) || (reg1==REG_ECX) || (reg2==REG_ECX)) return true;
+				break;
+			case INSTRUCTION_TYPE_LODS:
+				if ((reg0==REG_ESI) || (reg1==REG_ESI) || (reg2==REG_ESI)) return true;
+				break;
+			case INSTRUCTION_TYPE_STOS:
+				if ((reg0==REG_EDI) || (reg1==REG_EDI) || (reg2==REG_EDI)) return true;
 				break;
 			default:;
 		}
@@ -612,6 +649,7 @@ bool Finder::get_write_indirect(INSTRUCTION *inst, int *reg)
 }
 bool Finder::is_write_indirect(INSTRUCTION *inst)
 {
+	if (inst->type == INSTRUCTION_TYPE_STOS) return true;
 	return is_write(inst) && (inst->op1.type == OPERAND_TYPE_MEMORY) && (inst->op1.basereg != REG_NOP);
 }
 bool Finder::is_write(INSTRUCTION *inst)
