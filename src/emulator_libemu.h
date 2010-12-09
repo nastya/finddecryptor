@@ -19,12 +19,16 @@ public:
 	Emulator_LibEmu();
 	~Emulator_LibEmu();
 	void begin(uint pos=0);
-	void jump(uint pos);
 	bool step();
 	bool get_command(char *buff, uint size=10);
 	unsigned int get_register(Register reg);
 private:
 	int offset; ///<Offset for emulated instructions (the memory/file adrress difference of the beginning of the block where they are situated).
+	/**
+	  Continues emulation from the spesified position.
+	  @param pos Spesified position.
+	*/
+	void jump(uint pos);
 	/**
 	 Struct containing emulator.
 	 @sa emu (libemu documentation)

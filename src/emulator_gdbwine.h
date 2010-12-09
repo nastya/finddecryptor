@@ -11,17 +11,21 @@ using namespace std;
 */
 
 class Emulator_GdbWine : public Emulator {
-public:	
+public:
 	Emulator_GdbWine();
 	~Emulator_GdbWine();
 	void stop();
 	void begin(uint pos=0);
 	
-	void jump(uint pos);
 	bool step();
 	bool get_command(char *buff, uint size=10);
 	unsigned int get_register(Register reg);
 private:
+	/**
+	  Continues emulation from the spesified position.
+	  @param pos Spesified position.
+	*/
+	void jump(uint pos);
 	/**
 	  Removes service information from the gdb's output.
 	  @return Returns false if any error happened.

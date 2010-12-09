@@ -12,7 +12,7 @@ using namespace std;
 */
 
 class Emulator : protected Data {
-public:	
+public:
 	/**
 	  Binds reader to emulator.
 	  @param r Pointer to an examplar of Reader class which is used for reading the file and taking interesting information out of the file header (if present).
@@ -23,11 +23,6 @@ public:
 	  @param pos Position to run emulation from.
 	*/
 	virtual void begin(uint pos=0) = 0;
-	/**
-	  Continues emulation from the spesified position.
-	  @param pos Spesified position.
-	*/
-	virtual void jump(uint pos) = 0;
 	/**
 	  Passes emulation to the next instruction.
 	*/
