@@ -247,7 +247,12 @@ void Finder::find()
 		/// TODO: check opcodes
 		switch (reader->pointer()[i])
 		{
-			/// fstenv: 0xf2d9, 0xd9
+			/// fsave/fnsave: 0x9bdd, 0xdd
+			case 0x9b:
+				if ((reader->pointer()[i+1]) != 0xd9) continue; /// TODO: check if i+1 is present
+			case 0xdd:
+				break;
+			/// fstenv/fnstenv: 0xf2d9, 0xd9
 			case 0xf2:
 				if ((reader->pointer()[i+1]) != 0xd9) continue; /// TODO: check if i+1 is present
 			case 0xd9:
@@ -266,6 +271,7 @@ void Finder::find()
 		{
 			case INSTRUCTION_TYPE_FPU_CTRL:
 				if (strcmp(inst.ptr->mnemonic,"fstenv")==0) break;
+				if (strcmp(inst.ptr->mnemonic,"fsave")==0) break;
 				continue;
 			case INSTRUCTION_TYPE_CALL:
 				if ((strcmp(inst.ptr->mnemonic,"call")==0) && (inst.op1.type==OPERAND_TYPE_IMMEDIATE)) break;
