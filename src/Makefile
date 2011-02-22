@@ -12,10 +12,12 @@ OBJECTS		= myprogram.o \
 		  timer.o \
 		  libdasm.o \
 		  emulator.o \
+		  emulator_qemu.o \
 		  emulator_gdbwine.o \
 		  emulator_libemu.o
 
 LIBS		= ../lib/libdasm.so \
+		  ../lib/emulator_qemu.so \
 		  ../lib/emulator_gdbwine.so \
 		  ../lib/emulator_libemu.so
 
@@ -27,7 +29,7 @@ OUTPUT		= ../log/output
 
 $(TARGET): $(OBJECTS) $(LIBS)
 	mkdir -p ../bin ../log
-	$(CXX) -o $(TARGET) myprogram.o data.o finder.o reader.o reader_pe.o timer.o ../lib/libdasm.so ../lib/emulator_gdbwine.so ../lib/emulator_libemu.so -Wl,-rpath -Wl,$(CURDIR)/../lib
+	$(CXX) -o $(TARGET) myprogram.o data.o finder.o reader.o reader_pe.o timer.o ../lib/libdasm.so ../lib/emulator_qemu.so ../lib/emulator_gdbwine.so ../lib/emulator_libemu.so -Wl,-rpath -Wl,$(CURDIR)/../lib
 
 all: $(TARGET) doc test
 
@@ -48,7 +50,7 @@ myprogram.o: myprogram.cpp finder.h
 	$(CXX) -c myprogram.cpp
 
 finder.o: finder.cpp finder.h libdasm.h emulator.h reader_pe.h timer.h
-	$(CXX) -c finder.cpp
+	$(CXX) -O0 -fomit-frame-pointer -c finder.cpp
 
 data.o: data.cpp data.h
 	$(CXX) -c data.cpp
@@ -77,6 +79,9 @@ emulator_gdbwine.o: emulator_gdbwine.cpp emulator_gdbwine.h emulator.h
 emulator_libemu.o: emulator_libemu.cpp emulator_libemu.h emulator.h
 	$(CXX) -c emulator_libemu.cpp
 
+emulator_qemu.o: emulator_qemu.cpp emulator_qemu.h emulator.h
+	$(CXX) -O0 -fomit-frame-pointer -c emulator_qemu.cpp
+
 ../lib/libdasm.so: libdasm.o
 	mkdir -p ../lib
 	$(CC) -shared -o $@ libdasm.o
@@ -88,6 +93,10 @@ emulator_libemu.o: emulator_libemu.cpp emulator_libemu.h emulator.h
 ../lib/emulator_libemu.so: emulator_libemu.o emulator.o ../libemu/libemu.so
 	mkdir -p ../lib
 	$(CXX) -shared -o $@ emulator_libemu.o emulator.o ../libemu/libemu.so -Wl,-rpath -Wl,$(CURDIR)/../libemu
+
+../lib/emulator_qemu.so: emulator_qemu.o emulator.o ../qemu/qemu.so
+	mkdir -p ../lib
+	$(CXX) -shared -o $@ emulator_qemu.o emulator.o ../qemu/qemu.so -Wl,-rpath -Wl,$(CURDIR)/../qemu
 
 test: test_libemu
 

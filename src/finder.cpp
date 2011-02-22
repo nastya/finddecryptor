@@ -1,6 +1,7 @@
 #include "finder.h"
 #include "emulator_gdbwine.h"
 #include "emulator_libemu.h"
+#include "emulator_qemu.h"
 
 using namespace std;
 
@@ -16,6 +17,9 @@ Finder::Command::Command(int a, INSTRUCTION i) {
 Finder::Finder(int type)
 {
 	switch (type) {
+		case 2:
+			emulator = new Emulator_Qemu();
+			break;
 		case 1:
 			emulator = new Emulator_LibEmu();
 			break;
@@ -90,7 +94,7 @@ void Finder::launch(int pos)
 	if (log) (*log) << "Launching from position 0x" << hex << pos << endl;
 	int a[1000]={0}, i,k,num,amount=0, barrier;
 	bool flag = false;
-	Command cycle[256];
+//	Command cycle[256];
 	INSTRUCTION inst;
 	Timer::start(TimeEmulatorStart);
 	emulator->begin(pos);
@@ -114,7 +118,7 @@ void Finder::launch(int pos)
 		if (!emulator->step()) {
 			if (log) (*log) << " Execution error, stopping instance." << endl;
 			Timer::stop(TimeLaunches);
-			return;			
+			return;
 		}
 		get_operands(&inst);
 		for (i=0;i<RegistersCount;i++)
@@ -175,7 +179,7 @@ void Finder::launch(int pos)
 				if (!emulator->step()) {
 					if (log) (*log) << " Execution error, stopping instance." << endl;
 					Timer::stop(TimeLaunches);
-					return;			
+					return;
 				}
 				if (num==neednum)
 				{

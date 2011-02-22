@@ -19,10 +19,13 @@ int main(int argc, char** argv)
 		case 2:
 			break;
 		case 3:
-			if (strcmp(argv[2],"GdbWine")==0)
+			if (strcmp(argv[2],"GdbWine") == 0)
 				type = 0;
-			else if (strcmp(argv[2],"LibEmu")!=0)
-			{
+			else if (strcmp(argv[2],"LibEmu") == 0)
+				type = 1;
+			else if (strcmp(argv[2],"Qemu") == 0)
+				type = 2;
+			else {
 				cerr << "Unknown emulator type." << endl;
 				return 0;
 			}
@@ -34,5 +37,6 @@ int main(int argc, char** argv)
 	Finder finder(type);
 	finder.load(argv[1]);
 	finder.find();
+	exit(0); /// Hack for qemu. TODO: fix
 	return 0;
 }

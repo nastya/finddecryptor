@@ -150,6 +150,7 @@ private:
 	static const Format format; ///<format of commands (here it is Intel)
 	static const int maxBackward; ///<limit for backwards traversal
 	int am_back; ///<amount of commands found by backwards traversal
+	Command cycle[256]; // TODO: fix. It should be a member of the Finder::launch(). Here because of qemu lags.
 
 	/**
 	  @param pos Position in input file from which we get instruction.
