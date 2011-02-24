@@ -22,16 +22,17 @@ LIBS		= ../lib/libdasm.so \
 		  ../lib/emulator_libemu.so
 
 TARGET		= ../bin/myprogram
+TARGET_LIB	= ../lib/myprogram.so
 INPUT		= ../input/
 OUTPUT		= ../log/output
 
 ####### Build rules
 
-$(TARGET): $(OBJECTS) $(LIBS)
-	mkdir -p ../bin ../log
-	$(CXX) -o $(TARGET) myprogram.o data.o finder.o reader.o reader_pe.o timer.o ../lib/libdasm.so ../lib/emulator_qemu.so ../lib/emulator_gdbwine.so ../lib/emulator_libemu.so -Wl,-rpath -Wl,$(CURDIR)/../lib
+bin: $(TARGET)
 
-all: $(TARGET) doc test
+lib: $(TARGET_LIB)
+
+all: $(TARGET) $(TARGET_LIB) doc test
 
 clean:
 	-$(DEL_FILE) $(OBJECTS) *~
@@ -97,6 +98,14 @@ emulator_qemu.o: emulator_qemu.cpp emulator_qemu.h emulator.h
 ../lib/emulator_qemu.so: emulator_qemu.o emulator.o ../qemu/qemu.so
 	mkdir -p ../lib
 	$(CXX) -shared -o $@ emulator_qemu.o emulator.o ../qemu/qemu.so -Wl,-rpath -Wl,$(CURDIR)/../qemu
+
+$(TARGET_LIB): data.o finder.o reader.o reader_pe.o timer.o $(LIBS)
+	mkdir -p ../lib
+	$(CXX) -shared -o $@ data.o finder.o reader.o reader_pe.o timer.o $(LIBS) -Wl,-rpath -Wl,$(CURDIR)/../lib
+
+$(TARGET): myprogram.o $(TARGET_LIB)
+	mkdir -p ../bin ../log
+	$(CXX) -o $@ myprogram.o $(TARGET_LIB) -Wl,-rpath -Wl,$(CURDIR)/../lib
 
 test: test_libemu
 
