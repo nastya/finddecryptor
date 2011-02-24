@@ -30,11 +30,6 @@ bool Reader_PE::is_of_type(const Reader *reader)
 	/// TODO: check length here.
 	return ((m > s+1) && (data[s]=='P') && (data[s+1]=='E'));
 }
-void Reader_PE::load(string name)
-{
-	Reader::load(name);
-	parse();
-}
 void Reader_PE::parse()
 {
 	uint s = get(0x3c,2);

@@ -23,7 +23,13 @@ public:
 	  Load file.
 	  @param name Name of input file
 	*/
-	virtual void load(string name);
+	void load(string name);
+	/**
+	  Link to data.
+	  @param data Pointer to memory area.
+	  @param dataSize Size of memory area.
+	*/
+	void link(unsigned char *data, uint dataSize);
 	/**
 	@return Name of the input file.
 	*/
@@ -65,7 +71,12 @@ protected:
 	Reads input binary file into buffer.
 	*/
 	void read();
+	/**
+	 Gets necessary information from header.
+	*/
+	virtual void parse();
 	
+	bool indirect; ///<do we need to delete data at the end?
 	string filename; ///<input file name
 	unsigned char *data; ///<buffer containing binary file
 	uint dataSize; ///<size of buffer data

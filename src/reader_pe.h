@@ -27,17 +27,17 @@ public:
 	Reader_PE();
 	Reader_PE(const Reader *reader);
 	~Reader_PE();
-	void load(string name);
 	uint entrance();
 	uint map(uint addr);
 	bool is_valid(uint addr);
 	bool is_within_one_block(uint a, uint b);
 	static bool is_of_type(const Reader *reader);
-private:
+protected:
 	/**
 	 Gets necessary information from header.
 	*/
 	void parse();
+private:
 	/**
 	  Sorts table of sections by raw_offset
 	*/

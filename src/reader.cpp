@@ -13,6 +13,7 @@ Reader::Reader()
 	dataSize = 0;
 	dataStart = 0;
 	data = NULL;
+	indirect = false;
 }
 Reader::Reader(const Reader *reader)
 {
@@ -20,10 +21,12 @@ Reader::Reader(const Reader *reader)
 	dataSize = reader->dataSize;
 	dataStart = reader->dataStart;
 	data = reader->data;
+	indirect = reader->indirect;
 }
 Reader::~Reader()
 {
-	delete[] data;
+	if (indirect)
+		delete[] data;
 }
 string Reader::name() {
 	return filename;
@@ -32,10 +35,22 @@ void Reader::load(string name)
 {
 	filename = name;
 	read();
+	parse();
+}
+void Reader::link(unsigned char *data, uint dataSize)
+{
+	if (indirect)
+		delete[] data;
+	filename = "direct memory access";
+	indirect = false;
+	this->data = data;
+	this->dataSize = dataSize;
+	parse();
 }
 void Reader::read()
 {
-	delete[] data;
+	if (indirect)
+		delete[] data;
 	data = NULL;
 	dataSize = 0;
 	ifstream s(filename.c_str());
@@ -49,10 +64,13 @@ void Reader::read()
 	s.seekg(0, ios_base::end);
 	dataSize = static_cast<uint>(s.tellg() - begin_pos);
 	s.seekg(0, ios_base::beg);
+	indirect = true;
 	data = new unsigned char[dataSize];
 	s.read((char *) data,dataSize);
 	s.close();
 }
+void Reader::parse()
+{}
 unsigned char* Reader::pointer(bool nohead) const {
 	return data + (nohead ? dataStart : 0);
 }
