@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 			return 0;
 	}
 	Finder finder(type);
-	finder.load(argv[1]);
+	finder.load(argv[1], true);
 	finder.find();
 	exit(0); /// Hack for qemu. TODO: fix
 	return 0;

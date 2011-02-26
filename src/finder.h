@@ -46,8 +46,22 @@ public:
 	/**
 	Loads a file.
 	@param name Name of input file.
+	@param guessType Try to guess binary type.
 	*/
-	void load(string name);
+	void load(string name, bool guessType=false);
+	/**
+	Links to data.
+	@param data Pointer to memory area.
+	@param dataSize Size of memory area.
+	@param guessType Try to guess binary type.
+	*/
+	void link(unsigned char *data, uint dataSize, bool guessType=false);	
+	/**
+	Applies a reader. Common part of load() and link() functions.
+	@param reader Reader to apply.
+	@param guessType Try to guess binary type.
+	*/
+	void apply_reader(Reader *reader, bool tryTypes=false);
 	/**
 	Wrap on functions finding writes to memory and indirect jumps.
 	*/

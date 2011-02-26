@@ -70,23 +70,38 @@ Finder::~Finder()
 	delete emulator;
 	delete reader;
 }
-void Finder::load(string name)
-{
+void Finder::load(string name, bool guessType) {
 	Timer::start(TimeLoad);
-	delete reader;
-	reader = new Reader();
+	Reader *reader = new Reader();
 	reader->load(name);
 	if (log) {
 		(*log) << endl << "Loaded file \'" << name << "\"." << endl;
 		(*log) << "File size: 0x" << hex << reader->size() << "." << endl << endl;
 	}
-	if (Reader_PE::is_of_type(reader))
-	{
-		reader = new Reader_PE(reader);
-		if (log) (*log) << "Looks like a PE file." << endl << endl;
-	}
-	emulator->bind(reader);
+	apply_reader(reader, guessType);
 	Timer::stop(TimeLoad);
+}
+void Finder::link(unsigned char *data, uint dataSize, bool guessType) {
+	Timer::start(TimeLoad);
+	Reader *reader = new Reader();
+	reader->link(data, dataSize);
+	if (log) {
+		(*log) << endl << "Loaded data at 0x" << hex << data << "\"." << endl;
+		(*log) << "Data size: 0x" << hex << reader->size() << "." << endl << endl;
+	}
+	apply_reader(reader, guessType);
+	Timer::stop(TimeLoad);
+}
+void Finder::apply_reader(Reader *reader, bool guessType) {
+	if (guessType) {
+		if (Reader_PE::is_of_type(reader)) {
+			reader = new Reader_PE(reader);
+			if (log) (*log) << "Looks like a PE file." << endl << endl;
+		}
+	}
+	delete this->reader;
+	this->reader = reader;
+	emulator->bind(reader);
 }
 void Finder::launch(int pos)
 {
