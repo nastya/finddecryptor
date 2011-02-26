@@ -225,6 +225,7 @@ void Finder::launch(int pos)
 
 		if (k!=-1)
 		{
+			matches++;
 			cout << "Instruction \"" << instruction_string(pos_getpc) << "\" on position 0x" << hex << pos_getpc << "." << endl;
 			cout << "Cycle found: " << endl;
 			for (i=0; i<=barrier; i++)
@@ -253,8 +254,8 @@ string Finder::instruction_string(int pos) {
 	instruction(&inst, pos);
 	return instruction_string(&inst,pos);
 }
-void Finder::find() 
-{
+int Finder::find() {
+	matches = 0;
 	Timer::start(TimeFind);
 	INSTRUCTION inst;
 	for (uint i=reader->start(); i<reader->size(); i++)
@@ -303,6 +304,7 @@ void Finder::find()
 		instructions_after_getpc.clear();
 	}
 	Timer::stop(TimeFind);
+	return matches;
 }
 
 void Finder::find_memory_and_jump(int pos)

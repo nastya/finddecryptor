@@ -65,7 +65,7 @@ public:
 	/**
 	Wrap on functions finding writes to memory and indirect jumps.
 	*/
-	void find();
+	int find();
 	/**
 	Cleans memory before exiting the program. Is called by destructor.
 	*/
@@ -164,6 +164,7 @@ private:
 	static const Format format; ///<format of commands (here it is Intel)
 	static const int maxBackward; ///<limit for backwards traversal
 	int am_back; ///<amount of commands found by backwards traversal
+	int matches; ///<number of matches found
 	Command cycle[256]; // TODO: fix. It should be a member of the Finder::launch(). Here because of qemu lags.
 
 	/**
