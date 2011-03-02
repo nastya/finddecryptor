@@ -5,6 +5,7 @@ DEL_FILE	= rm -f
 ####### Files
 OBJECTS		= myprogram.o \
 		  finder.o \
+		  mediator.o \
 		  data.o \
 		  reader.o \
 		  reader_pe.o \
@@ -53,6 +54,9 @@ myprogram.o: myprogram.cpp finder.h
 finder.o: finder.cpp finder.h libdasm.h emulator.h reader_pe.h timer.h
 	$(CXX) -O0 -fomit-frame-pointer -c finder.cpp
 
+mediator.o: mediator.cpp mediator.h finder.h
+	$(CXX) -c mediator.cpp
+
 data.o: data.cpp data.h
 	$(CXX) -c data.cpp
 
@@ -99,9 +103,9 @@ emulator_qemu.o: emulator_qemu.cpp emulator_qemu.h emulator.h
 	mkdir -p ../lib
 	$(CXX) -shared -o $@ emulator_qemu.o emulator.o ../qemu/qemu.so -Wl,-rpath -Wl,$(CURDIR)/../qemu
 
-$(TARGET_LIB): data.o finder.o reader.o reader_pe.o timer.o $(LIBS)
+$(TARGET_LIB): data.o finder.o reader.o reader_pe.o timer.o mediator.o $(LIBS)
 	mkdir -p ../lib
-	$(CXX) -shared -o $@ data.o finder.o reader.o reader_pe.o timer.o $(LIBS) -Wl,-rpath -Wl,$(CURDIR)/../lib
+	$(CXX) -shared -o $@ data.o finder.o reader.o reader_pe.o timer.o mediator.o $(LIBS) -Wl,-rpath -Wl,$(CURDIR)/../lib
 
 $(TARGET): myprogram.o $(TARGET_LIB)
 	mkdir -p ../bin ../log
