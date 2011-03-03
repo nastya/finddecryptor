@@ -17,12 +17,12 @@
 
 // Endianess conversion routines (thanks Ero)
 
-__inline__ BYTE FETCH8(BYTE *addr) {
+__inline__ BYTE FETCH8(const BYTE *addr) {
 	// So far byte cast seems to work on all tested platforms
 	return *(BYTE *)addr;	
 }
 
-__inline__ WORD FETCH16(BYTE *addr) {
+__inline__ WORD FETCH16(const BYTE *addr) {
 #if defined __X86__
 	// Direct cast only for x86
 	return *(WORD *)addr;
@@ -40,7 +40,7 @@ __inline__ WORD FETCH16(BYTE *addr) {
 #endif // __X86__
 }
 
-__inline__ DWORD FETCH32(BYTE *addr) {
+__inline__ DWORD FETCH32(const BYTE *addr) {
 #if defined __X86__
 	return *(DWORD *)addr;	
 #else
@@ -78,7 +78,7 @@ __inline__ enum Mode MODE_CHECK_OPERAND(enum Mode mode, int flags) {
 
 // Parse 2 and 3-byte opcodes
 
-int get_real_instruction2(BYTE *addr, int *flags) {
+int get_real_instruction2(const BYTE *addr, int *flags) {
 	switch (*addr) {
 
 		// opcode extensions for 2-byte opcodes
@@ -123,7 +123,7 @@ int get_real_instruction2(BYTE *addr, int *flags) {
 
 // Parse instruction flags, get opcode index
 
-int get_real_instruction(BYTE *addr, int *index, int *flags) {
+int get_real_instruction(const BYTE *addr, int *index, int *flags) {
 	switch (*addr) {
 
 		// 2-byte opcode
@@ -287,8 +287,8 @@ int get_real_instruction(BYTE *addr, int *index, int *flags) {
  *
  */
 int get_operand(PINST inst, int oflags, PINSTRUCTION instruction,
-	POPERAND op, BYTE *data, int offset, enum Mode mode, int iflags) {
-	BYTE *addr = data + offset;
+	POPERAND op, const BYTE *data, int offset, enum Mode mode, int iflags) {
+	const BYTE *addr = data + offset;
 	int index = 0, sib = 0, scale = 0;
 	int reg      = REG_NOP;
 	int basereg  = REG_NOP;
@@ -827,7 +827,7 @@ int get_operand_string(INSTRUCTION *inst, OPERAND *op,
  * opcode extensions....
  *
  */
-int get_instruction(PINSTRUCTION inst, BYTE *addr, enum Mode mode) {
+int get_instruction(PINSTRUCTION inst, const BYTE *addr, enum Mode mode) {
 	PINST ptr = NULL;
 	int index = 0;
 	int flags = 0;

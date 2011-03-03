@@ -374,7 +374,7 @@ typedef struct _INSTRUCTION {
 
 int get_instruction(
 	INSTRUCTION *inst,	// pointer to INSTRUCTION structure
-	BYTE *addr,		// code buffer
+	const BYTE *addr,	// code buffer
 	enum Mode mode		// mode: MODE_32 or MODE_16
 );
 

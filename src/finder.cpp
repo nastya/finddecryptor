@@ -81,7 +81,7 @@ void Finder::load(string name, bool guessType) {
 	apply_reader(reader, guessType);
 	Timer::stop(TimeLoad);
 }
-void Finder::link(unsigned char *data, uint dataSize, bool guessType) {
+void Finder::link(const unsigned char *data, uint dataSize, bool guessType) {
 	Timer::start(TimeLoad);
 	Reader *reader = new Reader();
 	reader->link(data, dataSize);

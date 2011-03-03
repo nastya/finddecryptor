@@ -29,7 +29,7 @@ public:
 	  @param data Pointer to memory area.
 	  @param dataSize Size of memory area.
 	*/
-	void link(unsigned char *data, uint dataSize);
+	void link(const unsigned char *data, uint dataSize);
 	/**
 	@return Name of the input file.
 	*/
@@ -37,7 +37,7 @@ public:
 	/**
 	@return Pointer to a buffer helding an input file
 	*/
-	unsigned char *pointer(bool nohead=false) const;
+	const unsigned char *pointer(bool nohead=false) const;
 	/**
 	@return Size of input file.
 	*/
@@ -78,7 +78,7 @@ protected:
 	
 	bool indirect; ///<do we need to delete data at the end?
 	string filename; ///<input file name
-	unsigned char *data; ///<buffer containing binary file
+	const unsigned char *data; ///<buffer containing binary file
 	uint dataSize; ///<size of buffer data
 	uint dataStart; ///<start of the actual data in buffer
 };

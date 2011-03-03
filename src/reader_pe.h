@@ -50,7 +50,7 @@ private:
 	/**
 	@return Return integer formed of @ref size bytes from the position pos from buffer @ref buff.
 	*/
-	static uint get(unsigned char *buff, int pos, int size=4);
+	static uint get(const unsigned char *buff, int pos, int size=4);
 	/**
 	@return Return integer formed of @ref size bytes from the position pos.
 	*/

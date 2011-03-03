@@ -37,10 +37,10 @@ void Reader::load(string name)
 	read();
 	parse();
 }
-void Reader::link(unsigned char *data, uint dataSize)
+void Reader::link(const unsigned char *data, uint dataSize)
 {
 	if (indirect)
-		delete[] data;
+		delete[] this->data;
 	filename = "direct memory access";
 	indirect = false;
 	this->data = data;
@@ -71,7 +71,7 @@ void Reader::read()
 }
 void Reader::parse()
 {}
-unsigned char* Reader::pointer(bool nohead) const {
+const unsigned char* Reader::pointer(bool nohead) const {
 	return data + (nohead ? dataStart : 0);
 }
 uint Reader::size(bool nohead) const {

@@ -25,7 +25,7 @@ bool Reader_PE::is_of_type(const Reader *reader)
 {
 	uint m = reader->size();
 	if (m < 0x40) return false;
-	unsigned char *data = reader->pointer();
+	const unsigned char *data = reader->pointer();
 	uint s = get(data,0x3c,2);
 	/// TODO: check length here.
 	return ((m > s+1) && (data[s]=='P') && (data[s+1]=='E'));
@@ -60,7 +60,7 @@ void Reader_PE::sort()
 				table[j+1] = w;
 			}
 }
-uint Reader_PE::get(unsigned char *buff, int pos, int size)
+uint Reader_PE::get(const unsigned char *buff, int pos, int size)
 {
 	uint x = buff[pos+size-1];
 	for (int i=size-2; i>=0; i--)

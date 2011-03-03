@@ -55,7 +55,7 @@ public:
 	@param dataSize Size of memory area.
 	@param guessType Try to guess binary type.
 	*/
-	void link(unsigned char *data, uint dataSize, bool guessType=false);	
+	void link(const unsigned char *data, uint dataSize, bool guessType=false);
 	/**
 	Applies a reader. Common part of load() and link() functions.
 	@param reader Reader to apply.

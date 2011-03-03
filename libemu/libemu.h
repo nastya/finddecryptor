@@ -46,7 +46,7 @@ void emu_free(struct emu *e);
 void emu_memory_clear(struct emu_memory *em);
 
 int32_t emu_memory_read_block(struct emu_memory *m, uint32_t addr, void *dest, size_t len);
-int32_t emu_memory_write_block(struct emu_memory *m, uint32_t addr, void *src, size_t len);
+int32_t emu_memory_write_block(struct emu_memory *m, uint32_t addr, const void *src, size_t len);
 
 uint32_t emu_cpu_reg32_get(struct emu_cpu *cpu_p, enum emu_reg32 reg);
 void  emu_cpu_reg32_set(struct emu_cpu *cpu_p, enum emu_reg32 reg, uint32_t val);
