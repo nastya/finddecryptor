@@ -16,6 +16,7 @@
 #include "reader_pe.h"
 
 #define FINDER_LOG /// Write to logfile.
+//#define FINDER_DUMP /// Dump passed data to disk
 //#define FINDER_ONCE /// Stop after first found decryption routine.
 
 using namespace std;

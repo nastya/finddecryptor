@@ -72,6 +72,7 @@ Finder::~Finder()
 }
 void Finder::load(string name, bool guessType) {
 	Timer::start(TimeLoad);
+	start_positions.clear();
 	Reader *reader = new Reader();
 	reader->load(name);
 	if (log) {
@@ -83,11 +84,23 @@ void Finder::load(string name, bool guessType) {
 }
 void Finder::link(const unsigned char *data, uint dataSize, bool guessType) {
 	Timer::start(TimeLoad);
+	start_positions.clear();
 	Reader *reader = new Reader();
 	reader->link(data, dataSize);
 	if (log) {
-		(*log) << endl << "Loaded data at 0x" << hex << data << "\"." << endl;
+		(*log) << endl << "Loaded data at 0x" << hex << (uint) data << "." << endl;
 		(*log) << "Data size: 0x" << hex << reader->size() << "." << endl << endl;
+#ifdef FINDER_DUMP
+		static int counter = 0;
+		char *str = new char[50];
+		sprintf(str,"../log/data%d.dat",counter++);
+		ofstream datas(str);
+		delete str;
+		if (datas) {
+			datas.write((const char *) data, dataSize);
+			datas.close();
+		}
+#endif
 	}
 	apply_reader(reader, guessType);
 	Timer::stop(TimeLoad);
