@@ -1,9 +1,25 @@
+//#define FINDER_LOG /// Write to logfile.
+//#define FINDER_DUMP /// Dump passed data to disk
+//#define FINDER_ONCE /// Stop after first found decryption routine.
+
 #include "finder.h"
-#include "emulator_gdbwine.h"
-#include "emulator_libemu.h"
-#include "emulator_qemu.h"
+#ifdef BACKEND_GDBWINE
+	#include "emulator_gdbwine.h"
+#endif
+#ifdef BACKEND_LIBEMU
+	#include "emulator_libemu.h"
+#endif
+#ifdef BACKEND_QEMU
+	#include "emulator_qemu.h"
+#endif
 
 using namespace std;
+
+#ifdef FINDER_LOG
+	#define LOG (*log)
+#else
+	#define LOG if (false) cerr
+#endif
 
 const Mode Finder::mode = MODE_32;
 const Format Finder::format = FORMAT_INTEL;
@@ -17,15 +33,24 @@ Finder::Command::Command(int a, INSTRUCTION i) {
 Finder::Finder(int type)
 {
 	switch (type) {
+#ifdef BACKEND_QEMU
 		case 2:
 			emulator = new Emulator_Qemu();
 			break;
+#endif
+#ifdef BACKEND_LIBEMU
 		case 1:
 			emulator = new Emulator_LibEmu();
 			break;
+#endif
+#ifdef BACKEND_GDBWINE
 		case 0:
-		default:
 			emulator = new Emulator_GdbWine();
+			break;
+#endif
+		default:
+			cerr << "Unsupported emulation backend!" << endl;
+			exit(0);
 	}
 	reader = NULL;
 	regs_known = new bool[RegistersCount];

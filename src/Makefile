@@ -52,7 +52,7 @@ myprogram.o: myprogram.cpp finder.h
 	$(CXX) -c myprogram.cpp
 
 finder.o: finder.cpp finder.h libdasm.h emulator.h reader_pe.h timer.h
-	$(CXX) -O0 -fomit-frame-pointer -c finder.cpp
+	$(CXX) -O0 -fomit-frame-pointer -c finder.cpp -DFINDER_LOG -DBACKEND_LIBEMU -DBACKEND_QEMU -DBACKEND_GDBWINE
 
 mediator.o: mediator.cpp mediator.h finder.h
 	$(CXX) -c mediator.cpp
