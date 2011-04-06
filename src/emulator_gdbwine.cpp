@@ -28,13 +28,16 @@ void Emulator_GdbWine::stop()
 	if (dirty) {
 		(*out) << "kill" << endl;
 	}
-	for (int i=0; i<2; i++)
-	{
-		if (!pid[i]) continue;
+	for (int i=0; i<2; i++) {
+		if (!pid[i]) {
+			continue;
+		}
 		kill(pid[i], SIGKILL);
 		pid[i] = 0;
 	}
-	if (out) delete out;
+	if (out) {
+		delete out;
+	}
 	out = NULL;
 }
 void Emulator_GdbWine::begin(uint pos)
@@ -72,7 +75,9 @@ void Emulator_GdbWine::begin(uint pos)
 		exit(0);
 	}
 	
-	if (pos!=0) jump(pos);
+	if (pos!=0) {
+		jump(pos);
+	}
 }
 void Emulator_GdbWine::jump(uint pos)
 {
@@ -85,16 +90,19 @@ bool Emulator_GdbWine::get_clean() {
 	bool ok = true;
 	/// TODO: rework this? We need to scan until input stops and buffer ends.
 	(*out) << "show prompt" << endl;
-	while (str[0]!='G')
-	{
+	while (str[0] != 'G') {
 		getline(cin,str);
-		if (str[0]=='!') ok = false;
+		if (str[0] == '!') {
+			ok = false;
+		}
 	}
 	return ok;
 }
 bool Emulator_GdbWine::get_command(char *buff, uint size)
 {
-	if (!get_clean()) return false;
+	if (!get_clean()) {
+		return false;
+	}
 	string str;
 	int x;
 	char *y = (char *) &x;
@@ -102,7 +110,9 @@ bool Emulator_GdbWine::get_command(char *buff, uint size)
 	for (uint i=0; i<size; i+=2) {
 		(*out) << "x/x $eip+" << i << endl;
 		getline(cin,str);
-		if (str[0]=='!') return false;
+		if (str[0] == '!') {
+			return false;
+		}
 		str.replace(0,str.find(':'),"");
 		x = str_to_int(str);
 		buff[0+i] = y[0];
@@ -161,7 +171,9 @@ void Emulator_GdbWine::stream_main(int fd[3][2])
 void Emulator_GdbWine::stream_gdb(int fd[3][2]) 
 {
 	pid[0] = fork();
-	if (pid[0]) return;
+	if (pid[0]) {
+		return;
+	}
 	
 	fd_dup(fd,0,1);
 	dup2(1,2); /// We want to get cerr in cout.
@@ -172,33 +184,33 @@ void Emulator_GdbWine::stream_gdb(int fd[3][2])
 void Emulator_GdbWine::stream_ctl(int fd[3][2]) 
 {
 	pid[1] = fork();
-	if (pid[1]) return;
+	if (pid[1]) {
+		return;
+	}
 	
 	fd_dup(fd,1,2);
 	
 	string str;
 //	ofstream log("../log/gdbwine.txt");
 //	log.close();
-	for(;;)
-	{
+	for (;;) {
 		getline(cin,str);
-		while ((str[0]=='(') && (str.length() >= 6)) 
-		{
+		while ((str[0]=='(') && (str.length() >= 6)) {
 			str.replace(0,6,"");
 		}
-		if (str.length() == 0) continue;
+		if (str.length() == 0) {
+			continue;
+		}
 //		log.open("../log/gdbwine.txt",ios_base::out|ios_base::app);
 //		log << str << endl;
 //		log.close();
-		if (str.find("Cannot")!=string::npos)
-		{
+		if (str.find("Cannot")!=string::npos) {
 			str = "!Warning!";
-		}
-		else if ((str.find("Program received")!=string::npos) || 
-			(str.find("Program exited")!=string::npos) || 
-			(str.find("The program is not being run")!=string::npos) || 
-			(str.find("No registers")!=string::npos))
-		{
+		} else if (
+			(str.find("Program received") != string::npos) || 
+			(str.find("Program exited") != string::npos) || 
+			(str.find("The program is not being run") != string::npos) || 
+			(str.find("No registers") != string::npos)) {
 			str = "!Error!";
 		}
 		cout << str << endl;

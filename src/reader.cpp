@@ -25,8 +25,9 @@ Reader::Reader(const Reader *reader)
 }
 Reader::~Reader()
 {
-	if (indirect)
+	if (indirect) {
 		delete[] data;
+	}
 }
 string Reader::name() {
 	return filename;
@@ -39,8 +40,9 @@ void Reader::load(string name)
 }
 void Reader::link(const unsigned char *data, uint dataSize)
 {
-	if (indirect)
+	if (indirect) {
 		delete[] this->data;
+	}
 	filename = "direct memory access";
 	indirect = false;
 	this->data = data;
@@ -49,13 +51,13 @@ void Reader::link(const unsigned char *data, uint dataSize)
 }
 void Reader::read()
 {
-	if (indirect)
+	if (indirect) {
 		delete[] data;
+	}
 	data = NULL;
 	dataSize = 0;
 	ifstream s(filename.c_str());
-	if (!s.good() || s.eof() || !s.is_open()) 
-	{
+	if (!s.good() || s.eof() || !s.is_open()) {
 		cerr << "Error opening file." << endl;
 		exit(0);
 	}
@@ -70,7 +72,8 @@ void Reader::read()
 	s.close();
 }
 void Reader::parse()
-{}
+{
+}
 const unsigned char* Reader::pointer(bool nohead) const {
 	return data + (nohead ? dataStart : 0);
 }

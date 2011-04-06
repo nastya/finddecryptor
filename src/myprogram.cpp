@@ -14,18 +14,17 @@ They describe a method for detecting self-decrypting exploit codes. This method 
 int main(int argc, char** argv)
 {
 	int type = 1;
-	switch (argc)
-	{
+	switch (argc) {
 		case 2:
 			break;
 		case 3:
-			if (strcmp(argv[2],"GdbWine") == 0)
+			if (strcmp(argv[2],"GdbWine") == 0) {
 				type = 0;
-			else if (strcmp(argv[2],"LibEmu") == 0)
+			} else if (strcmp(argv[2],"LibEmu") == 0) {
 				type = 1;
-			else if (strcmp(argv[2],"Qemu") == 0)
+			} else if (strcmp(argv[2],"Qemu") == 0) {
 				type = 2;
-			else {
+			} else {
 				cerr << "Unknown emulator type." << endl;
 				return 0;
 			}

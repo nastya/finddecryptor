@@ -11,12 +11,16 @@ long unsigned int Timer::microtime()
 }
 void Timer::start(TimeIds id)
 {
-	if (!enabled) return;
+	if (!enabled) {
+		return;
+	}
 	data[id] -= microtime();
 }
 void Timer::stop(TimeIds id)
 {
-	if (!enabled) return;
+	if (!enabled) {
+		return;
+	}
 	data[id] += microtime();
 }
 float Timer::secs(TimeIds id)

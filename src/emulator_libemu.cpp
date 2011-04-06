@@ -19,12 +19,15 @@ Emulator_LibEmu::~Emulator_LibEmu() {
 	emu_free(e);
 }
 void Emulator_LibEmu::begin(uint pos) {
-	if (pos==0) pos = reader->start();
+	if (pos==0) {
+		pos = reader->start();
+	}
 	offset = reader->map(pos) - pos;
 	uint start = max((int) reader->start(), (int) pos - mem_before), end = min(reader->size(), pos + mem_after);
 
-	for (int i=0; i<8; i++)
+	for (int i=0; i<8; i++) {
 		emu_cpu_reg32_set(cpu, (emu_reg32) i, 0);
+	}
 	emu_cpu_reg32_set(cpu, esp, 0x1000000);
 
 	emu_memory_clear(mem);
@@ -39,21 +42,26 @@ void Emulator_LibEmu::jump(uint pos) {
 /*bool Emulator_LibEmu::step() {
 	ofstream log("../log/libemu.txt",ios_base::out|ios_base::app);
 	bool ok = true;
-	if (emu_cpu_parse(cpu) != 0)
+	if (emu_cpu_parse(cpu) != 0) {
 		ok = false;
+	}
 	log << "Command: " << cpu->instr_string << endl;
-	if (ok && (emu_cpu_step(cpu) != 0))
+	if (ok && (emu_cpu_step(cpu) != 0)) {
 		ok = false;
-	if (!ok)
+	}
+	if (!ok) {
 		log << "ERROR: " << emu_strerror(cpu->emu) << endl;
+	}
 	log.close();
 	return ok;
 }*/
 bool Emulator_LibEmu::step() {
-	if (emu_cpu_parse(cpu) != 0)
+	if (emu_cpu_parse(cpu) != 0) {
 		return false;
-	if (emu_cpu_step(cpu) != 0)
+	}
+	if (emu_cpu_step(cpu) != 0) {
 		return false;
+	}
 	return true;
 }
 bool Emulator_LibEmu::get_command(char *buff, uint size) {
@@ -61,8 +69,7 @@ bool Emulator_LibEmu::get_command(char *buff, uint size) {
 	return true;
 }
 unsigned int Emulator_LibEmu::get_register(Register reg) {
-	switch (reg)
-	{
+	switch (reg) {
 		case EAX:
 			return emu_cpu_reg32_get(cpu, eax);
 		case EBX:

@@ -19,6 +19,12 @@
 //#define FINDER_DUMP /// Dump passed data to disk
 //#define FINDER_ONCE /// Stop after first found decryption routine.
 
+#ifdef FINDER_LOG
+	#define LOG (*log)
+#else
+	#define LOG if (false) cerr
+#endif
+
 using namespace std;
 
 /**

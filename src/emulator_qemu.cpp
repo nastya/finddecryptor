@@ -48,9 +48,10 @@ void Emulator_Qemu::begin(uint pos) {
 
 	qemu_flog("Starting\n");
 
-	if (qemu_exec_start(env))
+	if (qemu_exec_start(env)) {
 //		return false;
 		return;
+	}
 
 	this->pos = qemu_pos(env);
 	running = true;
@@ -77,8 +78,7 @@ bool Emulator_Qemu::get_command(char *buff, uint size) {
 	return true;
 }
 unsigned int Emulator_Qemu::get_register(Register reg) {
-	switch (reg)
-	{
+	switch (reg) {
 /*		case EAX:
 			return emu_cpu_reg32_get(cpu, eax);
 		case EBX:
@@ -102,7 +102,9 @@ unsigned int Emulator_Qemu::get_register(Register reg) {
 	return 0;
 }
 void Emulator_Qemu::end() {
-	if (!running) return;
+	if (!running) {
+		return;
+	}
 	qemu_exec_end(env);
 	running = false;
 }
