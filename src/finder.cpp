@@ -287,7 +287,7 @@ int Finder::find() {
 		switch (reader->pointer()[i]) {
 			/// fsave/fnsave: 0x9bdd, 0xdd
 			case 0x9b:
-				if ((reader->pointer()[i+1]) != 0xd9) { /// TODO: check if i+1 is present
+				if ((reader->pointer()[i+1]) != 0xdd) { /// TODO: check if i+1 is present
 					continue;
 				}
 			case 0xdd:
