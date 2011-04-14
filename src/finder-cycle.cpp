@@ -9,6 +9,7 @@ using namespace std;
 #endif
 
 const int FinderCycle::maxBackward = 20;
+const int FinderCycle::maxEmulate = 1000;
 
 FinderCycle::FinderCycle(int type) : Finder(type)
 {
@@ -53,7 +54,7 @@ void FinderCycle::launch(int pos)
 	emulator->begin(pos);
 	Timer::stop(TimeEmulatorStart);
 	char buff[10] = {0};
-	for (int strnum=0;;strnum++) {
+	for (int strnum=0; strnum < maxEmulate; strnum++) {
 		if (!emulator->get_command(buff)) {
 			LOG << " Execution error, stopping instance." << endl;
 			Timer::stop(TimeLaunches);
@@ -66,7 +67,7 @@ void FinderCycle::launch(int pos)
 			return;
 		}
 		get_instruction(&inst, (BYTE *) buff, mode);
-		LOG << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
+		LOG << strnum << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 		if (!emulator->step()) {
 			LOG << " Execution error, stopping instance." << endl;
 			Timer::stop(TimeLaunches);
@@ -108,7 +109,7 @@ void FinderCycle::launch(int pos)
 		}
 		if (kol>=2) {
 			int neednum = num;
-			for (barrier=0;barrier<strnum+10;barrier++) {
+			for (barrier=0;barrier<strnum+10;barrier++) { /// TODO: why 10?
 				cycle[barrier] = Command(num,inst);
 				if (!emulator->get_command(buff)) {
 					LOG << " Execution error, stopping instance." << endl;

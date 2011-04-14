@@ -115,6 +115,7 @@ protected:
 	
 	set<int> start_positions;///<positions where target instructions are alredy found
 	static const int maxBackward; ///<limit for backwards traversal
+	static const int maxEmulate; ///<limit for emulating
 	int am_back; ///<amount of commands found by backwards traversal
 	int matches; ///<number of matches found
 	Command cycle[256]; // TODO: fix. It should be a member of the Finder::launch(). Here because of qemu lags.
