@@ -1,4 +1,7 @@
-#include "finder.h"
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
+#include "mediator.h"
 
 /** @mainpage Description
 This program is implementation of algorythm proposed by Qinghua Zhang, Douglas S. Reeves, Peng Ning, S. Purushothaman Iyer in the article "Analyzing Network Traffic To Detect Self-Decrypting Exploit Code".
@@ -33,9 +36,9 @@ int main(int argc, char** argv)
 			cerr << "Wrong usage." << endl;
 			return 0;
 	}
-	Finder finder(type);
-	finder.load(argv[1], true);
-	finder.find();
+	Mediator mediator(type);
+	mediator.load(argv[1], true);
+	mediator.find();
 	exit(0); /// Hack for qemu. TODO: fix
 	return 0;
 }

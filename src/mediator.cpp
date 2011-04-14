@@ -1,8 +1,8 @@
 #include "mediator.h"
-#include "finder.h"
+#include "finder-cycle.h"
 
 Mediator::Mediator(int type) {
-	finder = new Finder(type);
+	finder = new FinderCycle(type);
 }
 Mediator::~Mediator() {
 	delete finder;

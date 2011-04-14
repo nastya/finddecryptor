@@ -2,9 +2,11 @@
 CXX		= g++ -Wall -O2 -I.
 CC		= gcc -Wall -O2 -I.
 DEL_FILE	= rm -f
+FINDER_FLAGS	= -DFINDER_LOG -DBACKEND_LIBEMU -DBACKEND_QEMU -DBACKEND_GDBWINE
 ####### Files
 OBJECTS		= myprogram.o \
 		  finder.o \
+		  finder-cycle.o \
 		  mediator.o \
 		  data.o \
 		  reader.o \
@@ -48,13 +50,16 @@ doc:
 
 ####### Compile
 
-myprogram.o: myprogram.cpp finder.h
+myprogram.o: myprogram.cpp finder-cycle.h
 	$(CXX) -c myprogram.cpp
 
 finder.o: finder.cpp finder.h libdasm.h emulator.h reader_pe.h timer.h
-	$(CXX) -O0 -fomit-frame-pointer -c finder.cpp -DFINDER_LOG -DBACKEND_LIBEMU -DBACKEND_QEMU -DBACKEND_GDBWINE
+	$(CXX) -O0 -fomit-frame-pointer -c finder.cpp $(FINDER_FLAGS)
 
-mediator.o: mediator.cpp mediator.h finder.h
+finder-cycle.o: finder-cycle.cpp finder-cycle.h finder.h
+	$(CXX) -c finder-cycle.cpp $(FINDER_FLAGS)
+
+mediator.o: mediator.cpp mediator.h finder-cycle.h
 	$(CXX) -c mediator.cpp
 
 data.o: data.cpp data.h
@@ -103,9 +108,9 @@ emulator_qemu.o: emulator_qemu.cpp emulator_qemu.h emulator.h
 	mkdir -p ../lib
 	$(CXX) -shared -o $@ emulator_qemu.o emulator.o ../qemu/qemu.so -Wl,-rpath -Wl,$(CURDIR)/../qemu
 
-$(TARGET_LIB): data.o finder.o reader.o reader_pe.o timer.o mediator.o $(LIBS)
+$(TARGET_LIB): data.o finder.o finder-cycle.o reader.o reader_pe.o timer.o mediator.o $(LIBS)
 	mkdir -p ../lib
-	$(CXX) -shared -o $@ data.o finder.o reader.o reader_pe.o timer.o mediator.o $(LIBS) -Wl,-rpath -Wl,$(CURDIR)/../lib
+	$(CXX) -shared -o $@ data.o finder.o finder-cycle.o reader.o reader_pe.o timer.o mediator.o $(LIBS) -Wl,-rpath -Wl,$(CURDIR)/../lib
 
 $(TARGET): myprogram.o $(TARGET_LIB)
 	mkdir -p ../bin ../log
