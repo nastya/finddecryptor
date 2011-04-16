@@ -114,8 +114,9 @@ protected:
 	bool *regs_known; ///registers which are already defined (array which size is number of registers, regs_known[i]=true if register was defined and regs_target[i]=false vice versa)
 	
 	set<int> start_positions;///<positions where target instructions are alredy found
-	static const int maxBackward; ///<limit for backwards traversal
-	static const int maxEmulate; ///<limit for emulating
+	static const uint maxBackward; ///<limit for backwards traversal
+	static const uint maxEmulate; ///<limit for emulating
+	static const uint maxForward; ///<limit for amount of instructions checked after GetPC to find target instruction
 	int am_back; ///<amount of commands found by backwards traversal
 	int matches; ///<number of matches found
 	Command cycle[256]; // TODO: fix. It should be a member of the Finder::launch(). Here because of qemu lags.

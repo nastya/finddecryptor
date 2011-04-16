@@ -8,8 +8,9 @@ using namespace std;
 	#define LOG if (false) cerr
 #endif
 
-const int FinderCycle::maxBackward = 20;
-const int FinderCycle::maxEmulate = 1000;
+const uint FinderCycle::maxBackward = 20;
+const uint FinderCycle::maxForward = 100;
+const uint FinderCycle::maxEmulate = 100;
 
 FinderCycle::FinderCycle(int type) : Finder(type)
 {
@@ -46,7 +47,8 @@ void FinderCycle::launch(int pos)
 {
 	Timer::start(TimeLaunches);
 	LOG << "Launching from position 0x" << hex << pos << endl;
-	int a[1000]={0}, i,k,num,amount=0, barrier;
+	int a[1000] = {0}, k, num, amount=0;
+	uint barrier;
 	bool flag = false;
 //	Command cycle[256];
 	INSTRUCTION inst;
@@ -54,7 +56,7 @@ void FinderCycle::launch(int pos)
 	emulator->begin(pos);
 	Timer::stop(TimeEmulatorStart);
 	char buff[10] = {0};
-	for (int strnum=0; strnum < maxEmulate; strnum++) {
+	for (uint strnum = 0; strnum < maxEmulate; strnum++) {
 		if (!emulator->get_command(buff)) {
 			LOG << " Execution error, stopping instance." << endl;
 			Timer::stop(TimeLaunches);
@@ -74,7 +76,7 @@ void FinderCycle::launch(int pos)
 			return;
 		}
 		get_operands(&inst);
-		for (i=0;i<RegistersCount;i++) {
+		for (int i = 0; i < RegistersCount; i++) {
 			if (regs_target[i]&&regs_known[i]) {
 				regs_target[i] = false;
 			} else if (regs_target[i]&&!regs_known[i]) {
@@ -97,19 +99,19 @@ void FinderCycle::launch(int pos)
 				return launch(em_start);
 			}
 		}
-		if ((uint)strnum >= instructions_after_getpc.size() + am_back) {
+		if (strnum >= instructions_after_getpc.size() + am_back) {
 			instructions_after_getpc.push_back(inst);
 		}
 		memset(regs_target,false,RegistersCount);
 		int kol = 0;
-		for (i=0;i<amount;i++) {
+		for (int i = 0; i < amount; i++) {
 			if (a[i]==num) {
 				kol++;
 			}
 		}
-		if (kol>=2) {
+		if (kol >= 2) {
 			int neednum = num;
-			for (barrier=0;barrier<strnum+10;barrier++) { /// TODO: why 10?
+			for (barrier = 0; barrier < strnum + 10; barrier++) { /// TODO: why 10?
 				cycle[barrier] = Command(num,inst);
 				if (!emulator->get_command(buff)) {
 					LOG << " Execution error, stopping instance." << endl;
@@ -134,16 +136,16 @@ void FinderCycle::launch(int pos)
 			break;
 		}
 		if (is_write_indirect(&inst)) {
-			a[amount++]=num;
+			a[amount++] = num;
 		}
 	}
 	
 	if (flag) {
-		k = verify(cycle,barrier+1);
+		k = verify(cycle, barrier+1);
 
 		if (log) {
 			LOG << " Cycle found: " << endl;
-			for (i=0; i<=barrier; i++) {
+			for (uint i = 0; i <= barrier; i++) {
 				LOG << " 0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
 			}
 			if (k != -1) {
@@ -157,7 +159,7 @@ void FinderCycle::launch(int pos)
 			matches++;
 			cout << "Instruction \"" << instruction_string(pos_getpc) << "\" on position 0x" << hex << pos_getpc << "." << endl;
 			cout << "Cycle found: " << endl;
-			for (i=0; i<=barrier; i++) {
+			for (uint i = 0; i <= barrier; i++) {
 				cout << " 0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
 			}
 			cout << " Indirect write in line #" << k << ", launched from position 0x" << hex << pos << endl;
@@ -237,7 +239,7 @@ void FinderCycle::find_memory_and_jump(int pos)
 	INSTRUCTION inst;
 	uint len;
 	set<uint> nofollow;
-	for (uint p=pos; p<reader->size(); p+=len) {
+	for (uint p = pos, count_instructions = 0; p < reader->size() && count_instructions < maxForward; p += len, count_instructions++) {
 		len = instruction(&inst,p);
 		if (!len || (len + p > reader->size())) {
 			LOG <<  " Dissasembling failed." << endl;
@@ -480,7 +482,7 @@ int FinderCycle::backwards_traversal(int pos)
 	queue[0].push_back(pos);
 	int m = 0;
 	vector <INSTRUCTION> commands;
-	for (int n=0; n<maxBackward; n++) {
+	for (uint n = 0; n < maxBackward; n++) {
 		queue[m^1].clear();
 		for (vector<int>::iterator p=queue[m].begin(); p!=queue[m].end(); p++) {
 			for (int i=1; (i<=MaxCommandSize) && (i<=(*p)); i++) {
@@ -501,7 +503,7 @@ int FinderCycle::backwards_traversal(int pos)
 				instructions[curr] = inst;
 				queue[m^1].push_back((*p)-i);
 				commands.clear();
-				for (int j=curr,k=0; k<=n; k++) {
+				for (uint j=curr,k=0; k<=n; k++) {
 					commands.push_back(instructions[j]);
 					j += instructions[j].length;
 				}
