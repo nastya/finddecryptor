@@ -39,7 +39,7 @@ public:
 	/**
 	Destructor of class Finder.
 	*/
-	~Finder();
+	virtual ~Finder();
 	/**
 	Loads a file.
 	@param name Name of input file.
