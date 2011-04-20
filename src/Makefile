@@ -1,6 +1,6 @@
 ####### Compiler, tools and options
-CXX		= g++ -Wall -O2 -I.
-CC		= gcc -Wall -O2 -I.
+CXX		= g++ -Wall -fPIC -O2 -I.
+CC		= gcc -Wall -fPIC -O2 -I.
 DEL_FILE	= rm -f
 FINDER_FLAGS	= -DFINDER_LOG -DBACKEND_LIBEMU -DBACKEND_QEMU -DBACKEND_GDBWINE
 ####### Files
