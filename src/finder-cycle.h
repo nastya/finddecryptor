@@ -33,19 +33,6 @@ public:
 	*/
 	~FinderCycle();
 	/**
-	Loads a file.
-	@param name Name of input file.
-	@param guessType Try to guess binary type.
-	*/
-	void load(string name, bool guessType=false);
-	/**
-	Links to data.
-	@param data Pointer to memory area.
-	@param dataSize Size of memory area.
-	@param guessType Try to guess binary type.
-	*/
-	void link(const unsigned char *data, uint dataSize, bool guessType=false);
-	/**
 	Wrap on functions finding writes to memory and indirect jumps.
 	*/
 	int find();
@@ -113,7 +100,7 @@ protected:
 	bool *regs_target; ///<registers to be defined (array which size is number of registers, regs_target[i]=true if register is to be defined and regs_target[i]=false vice versa)
 	bool *regs_known; ///registers which are already defined (array which size is number of registers, regs_known[i]=true if register was defined and regs_target[i]=false vice versa)
 	
-	set<int> start_positions;///<positions where target instructions are alredy found
+	set<uint> start_positions;///<positions where target instructions are alredy found
 	static const uint maxBackward; ///<limit for backwards traversal
 	static const uint maxEmulate; ///<limit for emulating
 	static const uint maxForward; ///<limit for amount of instructions checked after GetPC to find target instruction

@@ -35,14 +35,6 @@ FinderCycle::~FinderCycle()
 	delete[] regs_known;
 	delete[] regs_target;
 }
-void FinderCycle::load(string name, bool guessType) {
-	start_positions.clear();
-	Finder::load(name, guessType);
-}
-void FinderCycle::link(const unsigned char *data, uint dataSize, bool guessType) {
-	start_positions.clear();
-	Finder::link(data, dataSize, guessType);
-}
 void FinderCycle::launch(int pos)
 {
 	Timer::start(TimeLaunches);
@@ -69,7 +61,7 @@ void FinderCycle::launch(int pos)
 			return;
 		}
 		get_instruction(&inst, (BYTE *) buff, mode);
-		LOG << strnum << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
+		LOG << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 		if (!emulator->step()) {
 			LOG << " Execution error, stopping instance." << endl;
 			Timer::stop(TimeLaunches);
@@ -175,6 +167,7 @@ void FinderCycle::launch(int pos)
 int FinderCycle::find() {
 	matches = 0;
 	Timer::start(TimeFind);
+	start_positions.clear();
 	INSTRUCTION inst;
 	for (uint i=reader->start(); i<reader->size(); i++) {
 		/// TODO: check opcodes

@@ -45,14 +45,14 @@ public:
 	@param name Name of input file.
 	@param guessType Try to guess binary type.
 	*/
-	virtual void load(string name, bool guessType=false);
+	void load(string name, bool guessType=false);
 	/**
 	Links to data.
 	@param data Pointer to memory area.
 	@param dataSize Size of memory area.
 	@param guessType Try to guess binary type.
 	*/
-	virtual void link(const unsigned char *data, uint dataSize, bool guessType=false);
+	void link(const unsigned char *data, uint dataSize, bool guessType=false);
 	/**
 	Applies a reader. Common part of load() and link() functions.
 	@param reader Reader to apply.
