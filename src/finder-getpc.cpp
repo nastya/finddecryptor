@@ -187,7 +187,7 @@ int FinderGetPC::find() {
 				if (	(strcmp(inst.ptr->mnemonic,"call") == 0) &&
 					(inst.op1.type == OPERAND_TYPE_IMMEDIATE)) {
 					LOG << "Instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
-					if ((i + len + inst.op1.immediate) < reader->size()) { 
+					if ((i + len + inst.op1.immediate) < reader->size()) {
 						launch(i);
 					}
 					break;

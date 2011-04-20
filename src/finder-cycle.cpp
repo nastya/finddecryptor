@@ -202,24 +202,24 @@ int FinderCycle::find() {
 			case INSTRUCTION_TYPE_FPU_CTRL:
 				if (	(strcmp(inst.ptr->mnemonic,"fstenv") == 0) ||
 					(strcmp(inst.ptr->mnemonic,"fsave") == 0)) {
+					LOG << "Instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
 					break;
 				}
 				continue;
 			case INSTRUCTION_TYPE_CALL:
 				if (	(strcmp(inst.ptr->mnemonic,"call") == 0) &&
 					(inst.op1.type == OPERAND_TYPE_IMMEDIATE)) {
-					break;
+					LOG << "Instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
+					if ((i + len + inst.op1.immediate) < reader->size()) {
+						break;
+					}
 				}
 				continue;
 			default:
 				continue;
 		}
-		//cerr << "0x" << hex << i << ": 0x" << hex << (int) reader->pointer()[i] << " | 0x" << hex << (int) inst.opcode << " " << inst.ptr->mnemonic << endl;
 		pos_getpc = i;
-		LOG << "Instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
 		find_memory_and_jump(i);
-		//find_jump(i);
-		LOG << "*********************************************************" << endl;
 		instructions_after_getpc.clear();
 	}
 	Timer::stop(TimeFind);
