@@ -9,7 +9,7 @@ class Finder;
 
 class Mediator {
 public:
-	Mediator(int type = 1);
+	Mediator(int finderType = 0, int emulatorType = 1);
 	~Mediator();
 	void load(string name, bool guessType=false);
 	void link(const unsigned char *data, unsigned int dataSize, bool guessType=false);

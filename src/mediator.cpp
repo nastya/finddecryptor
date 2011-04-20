@@ -1,8 +1,19 @@
 #include "mediator.h"
 #include "finder-cycle.h"
+#include "finder-getpc.h"
 
-Mediator::Mediator(int type) {
-	finder = new FinderCycle(type);
+Mediator::Mediator(int finderType, int emulatorType) {
+	switch (finderType) {
+		case 0:
+			finder = new FinderCycle(emulatorType);
+			break;
+		case 1:
+			finder = new FinderGetPC(emulatorType);
+			break;
+		default:
+			cerr << "Unknown finder type!" << endl;
+			finder = NULL;
+	}
 }
 Mediator::~Mediator() {
 	delete finder;

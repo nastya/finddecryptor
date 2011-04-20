@@ -16,19 +16,21 @@ They describe a method for detecting self-decrypting exploit codes. This method 
  */
 int main(int argc, char** argv)
 {
-	int type = 1;
+	int finderType = 0, emulatorType = 1;
 	switch (argc) {
 		case 2:
 			break;
 		case 3:
 			if (strcmp(argv[2],"GdbWine") == 0) {
-				type = 0;
+				emulatorType = 0;
 			} else if (strcmp(argv[2],"LibEmu") == 0) {
-				type = 1;
+				emulatorType = 1;
 			} else if (strcmp(argv[2],"Qemu") == 0) {
-				type = 2;
+				emulatorType = 2;
+			} else if (strcmp(argv[2],"GetPC") == 0) {
+				finderType = 1;
 			} else {
-				cerr << "Unknown emulator type." << endl;
+				cerr << "Unsupported argument." << endl;
 				return 0;
 			}
 			break;
@@ -36,11 +38,11 @@ int main(int argc, char** argv)
 			cerr << "Wrong usage." << endl;
 			return 0;
 	}
-	Mediator mediator(type);
+	Mediator mediator(finderType, emulatorType);
 	mediator.load(argv[1], true);
 	if (mediator.find()) {
 		cout << "Shellcode found!" << endl;
 	}
-	exit(0); /// Hack for qemu. TODO: fix
+//	exit(0); /// Hack for qemu. TODO: fix
 	return 0;
 }
