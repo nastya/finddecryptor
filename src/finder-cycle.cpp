@@ -351,7 +351,8 @@ void FinderCycle::check(INSTRUCTION *inst)
 {
 	/// TODO: Add more instruction types here.
 	/// TODO: WARNING: Check logic.
-	int r;
+	int r, r2;
+	bool tmp;
 	switch (inst->type)
 	{
 		case INSTRUCTION_TYPE_LODS:
@@ -380,6 +381,24 @@ void FinderCycle::check(INSTRUCTION *inst)
 			if (regs_target[r]) {
 				add_target(&(inst->op2));
 			}
+			break;
+		case INSTRUCTION_TYPE_XCHG:
+			if (inst->op1.type != OPERAND_TYPE_REGISTER) {
+				break;
+			}
+			if (inst->op2.type != OPERAND_TYPE_REGISTER) {
+				break;
+			}
+			r = int_to_reg(inst->op1.reg);
+			r2 = int_to_reg(inst->op2.reg);
+
+			tmp = regs_known[r];
+			regs_known[r] = regs_known[r2];
+			regs_known[r2] = tmp;
+
+			tmp = regs_target[r];
+			regs_target[r] = regs_target[r2];
+			regs_target[r2] = tmp;
 			break;
 		case INSTRUCTION_TYPE_ADD:
 		case INSTRUCTION_TYPE_AND:

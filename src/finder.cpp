@@ -184,6 +184,10 @@ bool Finder::is_write_indirect(INSTRUCTION *inst)
 	if (inst->type == INSTRUCTION_TYPE_STOS) {
 		return true;
 	}
+	if (inst->type == INSTRUCTION_TYPE_XCHG) {
+		return	((inst->op1.type == OPERAND_TYPE_MEMORY) && (inst->op1.basereg != REG_NOP)) ||
+			((inst->op2.type == OPERAND_TYPE_MEMORY) && (inst->op2.basereg != REG_NOP));
+	}
 	return is_write(inst) && (inst->op1.type == OPERAND_TYPE_MEMORY) && (inst->op1.basereg != REG_NOP);
 }
 bool Finder::is_write(INSTRUCTION *inst)
@@ -194,18 +198,20 @@ bool Finder::is_write(INSTRUCTION *inst)
 		case INSTRUCTION_TYPE_SBB:
 		case INSTRUCTION_TYPE_DIV:
 		case INSTRUCTION_TYPE_IDIV:
-			
+
 		case INSTRUCTION_TYPE_ADD:
 		case INSTRUCTION_TYPE_AND:
 		case INSTRUCTION_TYPE_OR:
 		case INSTRUCTION_TYPE_MUL:
 		case INSTRUCTION_TYPE_IMUL:
-			
+
 		case INSTRUCTION_TYPE_INC:
 		case INSTRUCTION_TYPE_DEC:
-			
+		
 		case INSTRUCTION_TYPE_MOV:
 		case INSTRUCTION_TYPE_POP:
+
+		case INSTRUCTION_TYPE_XCHG:
 			return true;
 		default:
 			return false;
