@@ -69,15 +69,12 @@ void FinderCycle::launch(int pos)
 		}
 		get_operands(&inst);
 		for (int i = 0; i < RegistersCount; i++) {
-			if (regs_target[i]&&regs_known[i]) {
+			if (regs_target[i] && regs_known[i]) {
 				regs_target[i] = false;
-			} else if (regs_target[i]&&!regs_known[i]) {
-				for (k=0;k<RegistersCount;k++) {
-					if (!regs_target[k]) {
-						regs_target[k] = regs_known[k];
-					} else {
-						regs_known[k] = regs_target[k];
-					}
+			} else if (regs_target[i] && !regs_known[i]) {
+				for (k = 0; k < RegistersCount; k++) {
+					regs_target[k] = regs_known[k] || regs_target[k];
+					regs_known[k] = false;
 				}
 				check(&instructions_after_getpc);
 				int em_start = backwards_traversal(pos_getpc);
@@ -462,6 +459,11 @@ void FinderCycle::check(INSTRUCTION *inst)
 				regs_known[HASFPU] = true;
 			};
 			break;
+	}
+	for (int rx = 0; rx < RegistersCount; rx++) {
+		if (regs_target[rx] && regs_known[rx]) {
+			regs_target[rx] = false;
+		}
 	}
 }
 
