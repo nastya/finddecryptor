@@ -93,13 +93,17 @@ protected:
 	  @return true if such instruction is found and false vice versa.
 	  */
 	bool verify_changing_reg(INSTRUCTION *inst, Command *cycle, int size);
+	/**
+	  Write registers to log.
+	  */
+	void dump_regs();
 
 	vector <INSTRUCTION> instructions_after_getpc;///<instructions between seeding and target instruction
 	int pos_getpc; ///<position of seeding instruction in the inputfile
 	
 	bool *regs_target; ///<registers to be defined (array which size is number of registers, regs_target[i]=true if register is to be defined and regs_target[i]=false vice versa)
 	bool *regs_known; ///registers which are already defined (array which size is number of registers, regs_known[i]=true if register was defined and regs_target[i]=false vice versa)
-	
+
 	set<uint> start_positions;///<positions where target instructions are alredy found
 	static const uint maxBackward; ///<limit for backwards traversal
 	static const uint maxEmulate; ///<limit for emulating

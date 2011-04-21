@@ -518,12 +518,12 @@ int FinderCycle::backwards_traversal(int pos)
 						LOG << endl;
 					}
 				}*/
-				memcpy(regs_target,regs_target_bak,RegistersCount);
-				memcpy(regs_known,regs_known_bak,RegistersCount);
 				if (ret) {
 					Timer::stop(TimeBackwardsTraversal);
 					return curr;
 				}
+				memcpy(regs_target,regs_target_bak,RegistersCount);
+				memcpy(regs_known,regs_known_bak,RegistersCount);
 			}
 		}
 		m ^= 1;
@@ -595,4 +595,22 @@ bool FinderCycle::verify_changing_reg(INSTRUCTION *inst, Command *cycle, int siz
 		}
 	}
 	return false;
+}
+void FinderCycle::dump_regs() {
+#ifdef FINDER_LOG
+	LOG << "   Regs target:";
+	for (int rx = 0; rx < RegistersCount; rx++) {
+		if (regs_target[rx]) {
+			LOG << " " << Registers[rx];
+		}
+	}
+	LOG << endl;
+	LOG << "   Regs known:";
+	for (int rx = 0; rx < RegistersCount; rx++) {
+		if (regs_known[rx]) {
+			LOG << " " << Registers[rx];
+		}
+	}
+	LOG << endl;
+#endif
 }
