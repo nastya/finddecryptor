@@ -38,7 +38,7 @@ FinderCycle::~FinderCycle()
 void FinderCycle::launch(int pos)
 {
 	Timer::start(TimeLaunches);
-	LOG << "Launching from position 0x" << hex << pos << endl;
+	LOG << " Launching from position 0x" << hex << pos << endl;
 	int a[1000] = {0}, k, num, amount=0;
 	uint barrier;
 	bool flag = false;

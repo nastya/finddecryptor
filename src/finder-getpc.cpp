@@ -76,7 +76,6 @@ int FinderGetPC::launch(int pos)
 		}
 
 		if (eip_saved) {
-			LOG << "   EIP saved."<<endl;
 			//check for registers
 			if (emulator->get_register(EAX)==saved_eip || emulator->get_register(EBX)==saved_eip || 
 				emulator->get_register(ECX)==saved_eip || emulator->get_register(EDX)==saved_eip ||
@@ -86,6 +85,25 @@ int FinderGetPC::launch(int pos)
 				matches++;
 				LOG << " Shellcode found." << endl;
 				Timer::stop(TimeLaunches);
+#ifdef FINDER_LOG
+		for (uint j = 0; j < 40; j++) {
+			if (!emulator->get_command(buff)) {
+				LOG << "  (extra) Execution error." << endl;
+				break;
+			}
+			num = emulator->get_register(EIP);
+			if (!reader->is_valid(num)) {
+				LOG << "  (extra) Reached end of the memory block." << endl;
+				break;
+			}
+			len = get_instruction(&inst, (BYTE *) buff, mode);
+			LOG << "  (extra) Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
+			if (!emulator->step()) {
+				LOG << "  (extra) Execution error." << endl;
+				break;
+			}
+		}
+#endif
 #ifdef FINDER_ONCE
 				cout << "Shellcode found." << endl;
 				exit(0);
@@ -103,6 +121,7 @@ int FinderGetPC::launch(int pos)
 				}
 			case 0xdd:
 				if (fpu_inst) {
+					LOG << "   EIP saved." << endl;
 					eip_saved = true;
 					saved_eip = last_fpu_ip;
 				}
@@ -114,6 +133,7 @@ int FinderGetPC::launch(int pos)
 				}
 			case 0xd9:
 				if (fpu_inst) {
+					LOG << "   EIP saved." << endl;
 					eip_saved = true;
 					saved_eip = last_fpu_ip;
 				}
@@ -122,6 +142,7 @@ int FinderGetPC::launch(int pos)
 			case 0xe8:
 			case 0xff:
 			case 0x9a:
+				LOG << "   EIP saved." << endl;
 				eip_saved = true;
 				saved_eip = num + len;
 				break;
