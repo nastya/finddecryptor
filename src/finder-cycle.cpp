@@ -81,8 +81,13 @@ void FinderCycle::launch(int pos)
 				}
 				check(&instructions_after_getpc);
 				int em_start = backwards_traversal(pos_getpc);
-				if (em_start<0) {
+				if (em_start < 0) {
 					LOG <<  " Backwards traversal failed (nothing suitable found)." << endl;
+					Timer::stop(TimeLaunches);
+					return;
+				}
+				if (em_start == pos) {
+					LOG <<  " Backwards traversal found the same position, this shouldn't happen!" << endl;
 					Timer::stop(TimeLaunches);
 					return;
 				}
