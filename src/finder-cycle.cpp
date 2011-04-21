@@ -143,7 +143,7 @@ void FinderCycle::launch(int pos)
 		if (log) {
 			LOG << " Cycle found: " << endl;
 			for (uint i = 0; i <= barrier; i++) {
-				LOG << " 0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
+				LOG << "  0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
 			}
 			if (k != -1) {
 				LOG << " Indirect write in line #" << k << ", launched from position 0x" << hex << pos << endl;
@@ -154,7 +154,7 @@ void FinderCycle::launch(int pos)
 
 		if (k != -1) {
 			matches++;
-			cout << "Instruction \"" << instruction_string(pos_getpc) << "\" on position 0x" << hex << pos_getpc << "." << endl;
+			cout << "Seeding instruction \"" << instruction_string(pos_getpc) << "\" on position 0x" << hex << pos_getpc << "." << endl;
 			cout << "Cycle found: " << endl;
 			for (uint i = 0; i <= barrier; i++) {
 				cout << " 0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
@@ -207,14 +207,14 @@ int FinderCycle::find() {
 			case INSTRUCTION_TYPE_FPU_CTRL:
 				if (	(strcmp(inst.ptr->mnemonic,"fstenv") == 0) ||
 					(strcmp(inst.ptr->mnemonic,"fsave") == 0)) {
-					LOG << "Instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
+					LOG << "Seeding instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
 					break;
 				}
 				continue;
 			case INSTRUCTION_TYPE_CALL:
 				if (	(strcmp(inst.ptr->mnemonic,"call") == 0) &&
 					(inst.op1.type == OPERAND_TYPE_IMMEDIATE)) {
-					LOG << "Instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
+					LOG << "Seeding instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
 					if ((i + len + inst.op1.immediate) < reader->size()) {
 						break;
 					}
@@ -244,7 +244,7 @@ void FinderCycle::find_memory_and_jump(int pos)
 			Timer::stop(TimeFindMemoryAndJump);
 			return;
 		}
-		LOG << "Instruction: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
+		LOG << " Instruction: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
 		instructions_after_getpc.push_back(inst);
 		switch (inst.type) {
 			/// TODO: check
@@ -277,9 +277,9 @@ void FinderCycle::find_memory_and_jump(int pos)
 		if (!is_write_indirect(&inst)) {
 			continue;
 		}
-		LOG << "Write to memory detected: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
+		LOG << "  Write to memory detected: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
 		if (start_positions.count(p)) {
-			LOG << "Not running, already checked." << endl;
+			LOG << "   Not running, already checked." << endl;
 			Timer::stop(TimeFindMemoryAndJump);
 			return;
 		}
@@ -290,7 +290,7 @@ void FinderCycle::find_memory_and_jump(int pos)
 		check(&instructions_after_getpc);
 		int em_start = backwards_traversal(pos_getpc);
 		if (em_start < 0) {
-			LOG <<  " Backwards traversal failed (nothing suitable found)." << endl;
+			LOG << "   Backwards traversal failed (nothing suitable found)." << endl;
 			Timer::stop(TimeFindMemoryAndJump);
 			return;
 		}

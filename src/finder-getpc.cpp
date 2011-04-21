@@ -199,7 +199,7 @@ int FinderGetPC::find() {
 			case INSTRUCTION_TYPE_FPU_CTRL:
 				if (	(strcmp(inst.ptr->mnemonic,"fstenv") == 0) ||
 					(strcmp(inst.ptr->mnemonic,"fsave") == 0)) {
-					LOG << "Instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
+					LOG << "Seeding instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
 					find_dependence(i);
 					break;
 				}
@@ -207,7 +207,7 @@ int FinderGetPC::find() {
 			case INSTRUCTION_TYPE_CALL:
 				if (	(strcmp(inst.ptr->mnemonic,"call") == 0) &&
 					(inst.op1.type == OPERAND_TYPE_IMMEDIATE)) {
-					LOG << "Instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
+					LOG << "Seeding instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
 					if ((i + len + inst.op1.immediate) < reader->size()) {
 						launch(i);
 					}
