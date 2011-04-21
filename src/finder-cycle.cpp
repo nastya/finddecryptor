@@ -314,15 +314,21 @@ void FinderCycle::check(vector <INSTRUCTION>* instructions)
 	}
 }
 void FinderCycle::add_target(OPERAND *op) {
-	if (MASK_FLAGS(op->flags)==F_f) {
+	if (MASK_FLAGS(op->flags) == F_f) { /// Does operand use fpu register?
 		return;
 	}
+	int reg;
 	switch (op->type) {
 		case OPERAND_TYPE_REGISTER:
-			if (op->reg == REG_ESP) {
+			reg = op->reg;
+			if ((reg > 3) && (MASK_OT(op->flags) == OT_b)) { // One-byte regs. TODO: check 1or2-byte-regs
+				reg -= 4; // This is a plain register
+			}
+
+			if (reg == REG_ESP) {
 				break;
 			}
-			regs_target[int_to_reg(op->reg)] = true;
+			regs_target[int_to_reg(reg)] = true;
 			break;
 		case OPERAND_TYPE_MEMORY:
 			if (op->basereg == REG_NOP || op->reg == REG_ESP) {
