@@ -14,6 +14,7 @@ Reader::Reader()
 	dataStart = 0;
 	data = NULL;
 	indirect = false;
+	base = 0x2000;
 }
 Reader::Reader(const Reader *reader)
 {
@@ -86,16 +87,17 @@ uint Reader::start()
 }
 uint Reader::entrance()
 {
-	return 0;
+	return base;
 }
 uint Reader::map(uint addr)
 {
-	return addr;
+	return addr + base;
 }
 bool Reader::is_valid(uint addr) {
-	return (0<=addr) && (addr<dataSize);
+	addr -= base;
+	return (addr >= dataStart) && (addr < dataSize);
 }
 bool Reader::is_within_one_block(uint a, uint b)
 {
-	return (a>=dataStart) && (b>=dataStart) && (a<dataSize) && (b<dataSize);
+	return is_valid(a) && is_valid(b);
 }

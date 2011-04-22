@@ -106,11 +106,13 @@ bool Reader_PE::is_valid(uint addr) {
 }
 bool Reader_PE::is_within_one_block(uint a,uint b)
 {
+	a -= base;
+	b -= base;
 	for (uint i=0;i<number_of_sections;i++) {
-		if (	(a >= table[i].virt_addr + base) &&
-			(a < table[i].virt_addr + base + table[i].virt_size) &&
-			(b >= table[i].virt_addr + base) &&
-			(b < table[i].virt_addr + base + table[i].virt_size)) {
+		if (	(a >= table[i].virt_addr) &&
+			(a < table[i].virt_addr + table[i].virt_size) &&
+			(b >= table[i].virt_addr) &&
+			(b < table[i].virt_addr + table[i].virt_size)) {
 			return true;
 		}
 	}

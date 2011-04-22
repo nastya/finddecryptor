@@ -46,7 +46,7 @@ private:
 	  Prints table of sections
 	*/
 	void print_table();
-	
+
 	/**
 	@return Return integer formed of @ref size bytes from the position pos from buffer @ref buff.
 	*/
@@ -56,9 +56,7 @@ private:
 	*/
 	uint get(int pos, int size=4);
 
-	
 	uint number_of_sections;///<Number of sections in input file
-	uint base;///< Base of addresses in memory
 	uint entry_point;///< Entry point of input file
 	entry* table;///< Table of sections
 };
