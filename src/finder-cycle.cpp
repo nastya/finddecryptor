@@ -1,4 +1,5 @@
 #include "finder-cycle.h"
+#include <stack>
 
 using namespace std;
 
@@ -234,6 +235,8 @@ void FinderCycle::find_memory_and_jump(int pos)
 	INSTRUCTION inst;
 	uint len;
 	set<uint> nofollow;
+	stack<uint> calls;
+
 	for (uint p = pos, count_instructions = 0; p < reader->size() && count_instructions < maxForward; p += len, count_instructions++) {
 		len = instruction(&inst,p);
 		if (!len || (len + p > reader->size())) {
@@ -265,7 +268,16 @@ void FinderCycle::find_memory_and_jump(int pos)
 					(strcmp(inst.ptr->mnemonic,"call")==0) &&
 					(inst.op1.type==OPERAND_TYPE_IMMEDIATE)) {
 					nofollow.insert(p);
+					calls.push(p + inst.length);
 					p += inst.op1.immediate;
+					continue;
+				}
+				break;
+			case INSTRUCTION_TYPE_RET: // We do not need nofollow check here, nofollow check in calls is enough.
+				if (	(!calls.empty()) &&
+					(strcmp(inst.ptr->mnemonic,"ret")==0)) {
+					p = calls.top() - len;
+					calls.pop();
 					continue;
 				}
 				break;
