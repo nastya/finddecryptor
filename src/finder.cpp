@@ -105,12 +105,14 @@ void Finder::link(const unsigned char *data, uint dataSize, bool guessType) {
 	Timer::stop(TimeLoad);
 }
 void Finder::apply_reader(Reader *reader, bool guessType) {
+#ifdef TRY_READERS
 	if (guessType) {
 		if (Reader_PE::is_of_type(reader)) {
 			reader = new Reader_PE(reader);
 			LOG << "Looks like a PE file." << endl << endl;
 		}
 	}
+#endif
 	delete this->reader;
 	this->reader = reader;
 	emulator->bind(reader);

@@ -2,7 +2,7 @@
 CXX		= g++ -Wall -fPIC -O2 -I.
 CC		= gcc -Wall -fPIC -O2 -I.
 DEL_FILE	= rm -f
-FINDER_FLAGS	= -DFINDER_LOG -DBACKEND_LIBEMU -DBACKEND_QEMU -DBACKEND_GDBWINE
+FINDER_FLAGS	= -DFINDER_LOG -DTRY_READERS -DBACKEND_LIBEMU -DBACKEND_QEMU -DBACKEND_GDBWINE
 ####### Files
 OBJECTS		= myprogram.o \
 		  finder.o \
@@ -54,13 +54,13 @@ doc:
 myprogram.o: myprogram.cpp finder-cycle.h
 	$(CXX) -c myprogram.cpp
 
-finder.o: finder.cpp finder.h libdasm.h emulator.h reader_pe.h timer.h
+finder.o: finder.cpp finder.h libdasm.h emulator.h reader_pe.h timer.h Makefile
 	$(CXX) -O0 -fomit-frame-pointer -c finder.cpp $(FINDER_FLAGS)
 
-finder-cycle.o: finder-cycle.cpp finder-cycle.h finder.h
+finder-cycle.o: finder-cycle.cpp finder-cycle.h finder.h Makefile
 	$(CXX) -c finder-cycle.cpp $(FINDER_FLAGS)
 
-finder-getpc.o: finder-getpc.cpp finder-getpc.h finder.h
+finder-getpc.o: finder-getpc.cpp finder-getpc.h finder.h Makefile
 	$(CXX) -c finder-getpc.cpp $(FINDER_FLAGS)
 
 mediator.o: mediator.cpp mediator.h finder-cycle.h
