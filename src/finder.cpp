@@ -88,7 +88,7 @@ void Finder::link(const unsigned char *data, uint dataSize, bool guessType) {
 	Timer::start(TimeLoad);
 	Reader *reader = new Reader();
 	reader->link(data, dataSize);
-	LOG	<< endl << "Loaded data at 0x" << hex << (uint) data << "."
+	LOG	<< endl << "Loaded data at 0x" << hex << (ulong) data << "."
 		<< endl << "Data size: 0x" << hex << reader->size() << "." << endl << endl;
 #ifdef FINDER_DUMP
 	static int counter = 0;
