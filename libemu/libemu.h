@@ -59,4 +59,6 @@ int32_t emu_cpu_step(struct emu_cpu *c);
 
 const char *emu_strerror(struct emu *e);
 
+int32_t emu_shellcode_test(struct emu *e, uint8_t *data, uint16_t size);
+
 #endif // HAVE_EMU_H
