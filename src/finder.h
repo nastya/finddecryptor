@@ -4,10 +4,6 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <map>
-#include <cstring>
-#include <algorithm>
-#include <set>
 
 #include "libdasm.h" 
 #include "data.h"

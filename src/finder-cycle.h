@@ -1,20 +1,11 @@
 #ifndef FINDER_CYCLE_H
 #define FINDER_CYCLE_H
 
-#include <iostream>
-#include <fstream>
-#include <vector>
 #include <map>
 #include <cstring>
-#include <algorithm>
 #include <set>
 
 #include "finder.h" 
-#include "libdasm.h" 
-#include "data.h"
-#include "timer.h"
-#include "emulator.h"
-#include "reader_pe.h"
 
 using namespace std;
 
