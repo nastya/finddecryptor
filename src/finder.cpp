@@ -47,6 +47,9 @@ Finder::Finder(int type)
 			emulator = new Emulator_GdbWine();
 			break;
 #endif
+		case -1:
+			emulator = NULL;
+			break;
 		default:
 			cerr << "Unsupported emulation backend!" << endl;
 			exit(0);
@@ -115,7 +118,9 @@ void Finder::apply_reader(Reader *reader, bool guessType) {
 #endif
 	delete this->reader;
 	this->reader = reader;
-	emulator->bind(reader);
+	if (emulator != NULL) {
+		emulator->bind(reader);
+	}
 }
 
 
