@@ -29,6 +29,8 @@ int main(int argc, char** argv)
 				emulatorType = 2;
 			} else if (strcmp(argv[2],"GetPC") == 0) {
 				finderType = 1;
+			} else if (strcmp(argv[2],"FLibEmu") == 0) {
+				finderType = 2;
 			} else {
 				cerr << "Unsupported argument." << endl;
 				return 0;

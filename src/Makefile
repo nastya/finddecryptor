@@ -8,6 +8,7 @@ OBJECTS		= myprogram.o \
 		  finder.o \
 		  finder-cycle.o \
 		  finder-getpc.o \
+		  finder-libemu.o \
 		  mediator.o \
 		  data.o \
 		  reader.o \
@@ -63,6 +64,9 @@ finder-cycle.o: finder-cycle.cpp finder-cycle.h finder.h Makefile
 finder-getpc.o: finder-getpc.cpp finder-getpc.h finder.h Makefile
 	$(CXX) -c finder-getpc.cpp $(FINDER_FLAGS)
 
+finder-libemu.o: finder-libemu.cpp finder-libemu.h finder.h Makefile
+	$(CXX) -c finder-libemu.cpp $(FINDER_FLAGS)
+
 mediator.o: mediator.cpp mediator.h finder-cycle.h
 	$(CXX) -c mediator.cpp
 
@@ -112,9 +116,9 @@ emulator_qemu.o: emulator_qemu.cpp emulator_qemu.h emulator.h
 	mkdir -p ../lib
 	$(CXX) -shared -o $@ emulator_qemu.o emulator.o ../qemu/qemu.so -Wl,-rpath -Wl,$(CURDIR)/../qemu
 
-$(TARGET_LIB): data.o finder.o finder-cycle.o finder-getpc.o reader.o reader_pe.o timer.o mediator.o $(LIBS)
+$(TARGET_LIB): data.o finder.o finder-cycle.o finder-getpc.o finder-libemu.o reader.o reader_pe.o timer.o mediator.o $(LIBS)
 	mkdir -p ../lib
-	$(CXX) -shared -o $@ data.o finder.o finder-cycle.o finder-getpc.o reader.o reader_pe.o timer.o mediator.o $(LIBS) -Wl,-rpath -Wl,$(CURDIR)/../lib
+	$(CXX) -shared -o $@ data.o finder.o finder-cycle.o finder-getpc.o finder-libemu.o reader.o reader_pe.o timer.o mediator.o $(LIBS) -Wl,-rpath -Wl,$(CURDIR)/../lib
 
 $(TARGET): myprogram.o $(TARGET_LIB)
 	mkdir -p ../bin ../log

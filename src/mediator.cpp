@@ -1,6 +1,7 @@
 #include "mediator.h"
 #include "finder-cycle.h"
 #include "finder-getpc.h"
+#include "finder-libemu.h"
 
 Mediator::Mediator(int finderType, int emulatorType) {
 	switch (finderType) {
@@ -9,6 +10,9 @@ Mediator::Mediator(int finderType, int emulatorType) {
 			break;
 		case 1:
 			finder = new FinderGetPC(emulatorType);
+			break;
+		case 2:
+			finder = new FinderLibemu();
 			break;
 		default:
 			cerr << "Unknown finder type!" << endl;
