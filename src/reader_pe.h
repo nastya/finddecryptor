@@ -22,6 +22,8 @@ class Reader_PE : public Reader
 		uint virt_addr;///<virtual address of section
 		uint virt_size;///<virtual size of section
 		uint raw_offset;///<raw offset of section
+		uint raw_size;///<raw size of section
+		uint max_size;///<max of raw and virtual size
 	};
 public:
 	Reader_PE();

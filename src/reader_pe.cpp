@@ -45,7 +45,9 @@ void Reader_PE::parse()
 		memcpy(table[k].name,&(data[i]),8);
 		table[k].virt_size = get(i+8);
 		table[k].virt_addr = get(i+12);
+		table[k].raw_size = get(i+16);
 		table[k].raw_offset = get(i+20);
+		table[k].max_size = (table[k].raw_size > table[k].virt_size) ? table[k].raw_size : table[k].virt_size; 
 	}
 	sort();
 	dataStart = table[0].raw_offset;
@@ -97,7 +99,7 @@ uint Reader_PE::map(uint addr)
 bool Reader_PE::is_valid(uint addr) {
 	addr -= base;
 	for (uint i = 0; i < number_of_sections; i++) {
-		if ((table[i].virt_addr <= addr) && (addr < table[i].virt_addr + table[i].virt_size)) {
+		if ((table[i].virt_addr <= addr) && (addr < table[i].virt_addr + table[i].max_size)) {
 			return true;
 		}
 	}
@@ -109,9 +111,9 @@ bool Reader_PE::is_within_one_block(uint a,uint b)
 	b -= base;
 	for (uint i = 0; i < number_of_sections; i++) {
 		if (	(a >= table[i].virt_addr) &&
-			(a < table[i].virt_addr + table[i].virt_size) &&
+			(a < table[i].virt_addr + table[i].max_size) &&
 			(b >= table[i].virt_addr) &&
-			(b < table[i].virt_addr + table[i].virt_size)) {
+			(b < table[i].virt_addr + table[i].max_size)) {
 			return true;
 		}
 	}
