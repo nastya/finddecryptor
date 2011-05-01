@@ -68,7 +68,7 @@ void FinderCycle::launch(int pos)
 			Timer::stop(TimeLaunches);
 			return;
 		}
-		get_operands(&inst);
+		check(&inst);
 		for (int i = 0; i < RegistersCount; i++) {
 			if (regs_target[i] && regs_known[i]) {
 				regs_target[i] = false;
@@ -351,10 +351,9 @@ void FinderCycle::add_target(OPERAND *op) {
 		default:;
 	}
 }
-void FinderCycle::get_operands(INSTRUCTION *inst) /// TODO: merge with check() !!
+void FinderCycle::get_operands(INSTRUCTION *inst) /// TODO: merge with check()?
 {
 	if (inst->type == INSTRUCTION_TYPE_LODS) {
-		regs_known[EAX] = true;
 		regs_target[ESI] = true;
 	}
 	if (inst->type == INSTRUCTION_TYPE_LOOP) {
