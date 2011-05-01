@@ -158,6 +158,7 @@ void FinderCycle::launch(int pos)
 				cout << " 0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
 			}
 			cout << " Indirect write in line #" << k << ", launched from position 0x" << hex << pos << endl;
+			start_positions.insert(cycle[k-1].addr);
 #ifdef FINDER_ONCE
 			Timer::stop(TimeLaunches);
 			exit(0);
@@ -292,7 +293,6 @@ void FinderCycle::find_memory_and_jump(int pos)
 			Timer::stop(TimeFindMemoryAndJump);
 			return;
 		}
-		start_positions.insert(p);
 		memset(regs_known,false,RegistersCount);
 		memset(regs_target,false,RegistersCount);
 		get_operands(&inst);
@@ -496,11 +496,6 @@ void FinderCycle::check(INSTRUCTION *inst)
 				regs_known[HASFPU] = true;
 			};
 			break;
-	}
-	for (int rx = 0; rx < RegistersCount; rx++) {
-		if (regs_target[rx] && regs_known[rx]) {
-			regs_target[rx] = false;
-		}
 	}
 }
 
