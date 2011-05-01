@@ -11,7 +11,7 @@ using namespace std;
 
 const uint FinderCycle::maxBackward = 20;
 const uint FinderCycle::maxForward = 100;
-const uint FinderCycle::maxEmulate = 100;
+const uint FinderCycle::maxEmulate = 180;
 
 FinderCycle::FinderCycle(int type) : Finder(type)
 {
