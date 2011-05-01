@@ -351,9 +351,10 @@ void FinderCycle::add_target(OPERAND *op) {
 		default:;
 	}
 }
-void FinderCycle::get_operands(INSTRUCTION *inst)
+void FinderCycle::get_operands(INSTRUCTION *inst) /// TODO: merge with check() !!
 {
 	if (inst->type == INSTRUCTION_TYPE_LODS) {
+		regs_known[EAX] = true;
 		regs_target[ESI] = true;
 	}
 	if (inst->type == INSTRUCTION_TYPE_LOOP) {
@@ -474,7 +475,6 @@ void FinderCycle::check(INSTRUCTION *inst)
 				regs_target[EBX] = false;
 				regs_target[ECX] = false;
 				regs_target[EDX] = false;
-				regs_known[EAX] = false;
 				regs_known[EBX] = true;
 				regs_known[ECX] = true;
 				regs_known[EDX] = true;
