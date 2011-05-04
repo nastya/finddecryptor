@@ -14,7 +14,7 @@ Reader::Reader()
 	dataStart = 0;
 	data = NULL;
 	indirect = false;
-	base = 0x2000;
+	base = 0x20000000L; // Max is 0x7fffffffL
 }
 Reader::Reader(const Reader *reader)
 {
