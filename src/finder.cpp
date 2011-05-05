@@ -60,12 +60,17 @@ Finder::Finder(int type)
 	log = new ofstream("../log/finder.txt");
 #endif
 	if (log) switch (type) {
+		case 2:
+			LOG << "### Using Qemu emulator. ###" << endl;
+			break;
 		case 1:
 			LOG << "### Using LibEmu emulator. ###" << endl;
 			break;
 		case 0:
-		default:
 			LOG << "### Using GdbWine emulator. ###" << endl;
+			break;
+		default:
+			LOG << "### Using unknown emulator. ###" << endl;
 	}
 }
 

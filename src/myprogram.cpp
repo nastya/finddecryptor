@@ -45,6 +45,5 @@ int main(int argc, char** argv)
 	if (mediator.find()) {
 		cout << "Shellcode found!" << endl;
 	}
-//	exit(0); /// Hack for qemu. TODO: fix
 	return 0;
 }
