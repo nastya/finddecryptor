@@ -6,7 +6,8 @@
 using namespace std;
 
 extern "C" {
-	#include "../qemu/libqemu.h"
+	struct CPUState;
+	#include "../qemu/qemu-stepper.h"
 }
 
 /**
@@ -22,9 +23,8 @@ public:
 	bool step();
 	bool get_command(char *buff, uint size=10);
 	unsigned int get_register(Register reg);
+	unsigned int memory_offset();
 private:
-	void end();
-	
 	CPUState *env;
 	bool running;
 	unsigned long esp, pos, offset;

@@ -56,7 +56,7 @@ myprogram.o: myprogram.cpp finder-cycle.h
 	$(CXX) -c myprogram.cpp
 
 finder.o: finder.cpp finder.h libdasm.h emulator.h reader_pe.h timer.h Makefile
-	$(CXX) -O0 -fomit-frame-pointer -c finder.cpp $(FINDER_FLAGS)
+	$(CXX) -c finder.cpp $(FINDER_FLAGS)
 
 finder-cycle.o: finder-cycle.cpp finder-cycle.h finder.h Makefile
 	$(CXX) -c finder-cycle.cpp $(FINDER_FLAGS)
@@ -98,7 +98,7 @@ emulator_libemu.o: emulator_libemu.cpp emulator_libemu.h emulator.h
 	$(CXX) -c emulator_libemu.cpp
 
 emulator_qemu.o: emulator_qemu.cpp emulator_qemu.h emulator.h
-	$(CXX) -O0 -fomit-frame-pointer -c emulator_qemu.cpp
+	$(CXX) -c emulator_qemu.cpp
 
 ../lib/libdasm.so: libdasm.o
 	mkdir -p ../lib
@@ -112,9 +112,9 @@ emulator_qemu.o: emulator_qemu.cpp emulator_qemu.h emulator.h
 	mkdir -p ../lib
 	$(CXX) -shared -o $@ emulator_libemu.o emulator.o ../libemu/libemu.so -Wl,-rpath -Wl,$(CURDIR)/../libemu
 
-../lib/emulator_qemu.so: emulator_qemu.o emulator.o ../qemu/qemu.so
+../lib/emulator_qemu.so: emulator_qemu.o emulator.o ../qemu/libqemu-stepper.so
 	mkdir -p ../lib
-	$(CXX) -shared -o $@ emulator_qemu.o emulator.o ../qemu/qemu.so -Wl,-rpath -Wl,$(CURDIR)/../qemu
+	$(CXX) -shared -o $@ emulator_qemu.o emulator.o ../qemu/libqemu-stepper.so -Wl,-rpath -Wl,$(CURDIR)/../qemu
 
 $(TARGET_LIB): data.o finder.o finder-cycle.o finder-getpc.o finder-libemu.o reader.o reader_pe.o timer.o mediator.o $(LIBS)
 	mkdir -p ../lib

@@ -1,10 +1,5 @@
 #include <stdlib.h>
-#include <stdio.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
+#include <iostream>
 
 #include "emulator_qemu.h"
 
@@ -16,95 +11,56 @@ const int Emulator_Qemu::mem_after = 80*1024; //80 KiB, min 8k instructions
 unsigned long Emulator_Qemu::stack_size = 8 * 1024 * 1024UL;
 
 Emulator_Qemu::Emulator_Qemu() {
-	qemu_init();
-
-	qemu_mmap(mem_before + mem_after);
-	
-	unsigned long stack = qemu_mmap_stack(stack_size + qemu_page_size());
-	esp = stack + stack_size;
-	
-	this->env = qemu_cpu_init();
-	running = false;
-	
-	offset = qemu_offset();
+	env = qemu_stepper_init();
+	if (qemu_stepper_data_prepare(env, mem_before + mem_after, stack_size)) {
+		cerr << "Error loading qemu" << endl;
+		exit(0);
+	}
 }
 Emulator_Qemu::~Emulator_Qemu() {
-	end();
+	qemu_stepper_free(env);
 }
 void Emulator_Qemu::begin(uint pos) {
-	end();
-
-	uint start = max((int) reader->start(), (int) pos - mem_before), end = min(reader->size(), pos + mem_after);
-
-//	printf("Begin. Start: 0x%X, end: 0x%X, pos: 0x%X\n", start, end, pos);
-
-	memcpy((void *) offset, reader->pointer() + start, end - start);
-
-	qemu_reset(env);
-	qemu_set_esp(env,this->esp);
-	qemu_set_eip(env,pos - start);
-	
-	qemu_setup_segments(env);
-
-	qemu_flog("Starting\n");
-
-	if (qemu_exec_start(env)) {
-//		return false;
-		return;
+	if (pos==0) {
+		pos = reader->start();
 	}
+	uint start = max((int) reader->start(), (int) pos - mem_before), end = min(reader->size(), pos + mem_after);
+	offset = pos - reader->map(pos) + qemu_stepper_offset(env) - start;
 
-	this->pos = qemu_pos(env);
-	running = true;
-
-//	return true;
+	qemu_stepper_data_set(env, reader->pointer() + start, end - start);
+	qemu_stepper_entry_set(env, pos - start);
 }
 bool Emulator_Qemu::step() {
-	qemu_disas(pos);
-
-	while (pos == qemu_pos(env)) {
-		while (qemu_set_jmp(env) != 0);
-		if (qemu_exception_index(env) > 0) {
-			fprintf(stderr, "qemu: 0x%08lx: interrupt recieved: 0x%x.\n", pos, qemu_exception_index(env));
-			return false;
-		}
-		qemu_exec_middle(env);
-	}
-	
-	pos = qemu_pos(env);
-	return true;
+//	qemu_stepper_print_debug(env);
+	return qemu_stepper_step(env) == 0;
 }
 bool Emulator_Qemu::get_command(char *buff, uint size) {
-	memcpy(buff, (void *) (offset + pos), size);
-	return true;
+	return qemu_stepper_read(env, buff, size) == 0;
 }
 unsigned int Emulator_Qemu::get_register(Register reg) {
 	switch (reg) {
-/*		case EAX:
-			return emu_cpu_reg32_get(cpu, eax);
+		case EAX:
+			return qemu_stepper_register(env, 0);
 		case EBX:
-			return emu_cpu_reg32_get(cpu, ebx);
+			return qemu_stepper_register(env, 3);
 		case ECX:
-			return emu_cpu_reg32_get(cpu, ecx);
+			return qemu_stepper_register(env, 1);
 		case EDX:
-			return emu_cpu_reg32_get(cpu, edx);
+			return qemu_stepper_register(env, 2);
 		case ESI:
-			return emu_cpu_reg32_get(cpu, esi);
+			return qemu_stepper_register(env, 6);
 		case EDI:
-			return emu_cpu_reg32_get(cpu, edi);
+			return qemu_stepper_register(env, 7);
 		case ESP:
-			return emu_cpu_reg32_get(cpu, esp);
+			return qemu_stepper_register(env, 4);
 		case EBP:
-			return emu_cpu_reg32_get(cpu, ebp);*/
+			return qemu_stepper_register(env, 5);
 		case EIP:
-			return pos;
+			return qemu_stepper_eip(env) - offset;
 		default:;
 	}
 	return 0;
 }
-void Emulator_Qemu::end() {
-	if (!running) {
-		return;
-	}
-	qemu_exec_end(env);
-	running = false;
+unsigned int Emulator_Qemu::memory_offset() {
+	return offset;
 }
