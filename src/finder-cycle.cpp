@@ -40,6 +40,12 @@ void FinderCycle::launch(int pos)
 {
 	Timer::start(TimeLaunches);
 	LOG << " Launching from position 0x" << hex << pos << endl;
+	if (start_positions.count(pos)) {
+		LOG << "  Ignoring launch, already checked." << endl;
+		Timer::stop(TimeLaunches);
+		return;
+	}
+	start_positions.insert(pos);
 	int a[1000] = {0}, k, num, amount=0;
 	uint barrier;
 	bool flag = false;
@@ -158,7 +164,7 @@ void FinderCycle::launch(int pos)
 				cout << " 0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
 			}
 			cout << " Indirect write in line #" << k << ", launched from position 0x" << hex << pos << endl;
-			start_positions.insert(cycle[k-1].addr);
+			targets_found.insert(cycle[k-1].addr);
 #ifdef FINDER_ONCE
 			Timer::stop(TimeLaunches);
 			exit(0);
@@ -172,6 +178,7 @@ int FinderCycle::find() {
 	matches = 0;
 	Timer::start(TimeFind);
 	start_positions.clear();
+	targets_found.clear();
 	INSTRUCTION inst;
 	for (uint i=reader->start(); i<reader->size(); i++) {
 		/// TODO: check opcodes
@@ -288,7 +295,7 @@ void FinderCycle::find_memory_and_jump(int pos)
 			continue;
 		}
 		LOG << "  Write to memory detected: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
-		if (start_positions.count(p)) {
+		if (targets_found.count(p)) {
 			LOG << "   Not running, already checked." << endl;
 			Timer::stop(TimeFindMemoryAndJump);
 			return;
