@@ -35,6 +35,10 @@ public:
 	  Returns current state of register @ref reg.
 	*/
 	virtual unsigned int get_register(Register reg) = 0;
+	/**
+	  Returns memory offset for translating constant values from registers to memory pointers.
+	*/
+	virtual unsigned int memory_offset();
 	
 protected:
 	Reader *reader; ///<Pointer to an examplar of Reader class which is used for reading the file and taking interesting information out of the file header (if present).

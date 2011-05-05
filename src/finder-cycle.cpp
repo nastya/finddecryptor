@@ -608,6 +608,7 @@ bool FinderCycle::verify_changing_reg(INSTRUCTION *inst, Command *cycle, int siz
 		reg0 = REG_EDI;
 		mem = emulator->get_register((Register) int_to_reg(reg0));
 	}
+	mem -= emulator->memory_offset();
 	if ((mem==0) || !reader->is_within_one_block(mem,cycle[0].addr)) {
 		return false;
 	}
