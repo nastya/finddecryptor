@@ -28,7 +28,7 @@ void Emulator_Qemu::begin(uint pos) {
 	offset = pos - reader->map(pos) + qemu_stepper_offset(env) - start;
 
 	qemu_stepper_data_set(env, reader->pointer() + start, end - start);
-	qemu_stepper_entry_set(env, pos - start);
+	qemu_stepper_entry_set(env, pos - start, stack_size / 4);
 }
 bool Emulator_Qemu::step() {
 //	qemu_stepper_print_debug(env);
