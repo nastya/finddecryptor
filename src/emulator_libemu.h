@@ -5,9 +5,6 @@
 
 using namespace std;
 
-extern "C" {
-#include "../libemu/libemu.h"
-}
 
 /**
 	@brief

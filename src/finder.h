@@ -4,8 +4,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <libdasm.h>
 
-#include "libdasm.h" 
 #include "data.h"
 #include "timer.h"
 #include "emulator.h"

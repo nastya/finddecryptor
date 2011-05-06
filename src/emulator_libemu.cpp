@@ -3,6 +3,12 @@
 #include <fstream>
 #include <algorithm>
 
+extern "C" {
+	#include <emu/emu.h>
+	#include <emu/emu_cpu.h>
+	#include <emu/emu_memory.h>
+}
+
 using namespace std;
 
 const int Emulator_LibEmu::mem_before = 10*1024; // 10 KiB, min 1k instuctions

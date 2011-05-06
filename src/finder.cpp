@@ -130,7 +130,7 @@ void Finder::apply_reader(Reader *reader, bool guessType) {
 
 
 int Finder::instruction(INSTRUCTION *inst, int pos) {
-	return get_instruction(inst, reader->pointer() + pos, mode);
+	return get_instruction(inst, (BYTE*) (reader->pointer() + pos), mode);
 }
 string Finder::instruction_string(INSTRUCTION *inst, int pos) {
 	if (!inst->ptr) {

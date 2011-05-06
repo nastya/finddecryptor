@@ -1,6 +1,8 @@
 #include "finder-libemu.h"
+
 extern "C" {
-	#include "../libemu/libemu.h"
+	#include <emu/emu.h>
+	#include <emu/emu_shellcode.h>
 }
 
 using namespace std;
