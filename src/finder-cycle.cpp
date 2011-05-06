@@ -47,7 +47,7 @@ void FinderCycle::launch(int pos)
 	}
 	start_positions.insert(pos);
 	int a[1000] = {0}, k, num, amount=0;
-	uint barrier;
+	uint barrier = 0;
 	bool flag = false;
 //	Command cycle[256];
 	INSTRUCTION inst;
@@ -141,7 +141,9 @@ void FinderCycle::launch(int pos)
 		}
 	}
 	
-	if (flag) {
+	if (barrier <= 1) {
+		LOG << " Too short cycle, ignoring." << endl;
+	} else if (flag) {
 		k = verify(cycle, barrier+1);
 
 		if (log) {
