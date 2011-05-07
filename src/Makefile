@@ -4,12 +4,12 @@ CC		= gcc -Wall -fPIC -O2 -I.
 DEL_FILE	= rm -f
 FINDER_FLAGS	= -DFINDER_LOG -DTRY_READERS -DBACKEND_LIBEMU -DBACKEND_QEMU -DBACKEND_GDBWINE
 ####### Files
-OBJECTS		= myprogram.o \
+OBJECTS		= main.o \
 		  finder.o \
 		  finder-cycle.o \
 		  finder-getpc.o \
 		  finder-libemu.o \
-		  mediator.o \
+		  finddecryptor.o \
 		  data.o \
 		  reader.o \
 		  reader_pe.o \
@@ -20,12 +20,7 @@ OBJECTS		= myprogram.o \
 		  emulator_gdbwine.o \
 		  emulator_libemu.o
 
-LIBS		= ../lib/emulator_qemu.so \
-		  ../lib/emulator_gdbwine.so \
-		  ../lib/emulator_libemu.so
-
-TARGET		= ../bin/myprogram
-TARGET_LIB	= ../lib/myprogram.so
+TARGET		= ../bin/finddecryptor
 INPUT		= ../input/
 OUTPUT		= ../log/output
 
@@ -50,8 +45,8 @@ doc:
 
 ####### Compile
 
-myprogram.o: myprogram.cpp finder-cycle.h
-	$(CXX) -c myprogram.cpp
+main.o: main.cpp finder-cycle.h
+	$(CXX) -c main.cpp
 
 finder.o: finder.cpp finder.h emulator.h reader_pe.h timer.h Makefile
 	$(CXX) -c finder.cpp $(FINDER_FLAGS)
@@ -65,8 +60,8 @@ finder-getpc.o: finder-getpc.cpp finder-getpc.h finder.h Makefile
 finder-libemu.o: finder-libemu.cpp finder-libemu.h finder.h Makefile
 	$(CXX) -c finder-libemu.cpp $(FINDER_FLAGS)
 
-mediator.o: mediator.cpp mediator.h finder-cycle.h
-	$(CXX) -c mediator.cpp
+finddecryptor.o: finddecryptor.cpp finddecryptor.h finder-cycle.h
+	$(CXX) -c finddecryptor.cpp
 
 data.o: data.cpp data.h
 	$(CXX) -c data.cpp
@@ -95,25 +90,25 @@ emulator_libemu.o: emulator_libemu.cpp emulator_libemu.h emulator.h
 emulator_qemu.o: emulator_qemu.cpp emulator_qemu.h emulator.h
 	$(CXX) -c emulator_qemu.cpp
 
-../lib/emulator_gdbwine.so: emulator_gdbwine.o emulator.o fdostream.o
+../lib/libemulator_gdbwine.so: emulator_gdbwine.o emulator.o fdostream.o
 	mkdir -p ../lib
 	$(CXX) -shared -o $@ emulator_gdbwine.o emulator.o fdostream.o
 
-../lib/emulator_libemu.so: emulator_libemu.o emulator.o
+../lib/libemulator_libemu.so: emulator_libemu.o emulator.o
 	mkdir -p ../lib
 	$(CXX) -shared -o $@ emulator_libemu.o emulator.o -lemu
 
-../lib/emulator_qemu.so: emulator_qemu.o emulator.o ../qemu/libqemu-stepper.so
+../lib/libemulator_qemu.so: emulator_qemu.o emulator.o ../qemu/libqemu-stepper.so
 	mkdir -p ../lib
-	$(CXX) -shared -o $@ emulator_qemu.o emulator.o -lqemu-stepper -L$(CURDIR)/../qemu/ -Wl,-rpath -Wl,$(CURDIR)/../qemu/
+	$(CXX) -shared -o $@ emulator_qemu.o emulator.o -lqemu-stepper -L$(CURDIR)/../qemu -Wl,-rpath -Wl,$(CURDIR)/../qemu
 
-$(TARGET_LIB): data.o finder.o finder-cycle.o finder-getpc.o finder-libemu.o reader.o reader_pe.o timer.o mediator.o $(LIBS)
+../lib/libfinddecryptor.so: data.o finder.o finder-cycle.o finder-getpc.o finder-libemu.o reader.o reader_pe.o timer.o finddecryptor.o  ../lib/libemulator_qemu.so ../lib/libemulator_gdbwine.so ../lib/libemulator_libemu.so
 	mkdir -p ../lib
-	$(CXX) -shared -o $@ data.o finder.o finder-cycle.o finder-getpc.o finder-libemu.o reader.o reader_pe.o timer.o mediator.o -ldasm $(LIBS) -Wl,-rpath -Wl,$(CURDIR)/../lib
+	$(CXX) -shared -o $@ data.o finder.o finder-cycle.o finder-getpc.o finder-libemu.o reader.o reader_pe.o timer.o finddecryptor.o -ldasm -lemulator_qemu -lemulator_gdbwine -lemulator_libemu -L$(CURDIR)/../lib -Wl,-rpath -Wl,$(CURDIR)/../lib
 
-$(TARGET): myprogram.o $(TARGET_LIB)
+$(TARGET): main.o ../lib/libfinddecryptor.so
 	mkdir -p ../bin ../log
-	$(CXX) -o $@ myprogram.o $(TARGET_LIB) -Wl,-rpath -Wl,$(CURDIR)/../lib
+	$(CXX) -o $@ main.o -lfinddecryptor -L$(CURDIR)/../lib -Wl,-rpath -Wl,$(CURDIR)/../lib
 
 test: test_libemu
 

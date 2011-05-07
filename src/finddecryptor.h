@@ -1,5 +1,5 @@
-#ifndef MEDIATOR_H
-#define MEDIATOR_H
+#ifndef FINDDECRYPTOR_H
+#define FINDDECRYPTOR_H
 
 #include <string>
 
@@ -7,10 +7,10 @@ using namespace std;
 
 class Finder;
 
-class Mediator {
+class FindDecryptor {
 public:
-	Mediator(int finderType = 0, int emulatorType = 1);
-	~Mediator();
+	FindDecryptor(int finderType = 0, int emulatorType = 1);
+	~FindDecryptor();
 	void load(string name, bool guessType=false);
 	void link(const unsigned char *data, unsigned int dataSize, bool guessType=false);
 	int find();
@@ -18,4 +18,4 @@ public:
 private:
 	Finder *finder;
 };
-#endif
+#endif //FINDDECRYPTOR_H

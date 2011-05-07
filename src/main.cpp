@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
-#include "mediator.h"
+#include "finddecryptor.h"
 
 /** @mainpage Description
 This program is implementation of algorythm proposed by Qinghua Zhang, Douglas S. Reeves, Peng Ning, S. Purushothaman Iyer in the article "Analyzing Network Traffic To Detect Self-Decrypting Exploit Code".
@@ -10,7 +10,7 @@ They describe a method for detecting self-decrypting exploit codes. This method 
 
 /** 
  Function, running application.
- Makes an example of Finder class and uses it for finding necessary comand sequences.
+ Makes an example of FindDecryptor class and uses it for finding necessary comand sequences.
  @param argc Parameter of command string. Definition not specified.
  @param argv One parameter - name of the input file.
  */
@@ -40,9 +40,9 @@ int main(int argc, char** argv)
 			cerr << "Wrong usage." << endl;
 			return 0;
 	}
-	Mediator mediator(finderType, emulatorType);
-	mediator.load(argv[1], true);
-	if (mediator.find()) {
+	FindDecryptor find_decryptor(finderType, emulatorType);
+	find_decryptor.load(argv[1], true);
+	if (find_decryptor.find()) {
 		cout << "Shellcode found!" << endl;
 	}
 	return 0;

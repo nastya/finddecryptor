@@ -1,9 +1,9 @@
-#include "mediator.h"
+#include "finddecryptor.h"
 #include "finder-cycle.h"
 #include "finder-getpc.h"
 #include "finder-libemu.h"
 
-Mediator::Mediator(int finderType, int emulatorType) {
+FindDecryptor::FindDecryptor(int finderType, int emulatorType) {
 	switch (finderType) {
 		case 0:
 			finder = new FinderCycle(emulatorType);
@@ -19,15 +19,15 @@ Mediator::Mediator(int finderType, int emulatorType) {
 			finder = NULL;
 	}
 }
-Mediator::~Mediator() {
+FindDecryptor::~FindDecryptor() {
 	delete finder;
 }
-void Mediator::load(string name, bool guessType) {
+void FindDecryptor::load(string name, bool guessType) {
 	return finder->load(name, guessType);
 }
-void Mediator::link(const unsigned char *data, uint dataSize, bool guessType) {
+void FindDecryptor::link(const unsigned char *data, uint dataSize, bool guessType) {
 	return finder->link(data, dataSize, guessType);
 }
-int Mediator::find() {
+int FindDecryptor::find() {
 	return finder->find();
 }
