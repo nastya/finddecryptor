@@ -8,7 +8,7 @@ using namespace std;
 const int Emulator_Qemu::mem_before = 10*1024; // 10 KiB, min 1k instuctions
 const int Emulator_Qemu::mem_after = 80*1024; //80 KiB, min 8k instructions
 
-unsigned long Emulator_Qemu::stack_size = 8 * 1024 * 1024UL;
+unsigned long Emulator_Qemu::stack_size = 100 * 1024; // 100 KiB
 
 Emulator_Qemu::Emulator_Qemu() {
 	env = qemu_stepper_init();
@@ -27,6 +27,7 @@ void Emulator_Qemu::begin(uint pos) {
 	uint start = max((int) reader->start(), (int) pos - mem_before), end = min(reader->size(), pos + mem_after);
 	offset = pos - reader->map(pos) + qemu_stepper_offset(env) - start;
 
+	qemu_stepper_stack_clear(env);
 	qemu_stepper_data_set(env, reader->pointer() + start, end - start);
 	qemu_stepper_entry_set(env, pos - start, stack_size / 4);
 }
