@@ -33,7 +33,14 @@ void Emulator_Qemu::begin(uint pos) {
 }
 bool Emulator_Qemu::step() {
 //	qemu_stepper_print_debug(env);
-	return qemu_stepper_step(env) == 0;
+	switch (qemu_stepper_step(env)) {
+		case 0x2c:
+		case 0x80:
+		case 0:
+			return true;
+		default:;
+	}
+	return false;
 }
 bool Emulator_Qemu::get_command(char *buff, uint size) {
 	return qemu_stepper_read(env, buff, size) == 0;
