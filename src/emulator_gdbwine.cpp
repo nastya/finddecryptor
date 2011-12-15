@@ -120,6 +120,11 @@ bool Emulator_GdbWine::get_command(char *buff, uint size)
 	}
 	return true;
 }
+bool Emulator_GdbWine::get_memory(char *buff, int addr, uint size)
+{
+	/// TODO
+	return false;
+}
 unsigned int Emulator_GdbWine::get_register(Register reg)
 {
 	get_clean();

@@ -45,6 +45,10 @@ bool Emulator_Qemu::step() {
 bool Emulator_Qemu::get_command(char *buff, uint size) {
 	return qemu_stepper_read(env, buff, size) == 0;
 }
+bool Emulator_Qemu::get_memory(char *buff, int addr, uint size)
+{
+	return qemu_stepper_read_code(env, buff, size, addr);
+}
 unsigned int Emulator_Qemu::get_register(Register reg) {
 	switch (reg) {
 		case EAX:

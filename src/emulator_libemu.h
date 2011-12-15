@@ -18,6 +18,8 @@ public:
 	void begin(uint pos=0);
 	bool step();
 	bool get_command(char *buff, uint size=10);
+	bool get_memory(char *buff, int addr, uint size=1);
+	unsigned int get_int(int addr, int size=4);
 	unsigned int get_register(Register reg);
 private:
 	int offset; ///<Offset for emulated instructions (the memory/file adrress difference of the beginning of the block where they are situated).

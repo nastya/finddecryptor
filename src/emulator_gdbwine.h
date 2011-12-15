@@ -19,6 +19,7 @@ public:
 	
 	bool step();
 	bool get_command(char *buff, uint size=10);
+	bool get_memory(char *buff, int addr, uint size=1);
 	unsigned int get_register(Register reg);
 private:
 	/**

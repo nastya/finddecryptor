@@ -71,8 +71,32 @@ bool Emulator_LibEmu::step() {
 	return true;
 }
 bool Emulator_LibEmu::get_command(char *buff, uint size) {
-	emu_memory_read_block(mem, emu_cpu_eip_get(cpu), buff, size);
+	return get_memory(buff, emu_cpu_eip_get(cpu), size);
+}
+bool Emulator_LibEmu::get_memory(char *buff, int addr, uint size)
+{
+	emu_memory_read_block(mem, addr, buff, size);
 	return true;
+}
+unsigned int Emulator_LibEmu::get_int(int addr, int size)
+{
+	uint8_t memb = 0;
+	uint16_t memw = 0;
+	uint32_t memd = 0;
+	switch (size)
+	{
+		case 1:
+			emu_memory_read_byte(mem, addr, &memb);
+			return memb;
+		case 2:
+			emu_memory_read_word(mem, addr, &memw);
+			return memw;
+		case 4:
+			emu_memory_read_dword(mem, addr, &memd);
+			return memd;
+		default:;
+	}
+	return 0;
 }
 unsigned int Emulator_LibEmu::get_register(Register reg) {
 	switch (reg) {

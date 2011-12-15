@@ -32,6 +32,14 @@ public:
 	*/
 	virtual bool get_command(char *buff, uint size=10) = 0;
 	/**
+	  Copies @ref size bytes from address @ref addr into buffer @ref buff.
+	*/
+	virtual bool get_memory(char *buff, int addr, uint size=1) = 0;
+	/**
+	  Gets dword/word/byte (@ref size) from address @ref addr.
+	*/
+	virtual unsigned int get_int(int addr, int size=4);
+	/**
 	  Returns current state of register @ref reg.
 	*/
 	virtual unsigned int get_register(Register reg) = 0;
