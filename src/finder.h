@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <list>
 #include <libdasm.h>
 
 #include "data.h"
@@ -59,6 +60,8 @@ public:
 	Wrap on functions finding writes to memory and indirect jumps.
 	*/
 	virtual int find() = 0;
+	int get_start_list(int max_size, int* list);
+	list <int> get_start_list();
 protected:
 	/**
 	  Translates registers from libdasm format to the neccessary format used here. 
@@ -87,6 +90,7 @@ protected:
 	Emulator *emulator; ///<emulator used
 	static const Mode mode; ///<mode of disassembling (here it is MODE_32)
 	static const Format format; ///<format of commands (here it is Intel)
+	list <int> pos_dec; ///<starting positions of found decryptors
 
 	/**
 	  @param pos Position in input file from which we get instruction.

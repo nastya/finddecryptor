@@ -101,7 +101,6 @@ protected:
 	static const uint maxEmulate; ///<limit for emulating
 	static const uint maxForward; ///<limit for amount of instructions checked after GetPC to find target instruction
 	int am_back; ///<amount of commands found by backwards traversal
-	int matches; ///<number of matches found
 	Command cycle[256]; // TODO: fix. It should be a member of the Finder::launch(). Here because of qemu lags.
 };
 

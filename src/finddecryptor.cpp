@@ -31,3 +31,11 @@ void FindDecryptor::link(const unsigned char *data, uint dataSize, bool guessTyp
 int FindDecryptor::find() {
 	return finder->find();
 }
+int FindDecryptor::get_start_list(int max, int* list)
+{
+	return finder->get_start_list(max, list);
+}
+list <int> FindDecryptor::get_start_list()
+{
+	return finder->get_start_list();
+}

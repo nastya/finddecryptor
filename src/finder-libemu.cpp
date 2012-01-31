@@ -29,11 +29,13 @@ FinderLibemu::~FinderLibemu()
 }
 
 int FinderLibemu::find() {
+	pos_dec.clear();
 	Timer::start(TimeFind);
 	struct emu *e = emu_new();
 
 	long int offset = emu_shellcode_test(e, (uint8_t *) reader->pointer(), reader->size());
 	if (offset >= 0) {
+		pos_dec.push_back(offset);
 		LOG << "Found shellcode at offset 0x" << hex << offset << endl;
 	} else {
 		LOG << "Did not find anything." << endl;
@@ -41,5 +43,5 @@ int FinderLibemu::find() {
 
 	emu_free(e);
 	Timer::stop(TimeFind);
-	return (offset >= 0) ? 1 : 0;
+	return pos_dec.size();
 }

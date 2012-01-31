@@ -53,7 +53,6 @@ protected:
 	set<uint> start_positions;///<positions where target instructions are alredy found	
 	static const uint maxEmulate; ///<limit for emulating
 	static const uint maxUpGetPC; ///< New
-	int matches; ///<number of matches found
 	Command cycle[256]; // TODO: fix. It should be a member of the Finder::launch(). Here because of qemu lags.	
 };
 

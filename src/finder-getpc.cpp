@@ -82,7 +82,7 @@ int FinderGetPC::launch(int pos)
 				emulator->get_register(ESI)==saved_eip || emulator->get_register(EDI)==saved_eip ||
 				emulator->get_register(ESP)==saved_eip || emulator->get_register(EBP)==saved_eip) 
 			{
-				matches++;
+				pos_dec.push_back(pos);
 				LOG << " Shellcode found." << endl;
 				Timer::stop(TimeLaunches);
 #ifdef FINDER_LOG
@@ -163,7 +163,7 @@ int FinderGetPC::launch(int pos)
 }
 
 int FinderGetPC::find() {
-	matches = 0;
+	pos_dec.clear();
 	Timer::start(TimeFind);
 	INSTRUCTION inst;
 	for (uint i=reader->start(); i<reader->size(); i++) {
@@ -219,7 +219,7 @@ int FinderGetPC::find() {
 		}
 	}
 	Timer::stop(TimeFind);
-	return matches;
+	return pos_dec.size();
 }
 
 void FinderGetPC::find_dependence(uint pos)

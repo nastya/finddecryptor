@@ -159,7 +159,7 @@ void FinderCycle::launch(int pos)
 		}
 
 		if (k != -1) {
-			matches++;
+			pos_dec.push_back(pos_getpc);
 			cout << "Seeding instruction \"" << instruction_string(pos_getpc) << "\" on position 0x" << hex << pos_getpc << "." << endl;
 			cout << "Cycle found: " << endl;
 			for (uint i = 0; i <= barrier; i++) {
@@ -177,7 +177,7 @@ void FinderCycle::launch(int pos)
 }
 
 int FinderCycle::find() {
-	matches = 0;
+	pos_dec.clear();
 	Timer::start(TimeFind);
 	start_positions.clear();
 	targets_found.clear();
@@ -236,7 +236,7 @@ int FinderCycle::find() {
 		instructions_after_getpc.clear();
 	}
 	Timer::stop(TimeFind);
-	return matches;
+	return pos_dec.size();
 }
 
 void FinderCycle::find_memory_and_jump(int pos)

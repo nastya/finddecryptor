@@ -229,3 +229,19 @@ bool Finder::is_write(INSTRUCTION *inst)
 			return false;
 	}
 }
+
+int Finder::get_start_list(int max_size, int* found_pos)
+{
+	/*return of found starting positions of decryptors*/
+	list <int>:: iterator it;
+	int i;
+	for (it = pos_dec.begin(), i = 0; (it != pos_dec.end()) && (i<max_size); it++, i++)
+		found_pos[i] = *it;
+
+	return i;
+}
+
+list <int> Finder::get_start_list()
+{
+	return pos_dec;
+}

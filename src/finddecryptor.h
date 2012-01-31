@@ -2,6 +2,7 @@
 #define FINDDECRYPTOR_H
 
 #include <string>
+#include <list>
 
 using namespace std;
 
@@ -14,7 +15,9 @@ public:
 	void load(string name, bool guessType=false);
 	void link(const unsigned char *data, unsigned int dataSize, bool guessType=false);
 	int find();
-	
+	int get_start_list(int max, int* list);
+	list <int> get_start_list();
+
 private:
 	Finder *finder;
 };
