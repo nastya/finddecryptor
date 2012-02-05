@@ -159,7 +159,7 @@ void FinderCycle::launch(int pos)
 		}
 
 		if (k != -1) {
-			pos_dec.push_back(pos_getpc);
+			pos_dec.push_back(pos);
 			cout << "Seeding instruction \"" << instruction_string(pos_getpc) << "\" on position 0x" << hex << pos_getpc << "." << endl;
 			cout << "Cycle found: " << endl;
 			for (uint i = 0; i <= barrier; i++) {
