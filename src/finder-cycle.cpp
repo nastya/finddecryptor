@@ -141,7 +141,7 @@ void FinderCycle::launch(int pos)
 		}
 	}
 	
-	if (barrier <= 1) {
+	if (barrier <= 0) {
 		LOG << " Too short cycle, ignoring." << endl;
 	} else if (flag) {
 		k = verify(cycle, barrier+1);
