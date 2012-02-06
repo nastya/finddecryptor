@@ -256,42 +256,53 @@ void FinderCycle::find_memory_and_jump(int pos)
 		}
 		LOG << " Instruction: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
 		instructions_after_getpc.push_back(inst);
+		bool error = false;
 		switch (inst.type) {
 			/// TODO: check
 			case INSTRUCTION_TYPE_JMP:
 			case INSTRUCTION_TYPE_JMPC:
-				if (	(inst.op1.type==OPERAND_TYPE_MEMORY) &&
-					(inst.op1.basereg!=REG_NOP)) {
+				if ((inst.op1.type == OPERAND_TYPE_MEMORY) && (inst.op1.basereg != REG_NOP)) {
 					LOG << " Indirect jump detected: " << instruction_string(&inst) << " on position 0x" << hex << p << endl;
 					get_operands(&inst);
-				}
-				if (	(!nofollow.count(p)) &&
-					(strcmp(inst.ptr->mnemonic,"jmp")==0) &&
-					(inst.op1.type==OPERAND_TYPE_IMMEDIATE)) {
-					nofollow.insert(p);
-					p += inst.op1.immediate;
-					continue;
+				} else if (strcmp(inst.ptr->mnemonic,"jmp") == 0) {
+					if ((inst.op1.type == OPERAND_TYPE_MEMORY) || nofollow.count(p)) {
+						error = true;
+					} else if (inst.op1.type == OPERAND_TYPE_IMMEDIATE) {
+						nofollow.insert(p);
+						p += inst.op1.immediate;
+						continue;
+					}
 				}
 				break;
-			case INSTRUCTION_TYPE_CALL:
-				if (	(!nofollow.count(p)) &&
-					(strcmp(inst.ptr->mnemonic,"call")==0) &&
-					(inst.op1.type==OPERAND_TYPE_IMMEDIATE)) {
-					nofollow.insert(p);
-					calls.push(p + inst.length);
-					p += inst.op1.immediate;
-					continue;
+			case INSTRUCTION_TYPE_CALL: /// TODO: behave like jmp?
+				if (strcmp(inst.ptr->mnemonic,"call") == 0) {
+					if ((inst.op1.type == OPERAND_TYPE_MEMORY) || nofollow.count(p)) {
+						error = true;
+					} else if (inst.op1.type == OPERAND_TYPE_IMMEDIATE) {
+						nofollow.insert(p);
+						calls.push(p + inst.length);
+						p += inst.op1.immediate;
+						continue;
+					}
 				}
 				break;
 			case INSTRUCTION_TYPE_RET: // We do not need nofollow check here, nofollow check in calls is enough.
-				if (	(!calls.empty()) &&
-					(strcmp(inst.ptr->mnemonic,"ret")==0)) {
-					p = calls.top() - len;
-					calls.pop();
-					continue;
+				if (strcmp(inst.ptr->mnemonic,"ret") == 0) {
+					if (calls.empty()) {
+						error = true;
+					} else {
+						p = calls.top() - len;
+						calls.pop();
+						continue;
+					}
 				}
 				break;
 			default:;
+		}
+		if (error) {
+			LOG << "   Error detected." << endl;
+			Timer::stop(TimeFindMemoryAndJump);
+			return;
 		}
 		if (!is_write_indirect(&inst)) {
 			continue;
