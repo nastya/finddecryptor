@@ -17,6 +17,8 @@ public:
 	int find();
 	int get_start_list(int max, int* list);
 	list <int> get_start_list();
+	int get_sizes_list(int max, int* list);
+	list <int> get_sizes_list();
 
 private:
 	Finder *finder;

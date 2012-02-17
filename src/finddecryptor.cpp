@@ -39,3 +39,11 @@ list <int> FindDecryptor::get_start_list()
 {
 	return finder->get_start_list();
 }
+int FindDecryptor::get_sizes_list(int max, int* list)
+{
+	return finder->get_sizes_list(max, list);
+}
+list <int> FindDecryptor::get_sizes_list()
+{
+	return finder->get_sizes_list();
+}

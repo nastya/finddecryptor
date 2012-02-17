@@ -55,6 +55,8 @@ void FinderCycle::launch(int pos)
 	emulator->begin(pos);
 	Timer::stop(TimeEmulatorStart);
 	char buff[10] = {0};
+	int min_eip = emulator->get_register(EIP);
+	int max_eip = 0;
 	for (uint strnum = 0; strnum < maxEmulate; strnum++) {
 		if (!emulator->get_command(buff)) {
 			LOG << " Execution error, stopping instance." << endl;
@@ -67,7 +69,9 @@ void FinderCycle::launch(int pos)
 			Timer::stop(TimeLaunches);
 			return;
 		}
-		get_instruction(&inst, (BYTE *) buff, mode);
+		int inst_len = get_instruction(&inst, (BYTE *) buff, mode);
+		if (num + inst_len > max_eip)
+			max_eip = num + inst_len;
 		LOG << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 		if (!emulator->step()) {
 			LOG << " Execution error, stopping instance." << endl;
@@ -160,12 +164,13 @@ void FinderCycle::launch(int pos)
 
 		if (k != -1) {
 			pos_dec.push_back(pos);
-			cout << "Seeding instruction \"" << instruction_string(pos_getpc) << "\" on position 0x" << hex << pos_getpc << "." << endl;
-			cout << "Cycle found: " << endl;
-			for (uint i = 0; i <= barrier; i++) {
+			dec_sizes.push_back(max_eip - min_eip);
+			//cout << "Seeding instruction \"" << instruction_string(pos_getpc) << "\" on position 0x" << hex << pos_getpc << "." << endl;
+			//cout << "Cycle found: " << endl;
+			/*for (uint i = 0; i <= barrier; i++) {
 				cout << " 0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
-			}
-			cout << " Indirect write in line #" << k << ", launched from position 0x" << hex << pos << endl;
+			}*/
+			//cout << " Indirect write in line #" << k << ", launched from position 0x" << hex << pos << endl;
 			targets_found.insert(cycle[k-1].addr);
 #ifdef FINDER_ONCE
 			Timer::stop(TimeLaunches);
@@ -178,6 +183,7 @@ void FinderCycle::launch(int pos)
 
 int FinderCycle::find() {
 	pos_dec.clear();
+	dec_sizes.clear();
 	Timer::start(TimeFind);
 	start_positions.clear();
 	targets_found.clear();
@@ -465,6 +471,16 @@ void FinderCycle::check(INSTRUCTION *inst)
 			break;
 		case INSTRUCTION_TYPE_POP:
 			if (inst->op1.type != OPERAND_TYPE_REGISTER) {
+				if (strcmp(inst->ptr->mnemonic,"popa")==0) {
+				regs_target[EAX] = false;
+				regs_target[EBX] = false;
+				regs_target[ECX] = false;
+				regs_target[EDX] = false;
+				regs_target[EBP] = false;
+				regs_target[ESI] = false;
+				regs_target[EDI] = false;
+				regs_target[ESP] = true;
+			}
 				break;
 			}
 			r = int_to_reg(inst->op1.reg);
@@ -474,6 +490,15 @@ void FinderCycle::check(INSTRUCTION *inst)
 			break;
 		case INSTRUCTION_TYPE_PUSH: /// TODO: check operands
 			regs_target[ESP] = false;
+			if (strcmp(inst->ptr->mnemonic,"pusha")==0) {
+				regs_target[EAX] = true;
+				regs_target[EBX] = true;
+				regs_target[ECX] = true;
+				regs_target[EDX] = true;
+				regs_target[EBP] = true;
+				regs_target[ESI] = true;
+				regs_target[EDI] = true;
+			}
 			break;
 		case INSTRUCTION_TYPE_CALL:
 			regs_target[ESP] = false;

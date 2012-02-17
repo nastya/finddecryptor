@@ -62,6 +62,8 @@ public:
 	virtual int find() = 0;
 	int get_start_list(int max_size, int* list);
 	list <int> get_start_list();
+	int get_sizes_list(int max_size, int* list);
+	list <int> get_sizes_list();
 protected:
 	/**
 	  Translates registers from libdasm format to the neccessary format used here. 
@@ -91,6 +93,7 @@ protected:
 	static const Mode mode; ///<mode of disassembling (here it is MODE_32)
 	static const Format format; ///<format of commands (here it is Intel)
 	list <int> pos_dec; ///<starting positions of found decryptors
+	list <int> dec_sizes; ///<sizes of found decryptors
 
 	/**
 	  @param pos Position in input file from which we get instruction.
