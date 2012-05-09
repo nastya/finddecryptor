@@ -7,16 +7,18 @@
 
 using namespace std;
 
-Reader::Reader()
+Reader::Reader(uint base)
+: base(base)
 {
 	filename = "";
 	dataSize = 0;
 	dataStart = 0;
 	data = NULL;
 	indirect = false;
-	base = 0x20000000L; // Max is 0x7fffffffL
+	// Max base is 0x7fffffffL
 }
 Reader::Reader(const Reader *reader)
+: base(reader->base)
 {
 	filename = reader->filename;
 	dataSize = reader->dataSize;

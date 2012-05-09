@@ -15,7 +15,7 @@ Class for reading input.
 class Reader
 {
 public:
-	Reader();
+	Reader(uint base = 0x20000000L);
 	Reader(const Reader *reader);
 	~Reader();
 
@@ -81,6 +81,6 @@ protected:
 	const unsigned char *data; ///<buffer containing binary file
 	uint dataSize; ///<size of buffer data
 	uint dataStart; ///<start of the actual data in buffer
-	uint base;///< Base of addresses in memory
+	const uint base;///< Base of addresses in memory
 };
 #endif
