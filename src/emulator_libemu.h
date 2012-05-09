@@ -21,13 +21,13 @@ public:
 	bool get_memory(char *buff, int addr, uint size=1);
 	unsigned int get_int(int addr, int size=4);
 	unsigned int get_register(Register reg);
-private:
-	int offset; ///<Offset for emulated instructions (the memory/file adrress difference of the beginning of the block where they are situated).
 	/**
 	  Continues emulation from the spesified position.
 	  @param pos Spesified position.
 	*/
 	void jump(uint pos);
+private:
+	int offset; ///<Offset for emulated instructions (the memory/file adrress difference of the beginning of the block where they are situated).
 	/**
 	 Struct containing emulator.
 	 @sa emu (libemu documentation)
