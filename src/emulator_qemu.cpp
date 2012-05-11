@@ -26,7 +26,6 @@ void Emulator_Qemu::begin(uint pos) {
 	}
 	uint start = max((int) reader->start(), (int) pos - mem_before), end = min(reader->size(), pos + mem_after);
 	offset = pos - reader->map(pos) + qemu_stepper_offset(env) - start;
-
 	qemu_stepper_stack_clear(env);
 	qemu_stepper_data_set(env, reader->pointer() + start, end - start);
 	qemu_stepper_entry_set(env, pos - start, stack_size / 4);
@@ -47,7 +46,7 @@ bool Emulator_Qemu::get_command(char *buff, uint size) {
 }
 bool Emulator_Qemu::get_memory(char *buff, int addr, uint size)
 {
-	return qemu_stepper_read_code(env, buff, size, addr);
+	return qemu_stepper_read_code(env, buff, size, addr) == 0;
 }
 unsigned int Emulator_Qemu::get_register(Register reg) {
 	switch (reg) {
