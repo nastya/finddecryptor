@@ -17,7 +17,7 @@ class Reader
 public:
 	Reader(uint base = 0x20000000L);
 	Reader(const Reader *reader);
-	~Reader();
+	virtual ~Reader();
 
 	/**
 	  Load file.

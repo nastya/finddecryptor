@@ -1,14 +1,20 @@
 #include "emulator.h"
 #include <sys/types.h>
 
+Emulator::~Emulator()
+{
+}
+
 void Emulator::bind(Reader* r) 
 {
 	reader = r;
 }
+
 unsigned int Emulator::memory_offset()
 {
 	return 0;
 }
+
 unsigned int Emulator::get_int(int addr, int size)
 {
 	u_int8_t memb = 0;

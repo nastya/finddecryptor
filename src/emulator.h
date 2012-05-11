@@ -14,6 +14,10 @@ using namespace std;
 class Emulator : protected Data {
 public:
 	/**
+	  The destructor.
+	*/
+	virtual ~Emulator();
+	/**
 	  Binds reader to emulator.
 	  @param r Pointer to an examplar of Reader class which is used for reading the file and taking interesting information out of the file header (if present).
 	*/
