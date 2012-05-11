@@ -8,6 +8,8 @@ const char* Data::Registers [] = {
 	"ax","bx","cx","dx",
 	"ah","bh","ch","dh",
 	"al","bl","cl","dl",
+	"es", "ds", "fs", "gs", "cs", "ss",
+	"noreg",
 	"hasfpu" // Not a register, but has to be here.
 }; 
 const int Data::RegistersCount = sizeof(Registers)/sizeof(Registers[0]);

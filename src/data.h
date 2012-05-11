@@ -16,6 +16,8 @@ public:
 		AX,BX,CX,DX,
 		AH,BH,CH,DH,
 		AL,BL,CL,DL,
+		ES, DS, FS, GS, CS, SS,
+		NOREG,
 		HASFPU
 	};
 
