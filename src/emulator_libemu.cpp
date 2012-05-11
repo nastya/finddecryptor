@@ -7,6 +7,9 @@ extern "C" {
 	#include <emu/emu.h>
 	#include <emu/emu_cpu.h>
 	#include <emu/emu_memory.h>
+
+	//#include <emu/emu_log.h>
+	//#include <emu/emu_cpu_data.h>
 }
 
 using namespace std;
@@ -20,6 +23,11 @@ Emulator_LibEmu::Emulator_LibEmu() {
 	e = emu_new();
 	cpu = emu_cpu_get(e);
 	mem = emu_memory_get(e);
+
+	//struct emu_logging *el = emu_logging_get(e);
+	//emu_log_level_set(el, EMU_LOG_DEBUG);
+	//emu_cpu_debugflag_set(cpu, instruction_string);
+	//emu_cpu_debugflag_set(cpu, instruction_size);
 }
 Emulator_LibEmu::~Emulator_LibEmu() {
 	emu_free(e);
