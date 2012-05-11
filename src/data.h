@@ -21,9 +21,9 @@ public:
 		HASFPU
 	};
 
-	static const int RegistersCount; ///<an amount of registers (only observed registers)
+	static const unsigned int RegistersCount; ///<an amount of registers (only observed registers)
 	static const char *Registers[]; ///<observed registers
-	static const int MaxCommandSize; ///<maximum size of command in 32-bit architecture
+	static const unsigned int MaxCommandSize; ///<maximum size of command in 32-bit architecture
 };
 
 #endif 

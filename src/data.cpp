@@ -1,6 +1,6 @@
 #include "data.h"
 
-const int Data::MaxCommandSize = 30;
+const unsigned int Data::MaxCommandSize = 30;
 const char* Data::Registers [] = {
 	"eip","ebp","esp","esi","edi",
 	"ip","bp","sp","si","di",
@@ -12,4 +12,4 @@ const char* Data::Registers [] = {
 	"noreg",
 	"hasfpu" // Not a register, but has to be here.
 }; 
-const int Data::RegistersCount = sizeof(Registers)/sizeof(Registers[0]);
+const unsigned int Data::RegistersCount = sizeof(Registers)/sizeof(Registers[0]);

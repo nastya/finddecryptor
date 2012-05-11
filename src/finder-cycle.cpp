@@ -46,7 +46,7 @@ void FinderCycle::launch(int pos)
 		return;
 	}
 	start_positions.insert(pos);
-	int a[1000] = {0}, k, num, amount=0;
+	int a[1000] = {0}, num, amount=0;
 	uint barrier = 0;
 	bool flag = false;
 //	Command cycle[256];
@@ -79,11 +79,11 @@ void FinderCycle::launch(int pos)
 			return;
 		}
 		check(&inst);
-		for (int i = 0; i < RegistersCount; i++) {
+		for (unsigned int i = 0; i < RegistersCount; i++) {
 			if (regs_target[i] && regs_known[i]) {
 				regs_target[i] = false;
 			} else if (regs_target[i] && !regs_known[i]) {
-				for (k = 0; k < RegistersCount; k++) {
+				for (unsigned int k = 0; k < RegistersCount; k++) {
 					regs_target[k] = regs_known[k] || regs_target[k];
 					regs_known[k] = false;
 				}
@@ -148,7 +148,7 @@ void FinderCycle::launch(int pos)
 	if (barrier <= 0) {
 		LOG << " Too short cycle, ignoring." << endl;
 	} else if (flag) {
-		k = verify(cycle, barrier+1);
+		int k = verify(cycle, barrier+1);
 
 		if (log) {
 			LOG << " Cycle found: " << endl;
@@ -338,7 +338,7 @@ void FinderCycle::find_memory_and_jump(int pos)
 }
 
 bool FinderCycle::regs_closed() {
-	for (int i=0; i<RegistersCount; i++) {
+	for (unsigned int i=0; i<RegistersCount; i++) {
 		if (regs_target[i]) {
 			return false;
 		}
@@ -347,8 +347,8 @@ bool FinderCycle::regs_closed() {
 }
 void FinderCycle::check(vector <INSTRUCTION>* instructions)
 {
-	for (int k=instructions->size()-1;k>=0;k--) {
-		check(&((*instructions)[k]));
+	for (vector<INSTRUCTION>::reverse_iterator rit = instructions->rbegin(); rit != instructions->rend(); rit++) {
+		check(&(*rit));
 	}
 }
 void FinderCycle::add_target(OPERAND *op) {
@@ -552,7 +552,7 @@ int FinderCycle::backwards_traversal(int pos)
 	bool regs_target_bak[RegistersCount], regs_known_bak[RegistersCount];
 	memcpy(regs_target_bak,regs_target,RegistersCount);
 	memcpy(regs_known_bak,regs_known,RegistersCount);
-	vector <int> queue[2];
+	vector <unsigned int> queue[2];
 	map<int,INSTRUCTION> instructions;
 	INSTRUCTION inst;
 	queue[0].push_back(pos);
@@ -560,11 +560,11 @@ int FinderCycle::backwards_traversal(int pos)
 	vector <INSTRUCTION> commands;
 	for (uint n = 0; n < maxBackward; n++) {
 		queue[m^1].clear();
-		for (vector<int>::iterator p=queue[m].begin(); p!=queue[m].end(); p++) {
-			for (int i=1; (i<=MaxCommandSize) && (i<=(*p)); i++) {
+		for (vector<unsigned int>::iterator p=queue[m].begin(); p!=queue[m].end(); p++) {
+			for (unsigned int i=1; (i<=MaxCommandSize) && (i<=(*p)); i++) {
 				int curr = (*p) - i;
 				bool ok = false;
-				int len = instruction(&inst,curr);
+				unsigned int len = instruction(&inst,curr);
 				switch (inst.type) {
 					case INSTRUCTION_TYPE_JMP:
 					case INSTRUCTION_TYPE_JMPC:
