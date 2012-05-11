@@ -81,6 +81,6 @@ protected:
 	const unsigned char *data; ///<buffer containing binary file
 	uint dataSize; ///<size of buffer data
 	uint dataStart; ///<start of the actual data in buffer
-	const uint base;///< Base of addresses in memory
+	uint base;///< Base of addresses in memory
 };
 #endif
