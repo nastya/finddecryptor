@@ -1,6 +1,7 @@
 #include <csignal> 
 #include <cstdlib>
 #include <fstream>
+#include <unistd.h>
 #include "emulator_gdbwine.h"
 #include "fdostream.h"
 

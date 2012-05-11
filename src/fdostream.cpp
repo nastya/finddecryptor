@@ -1,4 +1,5 @@
 #include "fdostream.h"
+#include <unistd.h>
 
 using namespace std;
 
