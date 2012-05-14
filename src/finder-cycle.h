@@ -95,6 +95,9 @@ protected:
 	bool *regs_target; ///<registers to be defined (array which size is number of registers, regs_target[i]=true if register is to be defined and regs_target[i]=false vice versa)
 	bool *regs_known; ///registers which are already defined (array which size is number of registers, regs_known[i]=true if register was defined and regs_target[i]=false vice versa)
 
+	int _count_pop, _count_push;
+	bool _push_op_target;
+	bool _in_backwards;
 	set<uint> start_positions;///<postions which were already checked
 	set<uint> targets_found;///<positions where target instructions are alredy found
 	static const uint maxBackward; ///<limit for backwards traversal

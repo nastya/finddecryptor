@@ -13,7 +13,7 @@ const uint FinderCycle::maxBackward = 20;
 const uint FinderCycle::maxForward = 100;
 const uint FinderCycle::maxEmulate = 180;
 
-FinderCycle::FinderCycle(int type) : Finder(type)
+FinderCycle::FinderCycle(int type) : Finder(type), _in_backwards(false)
 {
 	regs_known = new bool[RegistersCount];
 	regs_target = new bool[RegistersCount];
@@ -87,8 +87,26 @@ void FinderCycle::launch(int pos)
 					regs_target[k] = regs_known[k] || regs_target[k];
 					regs_known[k] = false;
 				}
+				bool regs_target_bak[RegistersCount], regs_known_bak[RegistersCount];
+				memcpy(regs_target_bak, regs_target, RegistersCount);
+				memcpy(regs_known_bak, regs_known, RegistersCount);
+				_count_pop = _count_push = 0;
+				_in_backwards = true;
+				_push_op_target = true;
 				check(&instructions_after_getpc);
+				_in_backwards = false;
 				int em_start = backwards_traversal(pos_getpc);
+				if (em_start < 0)
+				{
+					memcpy(regs_target,regs_target_bak,RegistersCount);
+					memcpy(regs_known,regs_known_bak,RegistersCount);
+					_count_pop = _count_push = 0;
+					_in_backwards = true;
+					_push_op_target = false;
+					check(&instructions_after_getpc);
+					_in_backwards = false;
+					em_start = backwards_traversal(pos_getpc);
+				}
 				if (em_start < 0) {
 					LOG <<  " Backwards traversal failed (nothing suitable found)." << endl;
 					Timer::stop(TimeLaunches);
@@ -322,8 +340,25 @@ void FinderCycle::find_memory_and_jump(int pos)
 		memset(regs_known,false,RegistersCount);
 		memset(regs_target,false,RegistersCount);
 		get_operands(&inst);
+		_count_pop = _count_push = 0;
+		_in_backwards = true;
+		_push_op_target = true;
 		check(&instructions_after_getpc);
+		_in_backwards = false;
 		int em_start = backwards_traversal(pos_getpc);
+		if (em_start < 0)
+		{
+			memset(regs_known,false,RegistersCount);
+			memset(regs_target,false,RegistersCount);
+			get_operands(&inst);
+			_count_pop = 0;
+			_count_push = 0;
+			_in_backwards = true;
+			_push_op_target = false;
+			check(&instructions_after_getpc);
+			_in_backwards = false;
+			em_start = backwards_traversal(pos_getpc);
+		}
 		if (em_start < 0) {
 			LOG << "   Backwards traversal failed (nothing suitable found)." << endl;
 			Timer::stop(TimeFindMemoryAndJump);
@@ -343,6 +378,9 @@ bool FinderCycle::regs_closed() {
 			return false;
 		}
 	}
+	LOG << "Push-pop heuristic fails " << dec << _count_push << " " << _count_pop << endl;
+	if (_count_push < _count_pop)
+		return false;
 	return true;
 }
 void FinderCycle::check(vector <INSTRUCTION>* instructions)
@@ -387,6 +425,11 @@ void FinderCycle::get_operands(INSTRUCTION *inst) /// TODO: merge with check()?
 	}
 	if (inst->op1.type==OPERAND_TYPE_MEMORY) {
 		add_target(&(inst->op1));
+	}
+	if (inst->type == INSTRUCTION_TYPE_STOS)
+	{
+		regs_target[EAX] = true;
+		regs_target[EDI] = true;
 	}
 	add_target(&(inst->op2));
 	add_target(&(inst->op3));
@@ -470,37 +513,63 @@ void FinderCycle::check(INSTRUCTION *inst)
 			}
 			break;
 		case INSTRUCTION_TYPE_POP:
-			if (inst->op1.type != OPERAND_TYPE_REGISTER) {
-				if (strcmp(inst->ptr->mnemonic,"popa")==0) {
-				regs_target[EAX] = false;
-				regs_target[EBX] = false;
-				regs_target[ECX] = false;
-				regs_target[EDX] = false;
-				regs_target[EBP] = false;
-				regs_target[ESI] = false;
-				regs_target[EDI] = false;
-				regs_target[ESP] = true;
-			}
+			regs_target[ESP] = true;
+			if (inst->op1.type == OPERAND_TYPE_NONE) {
+				if (strcmp(inst->ptr->mnemonic, "popa") == 0) {
+					if (_in_backwards)
+						_count_pop += 8;
+					regs_target[EAX] = false;
+					regs_target[EBX] = false;
+					regs_target[ECX] = false;
+					regs_target[EDX] = false;
+					regs_target[EBP] = false;
+					regs_target[ESI] = false;
+					regs_target[EDI] = false;
+				}
 				break;
 			}
-			r = int_to_reg(inst->op1.reg);
-			regs_known[r] = true;
-			regs_target[r] = false;
-			regs_target[ESP] = true;
+			if (_in_backwards)
+				_count_pop++;
+			if (inst->op1.type == OPERAND_TYPE_REGISTER) {
+				r = int_to_reg(inst->op1.reg);
+				if (r >= 0) {
+					regs_known[r] = true;
+					regs_target[r] = false;
+				}
+			}
 			break;
 		case INSTRUCTION_TYPE_PUSH: /// TODO: check operands
 			regs_target[ESP] = false;
-			if (strcmp(inst->ptr->mnemonic,"pusha")==0) {
-				regs_target[EAX] = true;
-				regs_target[EBX] = true;
-				regs_target[ECX] = true;
-				regs_target[EDX] = true;
-				regs_target[EBP] = true;
-				regs_target[ESI] = true;
-				regs_target[EDI] = true;
+			if (inst->op1.type == OPERAND_TYPE_NONE) {
+				if (strcmp(inst->ptr->mnemonic, "pusha") == 0) {
+					if (_in_backwards)
+						_count_push += 8;
+					if (_push_op_target)
+					{
+						regs_target[EAX] = true;
+						regs_target[EBX] = true;
+						regs_target[ECX] = true;
+						regs_target[EDX] = true;
+						regs_target[EBP] = true;
+						regs_target[ESI] = true;
+						regs_target[EDI] = true;
+					}
+				}
+				break;
+			}
+			if (_in_backwards)
+				_count_push++;
+			if (inst->op1.type == OPERAND_TYPE_REGISTER) {
+				r = int_to_reg(inst->op1.reg);
+				if (_push_op_target && r >= 0 && !regs_known[r] && Registers[r] != Registers[ESP])
+				{
+					regs_target[r] = true;
+				}
 			}
 			break;
 		case INSTRUCTION_TYPE_CALL:
+			if (_in_backwards)
+				_count_push++;
 			regs_target[ESP] = false;
 			regs_known[ESP] = true;
 			//if (get_write_indirect(inst,&r)) {
@@ -525,6 +594,7 @@ void FinderCycle::check(INSTRUCTION *inst)
 			}
 			break;
 		case INSTRUCTION_TYPE_FPU_CTRL:
+			_count_push += 12;
 			if (strcmp(inst->ptr->mnemonic,"fstenv")==0) {
 				add_target(&(inst->op1));
 				if (regs_target[ESP]) { // If we need ESP. Else, use general fpu instuction logic.
@@ -548,10 +618,13 @@ int FinderCycle::backwards_traversal(int pos)
 	if (regs_closed()) {
 		return pos;
 	}
+	_in_backwards = true;
 	Timer::start(TimeBackwardsTraversal);
 	bool regs_target_bak[RegistersCount], regs_known_bak[RegistersCount];
 	memcpy(regs_target_bak,regs_target,RegistersCount);
 	memcpy(regs_known_bak,regs_known,RegistersCount);
+	int _count_pop_bak = _count_pop;
+	int _count_push_bak = _count_push;
 	vector <unsigned int> queue[2];
 	map<int,INSTRUCTION> instructions;
 	INSTRUCTION inst;
@@ -603,16 +676,20 @@ int FinderCycle::backwards_traversal(int pos)
 				}*/
 				if (ret) {
 					Timer::stop(TimeBackwardsTraversal);
+					_in_backwards = false;
 					return curr;
 				}
 				memcpy(regs_target,regs_target_bak,RegistersCount);
 				memcpy(regs_known,regs_known_bak,RegistersCount);
+				_count_pop = _count_pop_bak;
+				_count_push = _count_push_bak;
 			}
 		}
 		m ^= 1;
 		/// TODO: We should also check all static jumps to this point.
 	}
 	Timer::stop(TimeBackwardsTraversal);
+	_in_backwards = false;
 	return -1;
 }
 int FinderCycle::verify(Command *cycle, int size)
