@@ -1,0 +1,40 @@
+### Commented entries have reasonable defaults.
+### Uncomment to edit them.
+Section: misc
+Priority: optional
+Homepage: https://gitorious.org/shellcode-detection/finddecryptor
+Standards-Version: 3.6.2
+
+Package: finddecryptor
+Version: 0.1.0
+Maintainer: Anastasiya Shcherbinina <nastya_jane@lvk.cs.msu.su>
+# Pre-Depends: <comma-separated list of packages>
+# Depends: <comma-separated list of packages>
+# Recommends: <comma-separated list of packages>
+# Suggests: <comma-separated list of packages>
+# Provides: <comma-separated list of packages>
+# Replaces: <comma-separated list of packages>
+Architecture: any
+# Copyright: <copyright file; defaults to GPL2>
+# Changelog: <changelog file; defaults to a generic changelog>
+# Readme: <README.Debian file; defaults to a generic one>
+# Extra-Files: <comma-separated list of additional files for the doc directory>
+Files: bin/finddecryptor /usr/bin/finddecryptor 
+  lib/libemulator_libemu.so /usr/lib/libemulator_libemu.so
+  lib/libfinddecryptor.so /usr/lib/libfinddecryptor.so
+  src/data.h /usr/include/finddecryptor/data.h
+  src/emulator_gdbwine.h /usr/include/finddecryptor/emulator_gdbwine.h
+  src/emulator.h /usr/include/finddecryptor/emulator.h
+  src/emulator_libemu.h /usr/include/finddecryptor/emulator_libemu.h
+  src/emulator_qemu.h /usr/include/finddecryptor/emulator_qemu.h
+  src/fdostream.h /usr/include/finddecryptor/fdostream.h
+  src/finddecryptor.h /usr/include/finddecryptor/finddecryptor.h
+  src/finder-cycle.h /usr/include/finddecryptor/finder-cycle.h
+  src/finder-getpc.h /usr/include/finddecryptor/finder-getpc.h
+  src/finder.h /usr/include/finddecryptor/finder.h
+  src/finder-libemu.h /usr/include/finddecryptor/finder-libemu.h
+  src/reader.h /usr/include/finddecryptor/reader.h
+  src/reader_pe.h /usr/include/finddecryptor/reader_pe.h
+  src/timer.h /usr/include/finddecryptor/timer.h
+
+Description: Implementation of a shellcode detection algorithm via detection of decryptor.
