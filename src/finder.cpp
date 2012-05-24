@@ -21,6 +21,8 @@ using namespace std;
 	#define LOG if (false) cerr
 #endif
 
+#include <string.h>
+
 const Mode Finder::mode = MODE_32;
 const Format Finder::format = FORMAT_INTEL;
 
@@ -130,6 +132,15 @@ void Finder::apply_reader(Reader *reader, bool guessType) {
 
 
 int Finder::instruction(INSTRUCTION *inst, int pos) {
+	if ((uint)pos >= reader->size() - Data::MaxCommandSize)
+	{
+		char* buff = new char [Data::MaxCommandSize];
+		memset(buff, 0 , Data::MaxCommandSize);
+		memcpy(buff, reader->pointer() + pos, reader->size() - pos);
+		int ans = get_instruction(inst, (BYTE*) buff, mode);
+		delete [] buff;
+		return ans;
+	}
 	return get_instruction(inst, (BYTE*) (reader->pointer() + pos), mode);
 }
 string Finder::instruction_string(INSTRUCTION *inst, int pos) {

@@ -13,7 +13,7 @@ const uint FinderCycle::maxBackward = 20;
 const uint FinderCycle::maxForward = 100;
 const uint FinderCycle::maxEmulate = 180;
 
-FinderCycle::FinderCycle(int type) : Finder(type), _in_backwards(false)
+FinderCycle::FinderCycle(int type) : Finder(type), _in_backwards(false), am_back(0)
 {
 	regs_known = new bool[RegistersCount];
 	regs_target = new bool[RegistersCount];
@@ -54,7 +54,7 @@ void FinderCycle::launch(int pos)
 	Timer::start(TimeEmulatorStart);
 	emulator->begin(pos);
 	Timer::stop(TimeEmulatorStart);
-	char buff[10] = {0};
+	char buff[30] = {0};
 	int min_eip = emulator->get_register(EIP);
 	int max_eip = 0;
 	for (uint strnum = 0; strnum < maxEmulate; strnum++) {
@@ -211,14 +211,14 @@ int FinderCycle::find() {
 		switch (reader->pointer()[i]) {
 			/// fsave/fnsave: 0x9bdd, 0xdd
 			case 0x9b:
-				if ((reader->pointer()[i+1]) != 0xdd) { /// TODO: check if i+1 is present
+				if ((i + 1 < reader->size()) && ((reader->pointer()[i+1]) != 0xdd)) {
 					continue;
 				}
 			case 0xdd:
 				break;
 			/// fstenv/fnstenv: 0xf2d9, 0xd9
 			case 0xf2:
-				if ((reader->pointer()[i+1]) != 0xd9) { /// TODO: check if i+1 is present
+				if ((i + 1 < reader->size()) && ((reader->pointer()[i+1]) != 0xd9)) {
 					continue;
 				}
 			case 0xd9:
@@ -615,6 +615,7 @@ void FinderCycle::check(INSTRUCTION *inst)
 
 int FinderCycle::backwards_traversal(int pos)
 {
+	am_back = 0;
 	if (regs_closed()) {
 		return pos;
 	}
