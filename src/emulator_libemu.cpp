@@ -3,6 +3,7 @@
 #include <fstream>
 #include <algorithm>
 
+
 extern "C" {
 	#include <emu/emu.h>
 	#include <emu/emu_cpu.h>
@@ -23,6 +24,7 @@ Emulator_LibEmu::Emulator_LibEmu() {
 	e = emu_new();
 	cpu = emu_cpu_get(e);
 	mem = emu_memory_get(e);
+	_mem_start = _mem_size = 0;
 
 	//struct emu_logging *el = emu_logging_get(e);
 	//emu_log_level_set(el, EMU_LOG_DEBUG);
@@ -37,17 +39,24 @@ void Emulator_LibEmu::begin(uint pos) {
 		pos = reader->start();
 	}
 	offset = reader->map(pos) - pos;
+	
 	uint start = max((int) reader->start(), (int) pos - mem_before), end = min(reader->size(), pos + mem_after);
 
 	for (int i=0; i<8; i++) {
 		emu_cpu_reg32_set(cpu, (emu_reg32) i, 0);
 	}
 	emu_cpu_reg32_set(cpu, esp, 0x1000000);
+	
+	
 
 	emu_memory_clear(mem);
+	
 	//emu_memory_write_block(mem, offset + reader->start(), reader->pointer(true), reader->size(true));
 	emu_memory_write_block(mem, offset + start, reader->pointer() + start, end - start);
-
+	
+	_mem_start = start;
+	_mem_size = end - start;
+	
 	jump(pos);
 }
 void Emulator_LibEmu::jump(uint pos) {
@@ -83,8 +92,17 @@ bool Emulator_LibEmu::get_command(char *buff, uint size) {
 }
 bool Emulator_LibEmu::get_memory(char *buff, int addr, uint size)
 {
-	emu_memory_read_block(mem, addr, buff, size);
-	return true;
+	if (addr - offset >= (int)(_mem_start) && addr - offset < (int)(_mem_start + _mem_size))
+	{
+		emu_memory_read_block(mem, addr, buff, size);
+		return true;
+	}
+	else
+	{
+		//cerr << "Mal" << endl;
+		//cerr << addr - offset<< " [" << _mem_start << ", " << _mem_start + _mem_size << "]" << endl;
+		return false;
+	}
 }
 unsigned int Emulator_LibEmu::get_int(int addr, int size)
 {
