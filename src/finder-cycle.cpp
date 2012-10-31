@@ -206,19 +206,21 @@ int FinderCycle::find() {
 	start_positions.clear();
 	targets_found.clear();
 	INSTRUCTION inst;
-	for (uint i=reader->start(); i<reader->size(); i++) {
+	uint start = reader->start(), size = reader->size();
+	const unsigned char* pointer = reader->pointer();
+	for (uint i=start; i<size; i++) {
 		/// TODO: check opcodes
-		switch (reader->pointer()[i]) {
+		switch (pointer[i]) {
 			/// fsave/fnsave: 0x9bdd, 0xdd
 			case 0x9b:
-				if ((i + 1 < reader->size()) && ((reader->pointer()[i+1]) != 0xdd)) {
+				if ((i + 1 < size) && (pointer[i+1] != 0xdd)) {
 					continue;
 				}
 			case 0xdd:
 				break;
 			/// fstenv/fnstenv: 0xf2d9, 0xd9
 			case 0xf2:
-				if ((i + 1 < reader->size()) && ((reader->pointer()[i+1]) != 0xd9)) {
+				if ((i + 1 < size) && (pointer[i+1] != 0xd9)) {
 					continue;
 				}
 			case 0xd9:
@@ -232,7 +234,7 @@ int FinderCycle::find() {
 				continue;
 		}
 		uint len = instruction(&inst, i);
-		if (!len || (len + i > reader->size())) {
+		if (!len || (len + i > size)) {
 			continue;
 		}
 		switch (inst.type) {
@@ -247,7 +249,7 @@ int FinderCycle::find() {
 				if (	(strcmp(inst.ptr->mnemonic,"call") == 0) &&
 					(inst.op1.type == OPERAND_TYPE_IMMEDIATE)) {
 					LOG << "Seeding instruction \"" << instruction_string(i) << "\" on position 0x" << hex << i << "." << endl;
-					if ((i + len + inst.op1.immediate) < reader->size()) {
+					if ((i + len + inst.op1.immediate) < size) {
 						break;
 					}
 				}
