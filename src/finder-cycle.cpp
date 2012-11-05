@@ -17,32 +17,18 @@ FinderCycle::FinderCycle(int type) : Finder(type), _in_backwards(false), am_back
 {
 	regs_known = new bool[RegistersCount];
 	regs_target = new bool[RegistersCount];
-	Timer::start();
 }
 
 FinderCycle::~FinderCycle()
 {
-	Timer::stop();
-
-	LOG	<< endl << endl
-		<< "Time total: " << dec << Timer::secs() << " seconds." << endl
-		<< "Time spent on load: " << dec << Timer::secs(TimeLoad) << " seconds." << endl
-		<< "Time spent on find: " << dec << Timer::secs(TimeFind) << " seconds." << endl
-		<< "Time spent on find_memory_and_jump: " << dec << Timer::secs(TimeFindMemoryAndJump) << " seconds." << endl
-		<< "Time spent on launches: " << dec << Timer::secs(TimeLaunches) << " seconds." << endl
-		<< "Time spent on backwards traversal: " << dec << Timer::secs(TimeBackwardsTraversal) << " seconds." << endl
-		<< "Time spent on emulator launches (total): " << dec << Timer::secs(TimeEmulatorStart) << " seconds." << endl;
-
 	delete[] regs_known;
 	delete[] regs_target;
 }
 void FinderCycle::launch(int pos)
 {
-	Timer::start(TimeLaunches);
 	LOG << " Launching from position 0x" << hex << pos << endl;
 	if (start_positions.count(pos)) {
 		LOG << "  Ignoring launch, already checked." << endl;
-		Timer::stop(TimeLaunches);
 		return;
 	}
 	start_positions.insert(pos);
@@ -51,22 +37,18 @@ void FinderCycle::launch(int pos)
 	bool flag = false;
 //	Command cycle[256];
 	INSTRUCTION inst;
-	Timer::start(TimeEmulatorStart);
 	emulator->begin(pos);
-	Timer::stop(TimeEmulatorStart);
 	char buff[30] = {0};
 	int min_eip = emulator->get_register(EIP);
 	int max_eip = 0;
 	for (uint strnum = 0; strnum < maxEmulate; strnum++) {
 		if (!emulator->get_command(buff)) {
 			LOG << " Execution error, stopping instance." << endl;
-			Timer::stop(TimeLaunches);
 			return;
 		}
 		num = emulator->get_register(EIP);
 		if (!reader->is_valid(num)) {
 			LOG << " Reached end of the memory block, stopping instance." << endl;
-			Timer::stop(TimeLaunches);
 			return;
 		}
 		int inst_len = get_instruction(&inst, (BYTE *) buff, mode);
@@ -75,7 +57,6 @@ void FinderCycle::launch(int pos)
 		LOG << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 		if (!emulator->step()) {
 			LOG << " Execution error, stopping instance." << endl;
-			Timer::stop(TimeLaunches);
 			return;
 		}
 		check(&inst);
@@ -109,16 +90,13 @@ void FinderCycle::launch(int pos)
 				}
 				if (em_start < 0) {
 					LOG <<  " Backwards traversal failed (nothing suitable found)." << endl;
-					Timer::stop(TimeLaunches);
 					return;
 				}
 				if (em_start == pos) {
 					LOG <<  " Backwards traversal found the same position, this shouldn't happen!" << endl;
-					Timer::stop(TimeLaunches);
 					return;
 				}
 				LOG <<  " relaunch (because of " << Registers[i] << "). New position: 0x" << hex << em_start << endl;
-				Timer::stop(TimeLaunches);
 				return launch(em_start);
 			}
 		}
@@ -138,7 +116,6 @@ void FinderCycle::launch(int pos)
 				cycle[barrier] = Command(num,inst);
 				if (!emulator->get_command(buff)) {
 					LOG << " Execution error, stopping instance." << endl;
-					Timer::stop(TimeLaunches);
 					return;
 				}
 				num = emulator->get_register(EIP);
@@ -146,7 +123,6 @@ void FinderCycle::launch(int pos)
 				LOG << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 				if (!emulator->step()) {
 					LOG << " Execution error, stopping instance." << endl;
-					Timer::stop(TimeLaunches);
 					return;
 				}
 				if (num==neednum) {
@@ -191,12 +167,10 @@ void FinderCycle::launch(int pos)
 			//cout << " Indirect write in line #" << k << ", launched from position 0x" << hex << pos << endl;
 			targets_found.insert(cycle[k-1].addr);
 #ifdef FINDER_ONCE
-			Timer::stop(TimeLaunches);
 			exit(0);
 #endif
 		}
 	}
-	Timer::stop(TimeLaunches);
 }
 
 int FinderCycle::find() {
@@ -267,7 +241,6 @@ int FinderCycle::find() {
 
 void FinderCycle::find_memory_and_jump(int pos)
 {
-	Timer::start(TimeFindMemoryAndJump);
 	INSTRUCTION inst;
 	uint len;
 	set<uint> nofollow;
@@ -277,7 +250,6 @@ void FinderCycle::find_memory_and_jump(int pos)
 		len = instruction(&inst,p);
 		if (!len || (len + p > reader->size())) {
 			LOG <<  " Dissasembling failed." << endl;
-			Timer::stop(TimeFindMemoryAndJump);
 			return;
 		}
 		LOG << " Instruction: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
@@ -327,7 +299,6 @@ void FinderCycle::find_memory_and_jump(int pos)
 		}
 		if (error) {
 			LOG << "   Error detected." << endl;
-			Timer::stop(TimeFindMemoryAndJump);
 			return;
 		}
 		if (!is_write_indirect(&inst)) {
@@ -336,7 +307,6 @@ void FinderCycle::find_memory_and_jump(int pos)
 		LOG << "  Write to memory detected: " << instruction_string(&inst,p) << " on position 0x" << hex << p << endl;
 		if (targets_found.count(p)) {
 			LOG << "   Not running, already checked." << endl;
-			Timer::stop(TimeFindMemoryAndJump);
 			return;
 		}
 		memset(regs_known,false,RegistersCount);
@@ -363,15 +333,12 @@ void FinderCycle::find_memory_and_jump(int pos)
 		}
 		if (em_start < 0) {
 			LOG << "   Backwards traversal failed (nothing suitable found)." << endl;
-			Timer::stop(TimeFindMemoryAndJump);
 			return;
 		}
 		print_commands(&instructions_after_getpc,1);
 		launch(em_start);
-		Timer::stop(TimeFindMemoryAndJump);
 		return;
 	}
-	Timer::stop(TimeFindMemoryAndJump);
 }
 
 bool FinderCycle::regs_closed() {
@@ -622,7 +589,6 @@ int FinderCycle::backwards_traversal(int pos)
 		return pos;
 	}
 	_in_backwards = true;
-	Timer::start(TimeBackwardsTraversal);
 	bool regs_target_bak[RegistersCount], regs_known_bak[RegistersCount];
 	memcpy(regs_target_bak,regs_target,RegistersCount);
 	memcpy(regs_known_bak,regs_known,RegistersCount);
@@ -678,7 +644,6 @@ int FinderCycle::backwards_traversal(int pos)
 					}
 				}*/
 				if (ret) {
-					Timer::stop(TimeBackwardsTraversal);
 					_in_backwards = false;
 					return curr;
 				}
@@ -691,7 +656,6 @@ int FinderCycle::backwards_traversal(int pos)
 		m ^= 1;
 		/// TODO: We should also check all static jumps to this point.
 	}
-	Timer::stop(TimeBackwardsTraversal);
 	_in_backwards = false;
 	return -1;
 }

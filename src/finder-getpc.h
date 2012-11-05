@@ -29,10 +29,6 @@ public:
 	*/
 	FinderGetPC(int type=0);
 	/**
-	Destructor of class FinderGetPC.
-	*/
-	~FinderGetPC();
-	/**
 	Wrap on functions finding writes to memory and indirect jumps.
 	*/
 	int find();

@@ -15,17 +15,6 @@ using namespace std;
 
 FinderLibemu::FinderLibemu() : Finder(-1)
 {
-	Timer::start();
-}
-
-FinderLibemu::~FinderLibemu()
-{
-	Timer::stop();
-
-	LOG	<< endl << endl
-		<< "Time total: " << dec << Timer::secs() << " seconds." << endl
-		<< "Time spent on load: " << dec << Timer::secs(TimeLoad) << " seconds." << endl
-		<< "Time spent on find: " << dec << Timer::secs(TimeFind) << " seconds." << endl;
 }
 
 int FinderLibemu::find() {

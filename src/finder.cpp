@@ -74,10 +74,23 @@ Finder::Finder(int type)
 		default:
 			LOG << "### Using unknown emulator. ###" << endl;
 	}
+	Timer::start();
 }
 
 Finder::~Finder()
 {
+	Timer::stop();
+	LOG	<< endl << endl
+		<< "Time total: " << dec << Timer::secs() << " seconds." << endl
+		<< "Time spent on load: " << dec << Timer::secs(TimeLoad) << " seconds." << endl
+		<< "Time spent on find: " << dec << Timer::secs(TimeFind) << " seconds." << endl;
+#ifdef PRINT_TIME
+	cerr 	<< endl
+		<< "Time total: " << dec << Timer::secs() << " seconds." << endl
+		<< "Time spent on load: " << dec << Timer::secs(TimeLoad) << " seconds." << endl
+		<< "Time spent on find: " << dec << Timer::secs(TimeFind) << " seconds." << endl;
+#endif
+
 	if (log) {
 		log->close();
 		delete log;

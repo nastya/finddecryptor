@@ -8,10 +8,6 @@ enum TimeIds {
 	TimeTotal,
 	TimeLoad,
 	TimeFind,
-	TimeFindMemoryAndJump,
-	TimeLaunches,
-	TimeBackwardsTraversal,
-	TimeEmulatorStart,
 	TimeNone
 };
 
@@ -22,12 +18,31 @@ Calculate time
 
 class Timer {
 public:
+	static inline void start(TimeIds id = TimeTotal)
+	{
+		if (!enabled) return;
+		data[id] -= microtime();
+	}
+	static inline void stop(TimeIds id = TimeTotal)
+	{
+		if (!enabled) return;
+		data[id] += microtime();
+	}
+	static inline float secs(TimeIds id = TimeTotal)
+	{
+		return data[id] * 1e-6;
+	}
+
+private:
+	static inline long unsigned int microtime()
+	{
+		struct timeval tv;
+		gettimeofday(&tv,NULL);
+		return (long unsigned int) (1e6*tv.tv_sec + tv.tv_usec);
+	}
+
 	static bool enabled;
-	static void start(TimeIds id = TimeTotal);
-	static void stop(TimeIds id = TimeTotal);
-	static float secs(TimeIds id = TimeTotal);
 	static int data[TimeNone];
-	static long unsigned int microtime();
 };
 
 #endif 

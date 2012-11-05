@@ -13,34 +13,18 @@ const uint FinderGetPC::maxUpGetPC = 20;
 
 FinderGetPC::FinderGetPC(int type) : Finder(type)
 {
-	Timer::start();
 }
 
-FinderGetPC::~FinderGetPC()
-{
-	Timer::stop();
-
-	LOG	<< endl << endl
-		<< "Time total: " << dec << Timer::secs() << " seconds." << endl
-		<< "Time spent on load: " << dec << Timer::secs(TimeLoad) << " seconds." << endl
-		<< "Time spent on find: " << dec << Timer::secs(TimeFind) << " seconds." << endl
-		<< "Time spent on bruteforcing: " << dec << Timer::secs(TimeBackwardsTraversal) << " seconds." << endl
-		<< "Time spent on launches: " << dec << Timer::secs(TimeLaunches) << " seconds." << endl
-		<< "Time spent on emulator launches (total): " << dec << Timer::secs(TimeEmulatorStart) << " seconds." << endl;
-}
 int FinderGetPC::launch(int pos)
 {
 	if (start_positions.count(pos)) {
 		LOG << "Already checked 0x" << hex << pos << ", not running." << endl;
 		return -3;
 	}
-	Timer::start(TimeLaunches);
 	LOG << "Launching from position 0x" << hex << pos << endl;
 	int num;
 	INSTRUCTION inst;
-	Timer::start(TimeEmulatorStart);
 	emulator->begin(pos);
-	Timer::stop(TimeEmulatorStart);
 	char buff[10] = {0};
 	uint last_fpu_ip = 0, saved_eip = 0;
 	bool eip_saved = false, fpu_inst = false;
@@ -48,20 +32,17 @@ int FinderGetPC::launch(int pos)
 	uint sum_len = 0; //total length of emulated instructions
 	for (uint strnum = 0; strnum < maxEmulate; strnum++, sum_len += len) {
 		if ((sum_len >= maxUpGetPC) && (!eip_saved)) {
-			Timer::stop(TimeLaunches);
 			return -2;
 		}
 
 		if (!emulator->get_command(buff)) {
 			LOG << " Execution error, stopping instance." << endl;
-			Timer::stop(TimeLaunches);
 			return -1;
 		}
 
 		num = emulator->get_register(EIP);
 		if (!reader->is_valid(num)) {
 			LOG << " Reached end of the memory block, stopping instance." << endl;
-			Timer::stop(TimeLaunches);
 			return -1;
 		}
 		if (num > pos) {
@@ -71,7 +52,6 @@ int FinderGetPC::launch(int pos)
 		LOG << "  Command: 0x" << hex << num << ": " << instruction_string(&inst, num) << endl;
 		if (!emulator->step()) {
 			LOG << " Execution error, stopping instance." << endl;
-			Timer::stop(TimeLaunches);
 			return -1;
 		}
 
@@ -84,7 +64,6 @@ int FinderGetPC::launch(int pos)
 			{
 				pos_dec.push_back(pos);
 				LOG << " Shellcode found." << endl;
-				Timer::stop(TimeLaunches);
 #ifdef FINDER_LOG
 		for (uint j = 0; j < 40; j++) {
 			if (!emulator->get_command(buff)) {
@@ -158,7 +137,6 @@ int FinderGetPC::launch(int pos)
 			LOG << "   Last FPU IP : " << last_fpu_ip << endl;
 		}
 	}
-	Timer::stop(TimeLaunches);
 	return 0;
 }
 
@@ -224,8 +202,6 @@ int FinderGetPC::find() {
 
 void FinderGetPC::find_dependence(uint pos)
 {
-	Timer::start(TimeBackwardsTraversal);
-
 	for (std::set<uint>::iterator it = start_positions.begin(); it != start_positions.end();) {
 		std::set<uint>::iterator current = it++;
 		if (*current < pos - maxUpGetPC) {
@@ -247,10 +223,8 @@ void FinderGetPC::find_dependence(uint pos)
 		}
 		if (end == pos) {
 			if (launch(i) == -2) {
-				Timer::stop(TimeBackwardsTraversal);
 				return;
 			}
 		}
 	}
-	Timer::stop(TimeBackwardsTraversal);
 }

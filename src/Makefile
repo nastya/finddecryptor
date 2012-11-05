@@ -2,7 +2,7 @@
 CXX		= g++ -Wall -fPIC -O2 -I.
 CC		= gcc -Wall -fPIC -O2 -I.
 DEL_FILE	= rm -f
-#FINDER_FLAGS	= -DFINDER_LOG -DTRY_READERS -DBACKEND_LIBEMU -DBACKEND_QEMU -DBACKEND_GDBWINE
+#FINDER_FLAGS	= -DFINDER_LOG -DPRINT_TIME -DTRY_READERS -DBACKEND_LIBEMU -DBACKEND_QEMU -DBACKEND_GDBWINE
 #EMULATOR_FILES	= ../lib/libemulator_libemu.so ../lib/libemulator_qemu.so ../lib/libemulator_gdbwine.so
 #EMULATORS	= -lemulator_libemu -lemulator_qemu -lemulator_gdbwine
 FINDER_FLAGS	= -DTRY_READERS -DBACKEND_LIBEMU

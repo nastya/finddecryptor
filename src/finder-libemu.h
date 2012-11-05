@@ -20,10 +20,6 @@ public:
 	*/
 	FinderLibemu();
 	/**
-	Destructor of class FinderLibemu.
-	*/
-	~FinderLibemu();
-	/**
 	Wrap on functions finding writes to memory and indirect jumps.
 	*/
 	int find();
