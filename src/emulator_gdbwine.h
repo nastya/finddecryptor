@@ -3,6 +3,9 @@
 
 #include "emulator.h"
 
+namespace find_decryptor
+{
+
 using namespace std;
 
 /**
@@ -69,5 +72,7 @@ private:
 	ostream *out; ///< Stream copy of fd[0][1] - fd used to write information to gdb
 	bool dirty;///< a flag meaning that emulation has already started 
 };
+
+} //namespace find_decryptor
 
 #endif 

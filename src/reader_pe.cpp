@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <cstring>
 
+namespace find_decryptor
+{
+
 using namespace std;
 
 Reader_PE::Reader_PE() : Reader()
@@ -119,3 +122,5 @@ bool Reader_PE::is_within_one_block(uint a,uint b)
 	}
 	return false;
 }
+
+} //namespace find_decryptor

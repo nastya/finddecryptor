@@ -4,6 +4,9 @@
 #include <cstdlib>
 #include <sys/time.h>
 
+namespace find_decryptor
+{
+
 enum TimeIds {
 	TimeTotal,
 	TimeLoad,
@@ -44,5 +47,7 @@ private:
 	static bool enabled;
 	static int data[TimeNone];
 };
+
+} //namespace find_decryptor
 
 #endif 

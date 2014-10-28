@@ -1,6 +1,9 @@
 #ifndef DATA_H
 #define DATA_H
 
+namespace find_decryptor
+{
+
 /**
 @brief
 Some necessary data (about registers and commands).
@@ -25,5 +28,7 @@ public:
 	static const char *Registers[]; ///<observed registers
 	static const unsigned int MaxCommandSize; ///<maximum size of command in 32-bit architecture
 };
+
+} //namespace find_decryptor
 
 #endif 

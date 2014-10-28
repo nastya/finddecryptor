@@ -1,5 +1,8 @@
 #include "data.h"
 
+namespace find_decryptor
+{
+
 const unsigned int Data::MaxCommandSize = 30;
 const char* Data::Registers [] = {
 	"eip","ebp","esp","esi","edi",
@@ -13,3 +16,5 @@ const char* Data::Registers [] = {
 	"hasfpu" // Not a register, but has to be here.
 }; 
 const unsigned int Data::RegistersCount = sizeof(Registers)/sizeof(Registers[0]);
+
+} //namespace find_decryptor

@@ -13,6 +13,9 @@
 	#include "emulator_qemu.h"
 #endif
 
+namespace find_decryptor
+{
+
 using namespace std;
 
 #ifdef FINDER_LOG
@@ -22,6 +25,7 @@ using namespace std;
 #endif
 
 #include <string.h>
+
 
 const Mode Finder::mode = MODE_32;
 const Format Finder::format = FORMAT_INTEL;
@@ -285,3 +289,5 @@ list <int> Finder::get_sizes_list()
 {
 	return dec_sizes;
 }
+
+} //namespace find_decryptor

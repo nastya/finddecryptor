@@ -1,6 +1,9 @@
 #include "fdostream.h"
 #include <unistd.h>
 
+namespace find_decryptor
+{
+
 using namespace std;
 
 fdoutbuf::fdoutbuf(int _fd) : fd(_fd) {
@@ -21,3 +24,5 @@ streamsize fdoutbuf::xsputn(const char* s, streamsize num) {
 fdostream::fdostream(int fd) : ostream(0), buf(fd) {
 	rdbuf(&buf);
 }
+
+} //namespace find_decryptor

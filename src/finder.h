@@ -12,6 +12,9 @@
 #include "emulator.h"
 #include "reader_pe.h"
 
+namespace find_decryptor
+{
+
 using namespace std;
 
 /**
@@ -122,5 +125,7 @@ protected:
 	ofstream *log;///<stream used to write all service information.
 	/** /Debug **/
 };
+
+} //namespace find_decryptor
 
 #endif

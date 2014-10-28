@@ -4,6 +4,9 @@
 #include "reader.h"
 #include "data.h"
 
+namespace find_decryptor
+{
+
 using namespace std;
 
 /**
@@ -55,5 +58,7 @@ public:
 protected:
 	Reader *reader; ///<Pointer to an examplar of Reader class which is used for reading the file and taking interesting information out of the file header (if present).
 };
+
+} //namespace find_decryptor
 
 #endif 

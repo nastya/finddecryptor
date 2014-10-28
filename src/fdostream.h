@@ -4,7 +4,10 @@
 #include <iostream>
 #include <streambuf>
 #include <cstdio>
- 
+
+namespace find_decryptor
+{
+
 using namespace std;
 
 
@@ -24,5 +27,7 @@ class fdostream : public ostream {
 	protected:
 		fdoutbuf buf;
 };
+
+} //namespace find_decryptor
 
 #endif

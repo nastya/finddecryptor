@@ -7,6 +7,9 @@
 #include "finder.h" 
 #include "timer.h"
 
+namespace find_decryptor
+{
+
 using namespace std;
 
 /**
@@ -24,5 +27,7 @@ public:
 	*/
 	int find();
 };
+
+} //namespace find_decryptor
 
 #endif // FINDER_LIBEMU_H

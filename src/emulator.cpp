@@ -1,6 +1,9 @@
 #include "emulator.h"
 #include <sys/types.h>
 
+namespace find_decryptor
+{
+
 Emulator::~Emulator()
 {
 }
@@ -31,4 +34,6 @@ unsigned int Emulator::get_int(int addr, int size)
 		default:;
 	}
 	return 0;
+}
+
 }

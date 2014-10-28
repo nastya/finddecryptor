@@ -4,9 +4,13 @@
 #include <string>
 #include <list>
 
-using namespace std;
+namespace find_decryptor
+{
+	class Finder;
+}
 
-class Finder;
+using namespace std;
+using namespace find_decryptor;
 
 class FindDecryptor {
 public:

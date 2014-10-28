@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <cstring>
 
+namespace find_decryptor
+{
+
 using namespace std;
 
 Reader::Reader(uint base)
@@ -103,3 +106,5 @@ bool Reader::is_within_one_block(uint a, uint b)
 {
 	return is_valid(a) && is_valid(b);
 }
+
+} //namespace find_decryptor

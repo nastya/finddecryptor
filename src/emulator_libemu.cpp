@@ -3,6 +3,8 @@
 #include <fstream>
 #include <algorithm>
 
+namespace find_decryptor
+{
 
 extern "C" {
 	#include <emu/emu.h>
@@ -148,3 +150,5 @@ unsigned int Emulator_LibEmu::get_register(Register reg) {
 	}
 	return 0;
 }
+
+} //namespace find_decryptor

@@ -1,5 +1,8 @@
 #include "finder-getpc.h"
 
+namespace find_decryptor
+{
+
 using namespace std;
 
 #ifdef FINDER_LOG
@@ -228,3 +231,5 @@ void FinderGetPC::find_dependence(uint pos)
 		}
 	}
 }
+
+} //namespace find_decryptor

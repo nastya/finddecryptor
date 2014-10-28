@@ -9,6 +9,9 @@
 
 using namespace std;
 
+namespace find_decryptor
+{
+
 /**
   @brief
     Class finding instructions to emulate.
@@ -106,5 +109,7 @@ protected:
 	int am_back; ///<amount of commands found by backwards traversal
 	Command cycle[256]; // TODO: fix. It should be a member of the Finder::launch(). Here because of qemu lags.
 };
+
+} //namespace find_decryptor
 
 #endif // FINDER_CYCLE_H

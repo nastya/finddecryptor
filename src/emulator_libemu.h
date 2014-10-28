@@ -3,6 +3,9 @@
 
 #include "emulator.h"
 
+namespace find_decryptor
+{
+
 using namespace std;
 
 
@@ -48,5 +51,7 @@ private:
 	static const int mem_after; ///<We do not want to copy more bytes than this after start instruction.
 	
 };
+
+} //namespace find_decryptor
 
 #endif

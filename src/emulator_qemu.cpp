@@ -3,6 +3,9 @@
 
 #include "emulator_qemu.h"
 
+namespace find_decryptor
+{
+
 using namespace std;
 
 const int Emulator_Qemu::mem_before = 10*1024; // 10 KiB, min 1k instuctions
@@ -75,3 +78,5 @@ unsigned int Emulator_Qemu::get_register(Register reg) {
 unsigned int Emulator_Qemu::memory_offset() {
 	return offset;
 }
+
+} // namespace find_decryptor

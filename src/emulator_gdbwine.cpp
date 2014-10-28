@@ -5,6 +5,9 @@
 #include "emulator_gdbwine.h"
 #include "fdostream.h"
 
+namespace find_decryptor
+{
+
 Emulator_GdbWine::Emulator_GdbWine()
 {
 	pid[0] = pid[1] = 0;
@@ -222,3 +225,5 @@ void Emulator_GdbWine::stream_ctl(int fd[3][2])
 		cout << str << endl;
 	}
 }
+
+} //namespace find_decryptor

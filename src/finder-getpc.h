@@ -16,6 +16,9 @@
 #include "emulator.h"
 #include "reader_pe.h"
 
+namespace find_decryptor
+{
+
 using namespace std;
 
 /**
@@ -51,5 +54,7 @@ protected:
 	static const uint maxUpGetPC; ///< New
 	Command cycle[256]; // TODO: fix. It should be a member of the Finder::launch(). Here because of qemu lags.	
 };
+
+} // namespace find_decryptor
 
 #endif // FINDER_GETPC_H

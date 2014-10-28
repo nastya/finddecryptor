@@ -9,6 +9,9 @@ using namespace std;
 	#define LOG if (false) cerr
 #endif
 
+namespace find_decryptor
+{
+
 const uint FinderCycle::maxBackward = 20;
 const uint FinderCycle::maxForward = 100;
 const uint FinderCycle::maxEmulate = 180;
@@ -742,3 +745,5 @@ void FinderCycle::dump_regs() {
 	LOG << endl;
 #endif
 }
+
+} //namespace find_decryptor

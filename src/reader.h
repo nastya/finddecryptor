@@ -3,9 +3,12 @@
 
 #include <string>
 
-using namespace std;
-
 typedef unsigned int uint;
+
+namespace find_decryptor
+{
+
+using namespace std;
 
 /**
 @brief
@@ -83,4 +86,6 @@ protected:
 	uint dataStart; ///<start of the actual data in buffer
 	uint base;///< Base of addresses in memory
 };
+
+} //namespace find_decryptor
 #endif

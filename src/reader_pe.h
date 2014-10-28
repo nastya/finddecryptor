@@ -4,6 +4,9 @@
 #include <string>
 #include "reader.h"
 
+namespace find_decryptor
+{
+
 using namespace std;
 
 /**
@@ -62,4 +65,7 @@ private:
 	uint entry_point;///< Entry point of input file
 	entry* table;///< Table of sections
 };
+
+} //namespace find_decryptor
+
 #endif

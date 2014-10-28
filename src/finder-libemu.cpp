@@ -1,5 +1,8 @@
 #include "finder-libemu.h"
 
+namespace find_decryptor
+{
+
 extern "C" {
 	#include <emu/emu.h>
 	#include <emu/emu_shellcode.h>
@@ -34,3 +37,5 @@ int FinderLibemu::find() {
 	Timer::stop(TimeFind);
 	return pos_dec.size();
 }
+
+} //namespace find_decryptor
