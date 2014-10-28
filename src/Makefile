@@ -26,6 +26,7 @@ OBJECTS		= main.o \
 		  emulator_libemu.o
 
 TARGET		= ../bin/finddecryptor
+TARGET_LIB	= ../lib/libfinddecryptor.so
 INPUT		= ../input/
 OUTPUT		= ../log/output
 
