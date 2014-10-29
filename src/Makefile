@@ -66,7 +66,7 @@ finder-getpc.o: finder-getpc.cpp finder-getpc.h finder.h Makefile
 finder-libemu.o: finder-libemu.cpp finder-libemu.h finder.h Makefile
 	$(CXX) -c finder-libemu.cpp $(FINDER_FLAGS)
 
-finddecryptor.o: finddecryptor.cpp finddecryptor.h finder-cycle.h
+finddecryptor.o: finddecryptor.cpp finddecryptor.h finder-cycle.h finder.h Makefile
 	$(CXX) -c finddecryptor.cpp
 
 data.o: data.cpp data.h
