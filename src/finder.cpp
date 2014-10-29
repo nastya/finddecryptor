@@ -283,27 +283,20 @@ int Finder::get_sizes_list(int max_size, int* found_pos)
 string Finder::get_decryptor(int pos)
 {
 	bool ok = false;
-	list <int>:: iterator it, it2;
-	int size;
-	for (it = pos_dec.begin(), it2 = dec_sizes.begin(); it != pos_dec.end(); it++, it2++)
+	list <int>:: iterator it;
+	list <string>:: iterator it2;
+	string decryptor;
+	for (it = pos_dec.begin(), it2 = decryptors_text.begin(); it != pos_dec.end(); it++, it2++)
 	{
 		if (pos == *it)
 		{
 			ok = true;
-			size = *it2;
+			decryptor = *it2;
 		}
 	}
 	if (!ok)
 		return "No decryptor at given position";
-	INSTRUCTION inst;
-	int len = 0;
-	string answer;
-	for (int i = pos; i < pos + size; i+=len)
-	{
-		len = instruction(&inst, i);
-		answer += instruction_string(&inst, i) + string("\n");
-	}
-	return answer;
+	return decryptor;
 }
 
 list <int> Finder::get_start_list()

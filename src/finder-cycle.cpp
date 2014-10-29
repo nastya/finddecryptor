@@ -1,5 +1,6 @@
 #include "finder-cycle.h"
 #include <stack>
+#include <sstream>
 
 using namespace std;
 
@@ -162,6 +163,12 @@ void FinderCycle::launch(int pos)
 		if (k != -1) {
 			pos_dec.push_back(pos);
 			dec_sizes.push_back(max_eip - min_eip);
+			stringstream s;
+			for (uint i = 0; i <= barrier; i++) {
+				s << "  0x" << hex << cycle[i].addr << ":  " << instruction_string(&(cycle[i].inst), cycle[i].addr) << endl;
+			}
+			string str = s.str();
+			decryptors_text.push_back(str);
 			//cout << "Seeding instruction \"" << instruction_string(pos_getpc) << "\" on position 0x" << hex << pos_getpc << "." << endl;
 			//cout << "Cycle found: " << endl;
 			/*for (uint i = 0; i <= barrier; i++) {
@@ -179,6 +186,7 @@ void FinderCycle::launch(int pos)
 int FinderCycle::find() {
 	pos_dec.clear();
 	dec_sizes.clear();
+	decryptors_text.clear();
 	Timer::start(TimeFind);
 	start_positions.clear();
 	targets_found.clear();

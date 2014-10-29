@@ -98,6 +98,7 @@ protected:
 	static const Format format; ///<format of commands (here it is Intel)
 	list <int> pos_dec; ///<starting positions of found decryptors
 	list <int> dec_sizes; ///<sizes of found decryptors
+	list <string> decryptors_text; ///<found decpyptors as a list of strings
 
 	/**
 	  @param pos Position in input file from which we get instruction.
