@@ -47,3 +47,8 @@ list <int> FindDecryptor::get_sizes_list()
 {
 	return finder->get_sizes_list();
 }
+
+string FindDecryptor::get_decryptor(int pos)
+{
+	return finder->get_decryptor(pos);
+}

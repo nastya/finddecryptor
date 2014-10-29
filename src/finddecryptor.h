@@ -23,6 +23,7 @@ public:
 	list <int> get_start_list();
 	int get_sizes_list(int max, int* list);
 	list <int> get_sizes_list();
+	string get_decryptor(int);
 
 private:
 	Finder *finder;

@@ -67,6 +67,7 @@ public:
 	list <int> get_start_list();
 	int get_sizes_list(int max_size, int* list);
 	list <int> get_sizes_list();
+	string get_decryptor(int);
 protected:
 	/**
 	  Translates registers from libdasm format to the neccessary format used here. 
